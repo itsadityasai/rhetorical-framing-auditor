@@ -20,6 +20,7 @@ def timeout_handler(signum, frame):
 import unicodedata
 import re
 
+# REPORT: explain text normalization choices and their importance for RST parsing
 def normalize_text(text):
 
     text = unicodedata.normalize("NFKC", text)
@@ -68,6 +69,7 @@ parser = None
 
 
 def get_rst(text, article_id):
+    # REPORT: explain timeout mechanism and why we need it
     signal.signal(signal.SIGALRM, timeout_handler)
     signal.alarm(5)  
     try:
@@ -160,6 +162,7 @@ if __name__ == "__main__":
         cuda_device=0,
         relinventory="eng.erst.gum"
     )
+    # REPORT: explain parser params
     print("Parser ready!")
 
     # Load triplets

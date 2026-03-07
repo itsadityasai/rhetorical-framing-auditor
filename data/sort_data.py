@@ -15,6 +15,7 @@ for file in files:
         data = json.load(f)
 
     texts.append(data["content"][:1000])
+    # REPORT: explain why :1000
     biases.append(data["bias_text"])
 
 
@@ -33,11 +34,13 @@ nn = NearestNeighbors(
     algorithm="brute"
 )
 
+# REPORT: explain k value and nearest neighbors params
+
 nn.fit(embeddings)
 
 distances, indices = nn.kneighbors(embeddings)
 
-threshold = 0.8
+threshold = 0.8 # REPORT: mention chosen threshold
 triples = []
 
 for i in range(len(texts)):
@@ -81,3 +84,7 @@ print("Found", len(triples), "triples")
 
 with open("bias_triplets.json", "w") as f:
     json.dump(triples, f, indent=2)
+    
+    
+# REPORT: while most of the ones we checked are accurate there may be a very small percentage (likely ~1%) that are not actually true triplets.
+
