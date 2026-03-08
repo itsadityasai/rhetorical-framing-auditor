@@ -1,6 +1,6 @@
 # Rhetorical Framing Auditor (RFA)
 
-**Team Bedrock** — Yash More, Aayush Batra, Aditya Sai
+**Team Bedrock** — Aditya Sai, Aayush Batra, Yash More
 
 RFA is a framework to detect and explain structural bias in news articles using discourse structure. Rather than looking at word choice, it analyzes *how* facts are positioned in an article's rhetorical structure (RST tree) — specifically, how deeply buried or how nucleus-prominent a shared fact is — to predict the ideological lean (Left / Center / Right) of a news outlet.
 
