@@ -45,7 +45,7 @@ python sort_data.py
 ---
 
 #### `parse_rst.py`
-Loads each article referenced in `bias_triplets.json`, normalizes its text (Unicode cleanup, whitespace), and runs it through the MEGA-DT RST parser (`isanlp_rst`, model `tchewik/isanlp_rst_v3`). Each article is parsed into Elementary Discourse Units (EDUs) and the rhetorical relations between them (with nuclearity and depth). A 5-second timeout per article guards against parser hangs. Already-parsed articles are skipped on re-runs.
+Loads each article referenced in `bias_triplets.json`, normalizes its text (Unicode cleanup, whitespace), and runs it through the ISANLP RST parser (`isanlp_rst`, model `tchewik/isanlp_rst_v3`). Each article is parsed into Elementary Discourse Units (EDUs) and the rhetorical relations between them (with nuclearity and depth). A 5-second timeout per article guards against parser hangs. Already-parsed articles are skipped on re-runs.
 
 **Run from the project root:**
 ```bash
