@@ -1,3 +1,5 @@
+import json
+import os
 from sentence_transformers import SentenceTransformer
 SBERT_MODEL_NAME = "sentence-transformers/all-mpnet-base-v2"
 sbert_model = SentenceTransformer(SBERT_MODEL_NAME)
@@ -97,6 +99,13 @@ class FactCluster:
 
         for cluster_id, edu_ids in self.clusters.items():
 
+            # Keep singleton clusters if they are center EDUs.
+            if len(edu_ids) == 1:
+                only_id = edu_ids[0]
+                if self.edu_lookup[only_id]["bias"] == "center":
+                    refined[cluster_id] = [only_id]
+                continue # skip validate_cluster
+
             valid_pairs = validate_cluster(
                 edu_ids,
                 self.edu_lookup,
@@ -122,6 +131,129 @@ class FactCluster:
         # must be called separately
         
     # TODO: build_facts() => include nuclearity etc
+
+    @staticmethod
+    def _roles(nuclearity):
+        if nuclearity == "NS":
+            return "N", "S"
+        if nuclearity == "SN":
+            return "S", "N"
+        if nuclearity == "NN":
+            return "N", "N"
+        return None, None
+
+    @staticmethod
+    def _satellite_counts(edus, relations):
+        parent_of = {}
+        role_of = {}
+
+        for rel in relations:
+            parent = rel.get("parent")
+            left = rel.get("left")
+            right = rel.get("right")
+            left_role, right_role = FactCluster._roles(rel.get("nuclearity"))
+
+            if left is not None:
+                parent_of[left] = parent
+                role_of[left] = left_role
+            if right is not None:
+                parent_of[right] = parent
+                role_of[right] = right_role
+
+        sat_edges = {}
+        local_role = {}
+
+        for edu in edus:
+            edu_id = edu["id"]
+            local_role[edu_id] = role_of.get(edu_id)
+
+            count = 0
+            cur = edu_id
+            seen = set()
+            while cur in parent_of and cur not in seen:
+                seen.add(cur)
+                if role_of.get(cur) == "S":
+                    count += 1
+                cur = parent_of[cur]
+
+            sat_edges[edu_id] = count
+
+        return sat_edges, local_role
+
+    @staticmethod
+    def _article_id(path):
+        return os.path.basename(path).replace(".json", "")
+
+    @staticmethod
+    def _lookup_for_triplet(triplet, data_dir="data"):
+        rst_output_dir = os.path.join(data_dir, "rst_output")
+        lookup = {}
+
+        for bias_key in ["left", "center", "right"]:
+            triplet_path = triplet.get(bias_key)
+            if not triplet_path:
+                continue
+
+            article_id = FactCluster._article_id(triplet_path)
+            rst_path = os.path.join(rst_output_dir, f"{article_id}.json")
+
+            if not os.path.exists(rst_path):
+                continue
+
+            with open(rst_path, "r") as f:
+                rst = json.load(f)
+
+            edus = rst.get("edus", [])
+            relations = rst.get("relations", [])
+            sat_edges, local_role = FactCluster._satellite_counts(edus, relations)
+
+            for edu in edus:
+                full_edu_id = f"{article_id}_{edu['id']}"
+                lookup[full_edu_id] = {
+                    "text": edu["text"],
+                    "bias": bias_key,
+                    "depth": edu.get("depth"),
+                    "role": local_role.get(edu["id"]),
+                    "satellite_edges_to_root": sat_edges.get(edu["id"], 0),
+                }
+
+        return lookup
+
+    @staticmethod
+    def build_facts(cluster_result, data_dir="data"):
+        triplet = cluster_result.get("triplet", {})
+        clusters = cluster_result.get("clusters", {})
+
+        enriched_lookup = FactCluster._lookup_for_triplet(triplet, data_dir=data_dir)
+
+        facts = []
+        for cluster_id, edu_ids in clusters.items():
+            fact_edus = []
+            for edu_id in edu_ids:
+                meta = enriched_lookup.get(edu_id)
+                if meta is None:
+                    continue
+                fact_edus.append({
+                    "edu_id": edu_id,
+                    **meta
+                })
+
+            if not fact_edus:
+                continue
+
+            facts.append({
+                "cluster_id": cluster_id,
+                "edus": fact_edus
+            })
+
+        return {
+            "triplet_idx": cluster_result.get("triplet_idx"),
+            "triplet": triplet,
+            "clusters": clusters,
+            "edu_lookup": {edu_id: enriched_lookup[edu_id] for edu_ids in clusters.values() for edu_id in edu_ids if edu_id in enriched_lookup},
+            "facts": facts,
+        }
+
     
     def get_clusters(self):
         return self.clusters

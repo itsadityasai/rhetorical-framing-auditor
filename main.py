@@ -25,7 +25,7 @@ def load_rst_edus(article_id): # rst->edus
         return None
     with open(rst_path, "r") as f:
         data = json.load(f)
-    return data["edus"]
+    return data.get("edus", [])
 
 def prepare_article(path):
     article_meta = load_article(path)
@@ -61,7 +61,7 @@ def process_triplet(triplet):
             if edu_id in fc.edu_lookup:
                 edu_lookup[edu_id] = {
                     "text": fc.edu_lookup[edu_id]["text"],
-                    "bias": fc.edu_lookup[edu_id]["bias"]
+                    "bias": fc.edu_lookup[edu_id]["bias"],
                 }
     
     return clusters, edu_lookup
