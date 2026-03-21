@@ -1,0 +1,16 @@
+{
+  "total_input_triplets": 4599,
+  "total_built_rows": 4599,
+  "errors": 0,
+  "seed": 782,
+  "ratios": {
+    "train": 0.8,
+    "val": 0.1,
+    "test": 0.1
+  },
+  "split_sizes": {
+    "train": 3679,
+    "val": 459,
+    "test": 461
+  }
+}
