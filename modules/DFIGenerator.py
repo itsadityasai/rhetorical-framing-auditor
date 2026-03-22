@@ -1,6 +1,3 @@
-import numpy as np
-
-
 class DFIGenerator:
     def __init__(self, alpha=0.8, gamma=0.5, clusters=None, edu_lookup=None):
         self.alpha = alpha
@@ -80,26 +77,7 @@ class DFIGenerator:
 
     @staticmethod
     def build_features(deltas):
-        if len(deltas) == 0:
-            return [0.0] * 10
-
-        arr = np.array(deltas)
-
-        pos = arr[arr > 0]
-        neg = arr[arr < 0]
-
-        return [
-            np.mean(arr),
-            np.std(arr),
-            np.max(arr),
-            np.min(arr),
-            np.sum(arr),
-            len(arr),
-            len(pos),
-            len(neg),
-            np.sum(pos) if len(pos) > 0 else 0.0,
-            np.sum(neg) if len(neg) > 0 else 0.0,
-        ]
+        return list(deltas)
 
     def get_DFIs(self, cluster_ps=None):
         if cluster_ps is None:
