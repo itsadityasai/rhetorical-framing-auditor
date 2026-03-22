@@ -1,6 +1,8 @@
 import json
+import os
 import numpy as np
 from itertools import product
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -21,6 +23,11 @@ SVM_DEGREE = 3 # ignored unless kernel = poly
 
 SVM_KERNEL_OPTIONS = ["linear", "rbf", "poly"]
 SWEEP_VALUES = [0.01, 0.1, 1, 10, 100, 1000, 10000]
+POLY_DEGREES = [1, 5, 10, 15]
+MAX_WORKERS = min(10, os.cpu_count() or 1)
+SWEEP_RESULTS_PATH = "data/svm_sweep_results.json"
+
+_DATA_CACHE = {}
 
 
 # -------- LOAD --------
@@ -96,15 +103,11 @@ def pad_or_truncate(raw_X, target_len):
     return X
 
 
-def run(
-    train_path=TRAIN_PATH,
-    val_path=VAL_PATH,
-    aggregate_features=AGGREGATE_FEATURES,
-    kernel=SVM_KERNEL,
-    C=SVM_C,
-    gamma=SVM_GAMMA,
-    degree=SVM_DEGREE,
-):
+def get_cached_dataset(train_path, val_path, aggregate_features):
+    key = (train_path, val_path, aggregate_features)
+    if key in _DATA_CACHE:
+        return _DATA_CACHE[key]
+
     train = load(train_path)
     val = load(val_path)
 
@@ -119,6 +122,27 @@ def run(
         max_len = max((len(v) for v in X_train_raw), default=0)
         X_train = pad_or_truncate(X_train_raw, max_len)
         X_val = pad_or_truncate(X_val_raw, max_len)
+
+    _DATA_CACHE[key] = (X_train, y_train, X_val, y_val)
+    return _DATA_CACHE[key]
+
+
+def run(
+    train_path=TRAIN_PATH,
+    val_path=VAL_PATH,
+    aggregate_features=AGGREGATE_FEATURES,
+    kernel=SVM_KERNEL,
+    C=SVM_C,
+    gamma=SVM_GAMMA,
+    degree=SVM_DEGREE,
+    verbose=True,
+    return_model=True,
+):
+    X_train, y_train, X_val, y_val = get_cached_dataset(
+        train_path=train_path,
+        val_path=val_path,
+        aggregate_features=aggregate_features,
+    )
 
     model = make_pipeline(
         StandardScaler(),
@@ -139,53 +163,94 @@ def run(
     rand_acc = float((rand_pred == y_val).mean())
     class_counts = np.bincount(y_train)
 
-    print("\n=== SVM Validation Report ===")
-    print(f"Features: {'aggregated' if aggregate_features else 'raw-padded'}")
-    print(f"Train samples: {len(y_train)} | Val samples: {len(y_val)}")
-    print(f"Input dim: {X_train.shape[1]}")
-    print(f"Class balance (train) -> left: {class_counts[0]}, right: {class_counts[1]}")
-    print(f"Params: kernel={kernel}, C={C}, gamma={gamma}, degree={degree}")
-    print(f"Accuracy: {acc:.4f}")
-    print(f"Random baseline: {rand_acc:.4f}")
-    print("Confusion Matrix (rows=true, cols=pred):")
-    print("            pred_left  pred_right")
-    print(f"true_left    {cm[0, 0]:>8}   {cm[0, 1]:>10}")
-    print(f"true_right   {cm[1, 0]:>8}   {cm[1, 1]:>10}")
+    if verbose:
+        print("\n=== SVM Validation Report ===")
+        print(f"Features: {'aggregated' if aggregate_features else 'raw-padded'}")
+        print(f"Train samples: {len(y_train)} | Val samples: {len(y_val)}")
+        print(f"Input dim: {X_train.shape[1]}")
+        print(f"Class balance (train) -> left: {class_counts[0]}, right: {class_counts[1]}")
+        print(f"Params: kernel={kernel}, C={C}, gamma={gamma}, degree={degree}")
+        print(f"Accuracy: {acc:.4f}")
+        print(f"Random baseline: {rand_acc:.4f}")
+        print("Confusion Matrix (rows=true, cols=pred):")
+        print("            pred_left  pred_right")
+        print(f"true_left    {cm[0, 0]:>8}   {cm[0, 1]:>10}")
+        print(f"true_right   {cm[1, 0]:>8}   {cm[1, 1]:>10}")
 
-    return {
-        "model": model,
+    output = {
         "accuracy": float(acc),
         "confusion_matrix": cm.tolist(),
         "random_accuracy": rand_acc,
+        "train_samples": int(len(y_train)),
+        "val_samples": int(len(y_val)),
+        "input_dim": int(X_train.shape[1]),
+        "class_counts": np.bincount(y_train).tolist(),
     }
+    if return_model:
+        output["model"] = model
+    return output
+
+
+def evaluate_combo(combo):
+    aggregate_features, kernel, C, gamma, degree = combo
+    result = run(
+        aggregate_features=aggregate_features,
+        kernel=kernel,
+        C=C,
+        gamma=gamma,
+        degree=degree,
+        verbose=False,
+        return_model=False,
+    )
+    result.update(
+        {
+            "aggregate_features": aggregate_features,
+            "kernel": kernel,
+            "C": C,
+            "gamma": gamma,
+            "degree": degree,
+        }
+    )
+    return result
 
 
 if __name__ == "__main__":
-    total_runs = 0
-    best = None
-
+    combos = []
     for aggregate_features, kernel, C, gamma in product(
         [False, True],
         SVM_KERNEL_OPTIONS,
         SWEEP_VALUES,
         SWEEP_VALUES,
     ):
-        degrees = range(1, 16) if kernel == "poly" else [SVM_DEGREE]
-
+        degrees = POLY_DEGREES if kernel == "poly" else [SVM_DEGREE]
         for degree in degrees:
-            total_runs += 1
-            result = run(
-                aggregate_features=aggregate_features,
-                kernel=kernel,
-                C=C,
-                gamma=gamma,
-                degree=degree,
-            )
+            combos.append((aggregate_features, kernel, C, gamma, degree))
+
+    total_runs = len(combos)
+    best = None
+    completed = 0
+    all_results = []
+
+    print(f"Running {total_runs} combinations with {MAX_WORKERS} workers...")
+
+    with ProcessPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        futures = [executor.submit(evaluate_combo, combo) for combo in combos]
+        for future in as_completed(futures):
+            result = future.result()
+            completed += 1
 
             acc = result["accuracy"]
+            aggregate_features = result["aggregate_features"]
+            kernel = result["kernel"]
+            C = result["C"]
+            gamma = result["gamma"]
+            degree = result["degree"]
+
             print(
-                f"[{total_runs}] agg={aggregate_features} kernel={kernel} C={C} gamma={gamma} degree={degree} -> acc={acc:.4f}"
+                f"[{completed}/{total_runs}] agg={aggregate_features} kernel={kernel} C={C} gamma={gamma} degree={degree} -> acc={acc:.4f}"
             )
+
+            all_results.append(result)
 
             if best is None or acc > best["accuracy"]:
                 best = {
@@ -213,3 +278,17 @@ if __name__ == "__main__":
     print(f"Best accuracy: {best['accuracy']:.4f}")
     print("Best confusion matrix (rows=true, cols=pred):")
     print(np.array(best["confusion_matrix"]))
+
+    with open(SWEEP_RESULTS_PATH, "w") as f:
+        json.dump(
+            {
+                "total_runs": total_runs,
+                "max_workers": MAX_WORKERS,
+                "poly_degrees": POLY_DEGREES,
+                "best": best,
+                "results": sorted(all_results, key=lambda r: r["accuracy"], reverse=True),
+            },
+            f,
+            indent=2,
+        )
+    print(f"Saved sweep results to {SWEEP_RESULTS_PATH}")
