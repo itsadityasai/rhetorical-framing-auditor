@@ -1,5 +1,6 @@
 import json
 import numpy as np
+from itertools import product
 
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -17,6 +18,9 @@ SVM_KERNEL = "rbf"
 SVM_C = 10
 SVM_GAMMA = 0.1
 SVM_DEGREE = 3 # ignored unless kernel = poly
+
+SVM_KERNEL_OPTIONS = ["linear", "rbf", "poly"]
+SWEEP_VALUES = [0.01, 0.1, 1, 10, 100, 1000, 10000]
 
 
 # -------- LOAD --------
@@ -157,4 +161,55 @@ def run(
 
 
 if __name__ == "__main__":
-    run()
+    total_runs = 0
+    best = None
+
+    for aggregate_features, kernel, C, gamma in product(
+        [False, True],
+        SVM_KERNEL_OPTIONS,
+        SWEEP_VALUES,
+        SWEEP_VALUES,
+    ):
+        degrees = range(1, 16) if kernel == "poly" else [SVM_DEGREE]
+
+        for degree in degrees:
+            total_runs += 1
+            result = run(
+                aggregate_features=aggregate_features,
+                kernel=kernel,
+                C=C,
+                gamma=gamma,
+                degree=degree,
+            )
+
+            acc = result["accuracy"]
+            print(
+                f"[{total_runs}] agg={aggregate_features} kernel={kernel} C={C} gamma={gamma} degree={degree} -> acc={acc:.4f}"
+            )
+
+            if best is None or acc > best["accuracy"]:
+                best = {
+                    "accuracy": acc,
+                    "aggregate_features": aggregate_features,
+                    "kernel": kernel,
+                    "C": C,
+                    "gamma": gamma,
+                    "degree": degree,
+                    "confusion_matrix": result["confusion_matrix"],
+                }
+
+    print("\n=== Sweep Complete ===")
+    print(f"Total runs: {total_runs}")
+    print(
+        "Best config:",
+        {
+            "aggregate_features": best["aggregate_features"],
+            "kernel": best["kernel"],
+            "C": best["C"],
+            "gamma": best["gamma"],
+            "degree": best["degree"],
+        },
+    )
+    print(f"Best accuracy: {best['accuracy']:.4f}")
+    print("Best confusion matrix (rows=true, cols=pred):")
+    print(np.array(best["confusion_matrix"]))
