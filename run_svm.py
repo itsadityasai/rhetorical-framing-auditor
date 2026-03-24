@@ -13,6 +13,7 @@ TRAIN_PATH = "data/dfi_splits/train.json"
 VAL_PATH = "data/dfi_splits/val.json"
 
 AGGREGATE_FEATURE_OPTIONS = [False, True]
+INITIAL_AGGREGATE_FEATURES = False
 
 SVM_KERNEL = "rbf"
 SVM_C = 10
@@ -26,6 +27,9 @@ POLY_DEGREES = [1, 5, 10, 15]
 GRID_N_JOBS = -1
 GRID_VERBOSE = 3
 SWEEP_RESULTS_PATH = "data/svm_sweep_results.json"
+
+RUN_INITIAL_TEST = True
+RUN_GRID_SEARCH = True
 
 
 # -------- LOAD --------
@@ -268,6 +272,22 @@ def grid_search_for_mode(train_data, val_data, aggregate_features):
 
 
 if __name__ == "__main__":
+    if RUN_INITIAL_TEST:
+        print("\n===== Initial single run (no grid) =====")
+        run(
+            train_path=TRAIN_PATH,
+            val_path=VAL_PATH,
+            aggregate_features=INITIAL_AGGREGATE_FEATURES,
+            kernel=SVM_KERNEL,
+            C=SVM_C,
+            gamma=SVM_GAMMA,
+            degree=SVM_DEGREE,
+        )
+
+    if not RUN_GRID_SEARCH:
+        print("\nGrid search skipped (RUN_GRID_SEARCH=False)")
+        raise SystemExit(0)
+
     train = load(TRAIN_PATH)
     val = load(VAL_PATH)
 
