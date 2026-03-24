@@ -20,9 +20,8 @@ SVM_C = 10
 SVM_GAMMA = 0.1
 SVM_DEGREE = 3  # ignored unless kernel = poly
 
-C_VALUES = [0.01, 0.1, 1, 10, 100, 1000, 10000]
-GAMMA_VALUES = [0.01, 0.1, 1, 10, 100, 1000, 10000]
-POLY_DEGREES = [1, 5, 10, 15]
+C_VALUES = [0.01, 0.1, 1, 10, 100]
+GAMMA_VALUES = [0.01, 0.1, 1, 10, 100]
 
 GRID_N_JOBS = -1
 GRID_VERBOSE = 3
@@ -178,12 +177,6 @@ def build_param_grid():
             "svc__C": C_VALUES,
             "svc__gamma": GAMMA_VALUES,
         },
-        {
-            "svc__kernel": ["poly"],
-            "svc__C": C_VALUES,
-            "svc__gamma": GAMMA_VALUES,
-            "svc__degree": POLY_DEGREES,
-        },
     ]
 
 
@@ -307,7 +300,6 @@ if __name__ == "__main__":
         "grid_verbose": GRID_VERBOSE,
         "c_values": C_VALUES,
         "gamma_values": GAMMA_VALUES,
-        "poly_degrees": POLY_DEGREES,
         "total_runs": len(all_records),
         "best_per_mode": best_summaries,
         "best_overall": best_overall,
