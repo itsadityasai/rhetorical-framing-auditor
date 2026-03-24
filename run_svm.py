@@ -1,33 +1,31 @@
 import json
-import os
 import numpy as np
-from itertools import product
-from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.model_selection import GridSearchCV, PredefinedSplit, ParameterGrid
 
 
 # -------- CONFIG --------
 TRAIN_PATH = "data/dfi_splits/train.json"
 VAL_PATH = "data/dfi_splits/val.json"
 
-AGGREGATE_FEATURES = False
+AGGREGATE_FEATURE_OPTIONS = [False, True]
 
 SVM_KERNEL = "rbf"
 SVM_C = 10
 SVM_GAMMA = 0.1
-SVM_DEGREE = 3 # ignored unless kernel = poly
+SVM_DEGREE = 3  # ignored unless kernel = poly
 
-SVM_KERNEL_OPTIONS = ["linear", "rbf", "poly"]
-SWEEP_VALUES = [0.01, 0.1, 1, 10, 100, 1000, 10000]
+C_VALUES = [0.01, 0.1, 1, 10, 100, 1000, 10000]
+GAMMA_VALUES = [0.01, 0.1, 1, 10, 100, 1000, 10000]
 POLY_DEGREES = [1, 5, 10, 15]
-MAX_WORKERS = min(10, os.cpu_count() or 1)
-SWEEP_RESULTS_PATH = "data/svm_sweep_results.json"
 
-_DATA_CACHE = {}
+GRID_N_JOBS = -1
+GRID_VERBOSE = 3
+SWEEP_RESULTS_PATH = "data/svm_sweep_results.json"
 
 
 # -------- LOAD --------
@@ -60,8 +58,7 @@ def summarize_deltas(deltas):
 
 
 def aggregate_features(side_deltas):
-    side = summarize_deltas(side_deltas)
-    return side
+    return summarize_deltas(side_deltas)
 
 
 def build_xy_aggregated(data):
@@ -69,13 +66,11 @@ def build_xy_aggregated(data):
     y = []
 
     for row in data:
-        # LEFT sample
         X.append(aggregate_features(row["dfi_left"]))
-        y.append(0)  # left
+        y.append(0)
 
-        # RIGHT sample
         X.append(aggregate_features(row["dfi_right"]))
-        y.append(1)  # right
+        y.append(1)
 
     return np.array(X, dtype=float), np.array(y)
 
@@ -103,55 +98,38 @@ def pad_or_truncate(raw_X, target_len):
     return X
 
 
-def get_cached_dataset(train_path, val_path, aggregate_features):
-    key = (train_path, val_path, aggregate_features)
-    if key in _DATA_CACHE:
-        return _DATA_CACHE[key]
-
-    train = load(train_path)
-    val = load(val_path)
-
+def prepare_train_val(train_data, val_data, aggregate_features):
     if aggregate_features:
-        X_train, y_train = build_xy_aggregated(train)
-        X_val, y_val = build_xy_aggregated(val)
-    else:
-        X_train_raw, y_train = build_xy_raw(train)
-        X_val_raw, y_val = build_xy_raw(val)
+        X_train, y_train = build_xy_aggregated(train_data)
+        X_val, y_val = build_xy_aggregated(val_data)
+        return X_train, y_train, X_val, y_val
 
-        # Raw deltas are variable-length, so we fix dimensionality with zero-padding.
-        max_len = max((len(v) for v in X_train_raw), default=0)
-        X_train = pad_or_truncate(X_train_raw, max_len)
-        X_val = pad_or_truncate(X_val_raw, max_len)
+    X_train_raw, y_train = build_xy_raw(train_data)
+    X_val_raw, y_val = build_xy_raw(val_data)
 
-    _DATA_CACHE[key] = (X_train, y_train, X_val, y_val)
-    return _DATA_CACHE[key]
+    max_len = max((len(v) for v in X_train_raw), default=0)
+    X_train = pad_or_truncate(X_train_raw, max_len)
+    X_val = pad_or_truncate(X_val_raw, max_len)
+    return X_train, y_train, X_val, y_val
 
 
 def run(
     train_path=TRAIN_PATH,
     val_path=VAL_PATH,
-    aggregate_features=AGGREGATE_FEATURES,
+    aggregate_features=False,
     kernel=SVM_KERNEL,
     C=SVM_C,
     gamma=SVM_GAMMA,
     degree=SVM_DEGREE,
-    verbose=True,
-    return_model=True,
 ):
-    X_train, y_train, X_val, y_val = get_cached_dataset(
-        train_path=train_path,
-        val_path=val_path,
-        aggregate_features=aggregate_features,
-    )
+    train = load(train_path)
+    val = load(val_path)
+
+    X_train, y_train, X_val, y_val = prepare_train_val(train, val, aggregate_features)
 
     model = make_pipeline(
         StandardScaler(),
-        SVC(
-            kernel=kernel,
-            C=C,
-            gamma=gamma,
-            degree=degree,
-        )
+        SVC(kernel=kernel, C=C, gamma=gamma, degree=degree)
     )
 
     model.fit(X_train, y_train)
@@ -159,136 +137,167 @@ def run(
 
     acc = accuracy_score(y_val, y_pred)
     cm = confusion_matrix(y_val, y_pred)
-    rand_pred = np.random.randint(0, 2, size=len(y_val))
-    rand_acc = float((rand_pred == y_val).mean())
-    class_counts = np.bincount(y_train)
 
-    if verbose:
-        print("\n=== SVM Validation Report ===")
-        print(f"Features: {'aggregated' if aggregate_features else 'raw-padded'}")
-        print(f"Train samples: {len(y_train)} | Val samples: {len(y_val)}")
-        print(f"Input dim: {X_train.shape[1]}")
-        print(f"Class balance (train) -> left: {class_counts[0]}, right: {class_counts[1]}")
-        print(f"Params: kernel={kernel}, C={C}, gamma={gamma}, degree={degree}")
-        print(f"Accuracy: {acc:.4f}")
-        print(f"Random baseline: {rand_acc:.4f}")
-        print("Confusion Matrix (rows=true, cols=pred):")
-        print("            pred_left  pred_right")
-        print(f"true_left    {cm[0, 0]:>8}   {cm[0, 1]:>10}")
-        print(f"true_right   {cm[1, 0]:>8}   {cm[1, 1]:>10}")
+    print("\n=== SVM Validation Report ===")
+    print(f"Features: {'aggregated' if aggregate_features else 'raw-padded'}")
+    print(f"Train samples: {len(y_train)} | Val samples: {len(y_val)}")
+    print(f"Input dim: {X_train.shape[1]}")
+    print(f"Params: kernel={kernel}, C={C}, gamma={gamma}, degree={degree}")
+    print(f"Accuracy: {acc:.4f}")
+    print("Confusion Matrix (rows=true, cols=pred):")
+    print("            pred_left  pred_right")
+    print(f"true_left    {cm[0, 0]:>8}   {cm[0, 1]:>10}")
+    print(f"true_right   {cm[1, 0]:>8}   {cm[1, 1]:>10}")
 
-    output = {
+    return {
+        "model": model,
         "accuracy": float(acc),
         "confusion_matrix": cm.tolist(),
-        "random_accuracy": rand_acc,
-        "train_samples": int(len(y_train)),
-        "val_samples": int(len(y_val)),
-        "input_dim": int(X_train.shape[1]),
-        "class_counts": np.bincount(y_train).tolist(),
-    }
-    if return_model:
-        output["model"] = model
-    return output
-
-
-def evaluate_combo(combo):
-    aggregate_features, kernel, C, gamma, degree = combo
-    result = run(
-        aggregate_features=aggregate_features,
-        kernel=kernel,
-        C=C,
-        gamma=gamma,
-        degree=degree,
-        verbose=False,
-        return_model=False,
-    )
-    result.update(
-        {
-            "aggregate_features": aggregate_features,
+        "params": {
             "kernel": kernel,
             "C": C,
             "gamma": gamma,
             "degree": degree,
-        }
+            "aggregate_features": aggregate_features,
+        },
+    }
+
+
+def build_param_grid():
+    return [
+        {
+            "svc__kernel": ["linear"],
+            "svc__C": C_VALUES,
+        },
+        {
+            "svc__kernel": ["rbf"],
+            "svc__C": C_VALUES,
+            "svc__gamma": GAMMA_VALUES,
+        },
+        {
+            "svc__kernel": ["poly"],
+            "svc__C": C_VALUES,
+            "svc__gamma": GAMMA_VALUES,
+            "svc__degree": POLY_DEGREES,
+        },
+    ]
+
+
+def count_candidates(param_grid):
+    return sum(len(list(ParameterGrid([grid]))) for grid in param_grid)
+
+
+def grid_search_for_mode(train_data, val_data, aggregate_features):
+    X_train, y_train, X_val, y_val = prepare_train_val(train_data, val_data, aggregate_features)
+
+    X_all = np.vstack([X_train, X_val])
+    y_all = np.concatenate([y_train, y_val])
+
+    # Use train as training fold (-1) and val as validation fold (0)
+    test_fold = np.array([-1] * len(y_train) + [0] * len(y_val))
+    split = PredefinedSplit(test_fold)
+
+    pipeline = make_pipeline(StandardScaler(), SVC())
+
+    param_grid = build_param_grid()
+    total_candidates = count_candidates(param_grid)
+    print(f"Grid candidates for aggregate_features={aggregate_features}: {total_candidates}")
+    print(f"Progress will be shown by sklearn as [CV ...; x/{total_candidates}]")
+
+    gs = GridSearchCV(
+        estimator=pipeline,
+        param_grid=param_grid,
+        scoring="accuracy",
+        cv=split,
+        n_jobs=GRID_N_JOBS,
+        verbose=GRID_VERBOSE,
+        refit=False,
+        return_train_score=False,
     )
-    return result
+
+    gs.fit(X_all, y_all)
+
+    # Build per-combo records from native sklearn results
+    records = []
+    n = len(gs.cv_results_["params"])
+    for i in range(n):
+        rec = {
+            "aggregate_features": aggregate_features,
+            "params": gs.cv_results_["params"][i],
+            "accuracy": float(gs.cv_results_["mean_test_score"][i]),
+            "rank": int(gs.cv_results_["rank_test_score"][i]),
+            "fit_time": float(gs.cv_results_["mean_fit_time"][i]),
+            "score_time": float(gs.cv_results_["mean_score_time"][i]),
+            "train_samples": int(len(y_train)),
+            "val_samples": int(len(y_val)),
+            "input_dim": int(X_train.shape[1]),
+        }
+        records.append(rec)
+
+    # Evaluate confusion matrix for best params in this mode
+    best_idx = int(np.argmax(gs.cv_results_["mean_test_score"]))
+    best_params = gs.cv_results_["params"][best_idx]
+    best_kernel = best_params["svc__kernel"]
+    best_C = best_params["svc__C"]
+    best_gamma = best_params.get("svc__gamma", "scale")
+    best_degree = best_params.get("svc__degree", 3)
+
+    best_eval = run(
+        train_path=TRAIN_PATH,
+        val_path=VAL_PATH,
+        aggregate_features=aggregate_features,
+        kernel=best_kernel,
+        C=best_C,
+        gamma=best_gamma,
+        degree=best_degree,
+    )
+
+    best_summary = {
+        "aggregate_features": aggregate_features,
+        "params": {
+            "kernel": best_kernel,
+            "C": best_C,
+            "gamma": best_gamma,
+            "degree": best_degree,
+        },
+        "accuracy": best_eval["accuracy"],
+        "confusion_matrix": best_eval["confusion_matrix"],
+    }
+
+    return records, best_summary
 
 
 if __name__ == "__main__":
-    combos = []
-    for aggregate_features, kernel, C, gamma in product(
-        [False, True],
-        SVM_KERNEL_OPTIONS,
-        SWEEP_VALUES,
-        SWEEP_VALUES,
-    ):
-        degrees = POLY_DEGREES if kernel == "poly" else [SVM_DEGREE]
-        for degree in degrees:
-            combos.append((aggregate_features, kernel, C, gamma, degree))
+    train = load(TRAIN_PATH)
+    val = load(VAL_PATH)
 
-    total_runs = len(combos)
-    best = None
-    completed = 0
-    all_results = []
+    all_records = []
+    best_summaries = []
 
-    print(f"Running {total_runs} combinations with {MAX_WORKERS} workers...")
+    for mode in AGGREGATE_FEATURE_OPTIONS:
+        print(f"\n===== Grid search mode: aggregate_features={mode} =====")
+        records, best_summary = grid_search_for_mode(train, val, mode)
+        all_records.extend(records)
+        best_summaries.append(best_summary)
 
-    with ProcessPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        futures = [executor.submit(evaluate_combo, combo) for combo in combos]
-        for future in as_completed(futures):
-            result = future.result()
-            completed += 1
+    best_overall = max(best_summaries, key=lambda x: x["accuracy"])
 
-            acc = result["accuracy"]
-            aggregate_features = result["aggregate_features"]
-            kernel = result["kernel"]
-            C = result["C"]
-            gamma = result["gamma"]
-            degree = result["degree"]
-
-            print(
-                f"[{completed}/{total_runs}] agg={aggregate_features} kernel={kernel} C={C} gamma={gamma} degree={degree} -> acc={acc:.4f}"
-            )
-
-            all_results.append(result)
-
-            if best is None or acc > best["accuracy"]:
-                best = {
-                    "accuracy": acc,
-                    "aggregate_features": aggregate_features,
-                    "kernel": kernel,
-                    "C": C,
-                    "gamma": gamma,
-                    "degree": degree,
-                    "confusion_matrix": result["confusion_matrix"],
-                }
-
-    print("\n=== Sweep Complete ===")
-    print(f"Total runs: {total_runs}")
-    print(
-        "Best config:",
-        {
-            "aggregate_features": best["aggregate_features"],
-            "kernel": best["kernel"],
-            "C": best["C"],
-            "gamma": best["gamma"],
-            "degree": best["degree"],
-        },
-    )
-    print(f"Best accuracy: {best['accuracy']:.4f}")
-    print("Best confusion matrix (rows=true, cols=pred):")
-    print(np.array(best["confusion_matrix"]))
+    payload = {
+        "grid_n_jobs": GRID_N_JOBS,
+        "grid_verbose": GRID_VERBOSE,
+        "c_values": C_VALUES,
+        "gamma_values": GAMMA_VALUES,
+        "poly_degrees": POLY_DEGREES,
+        "total_runs": len(all_records),
+        "best_per_mode": best_summaries,
+        "best_overall": best_overall,
+        "results": sorted(all_records, key=lambda r: r["accuracy"], reverse=True),
+    }
 
     with open(SWEEP_RESULTS_PATH, "w") as f:
-        json.dump(
-            {
-                "total_runs": total_runs,
-                "max_workers": MAX_WORKERS,
-                "poly_degrees": POLY_DEGREES,
-                "best": best,
-                "results": sorted(all_results, key=lambda r: r["accuracy"], reverse=True),
-            },
-            f,
-            indent=2,
-        )
+        json.dump(payload, f, indent=2)
+
+    print("\n=== Grid Search Complete ===")
+    print(f"Total runs: {len(all_records)}")
+    print("Best overall:", best_overall)
     print(f"Saved sweep results to {SWEEP_RESULTS_PATH}")
