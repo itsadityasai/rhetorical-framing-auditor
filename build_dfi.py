@@ -2,6 +2,7 @@ import json
 import os
 import random
 import time
+from collections import defaultdict, deque
 
 from modules.DFIGenerator import DFIGenerator
 
@@ -54,28 +55,130 @@ def build_triplet_dfi(fact_result):
 	}
 
 
+def extract_triplet_doc_ids(row):
+	triplet = row.get("triplet", {})
+	doc_ids = set()
+	for key in ["left", "center", "right"]:
+		path = triplet.get(key)
+		if path:
+			doc_ids.add(os.path.basename(path).replace(".json", ""))
+	return doc_ids
+
+
+def build_connected_components(rows):
+	# Two triplets are connected if they share any document ID.
+	triplet_docs = [extract_triplet_doc_ids(r) for r in rows]
+	doc_to_triplets = defaultdict(list)
+
+	for i, docs in enumerate(triplet_docs):
+		for doc_id in docs:
+			doc_to_triplets[doc_id].append(i)
+
+	unseen = set(range(len(rows)))
+	components = []
+
+	while unseen:
+		start = unseen.pop()
+		queue = deque([start])
+		component = [start]
+
+		while queue:
+			cur = queue.popleft()
+			for doc_id in triplet_docs[cur]:
+				for nbr in doc_to_triplets[doc_id]:
+					if nbr in unseen:
+						unseen.remove(nbr)
+						queue.append(nbr)
+						component.append(nbr)
+
+		components.append(component)
+
+	return components, triplet_docs
+
+
 def split_triplets(rows, train_ratio=TRAIN_RATIO, val_ratio=VAL_RATIO, test_ratio=TEST_RATIO, seed=RANDOM_SEED):
 	if abs((train_ratio + val_ratio + test_ratio) - 1.0) > 1e-8:
 		raise ValueError("Split ratios must sum to 1.0")
 
 	n = len(rows)
-	idx = list(range(n))
+	targets = {
+		"train": int(n * train_ratio),
+		"val": int(n * val_ratio),
+	}
+	targets["test"] = n - targets["train"] - targets["val"]
+
+	components, triplet_docs = build_connected_components(rows)
 	rng = random.Random(seed)
-	rng.shuffle(idx)
+	# Shuffle first for tie-breaking, then assign larger connected components first.
+	rng.shuffle(components)
+	components.sort(key=len, reverse=True)
+	component_sizes = sorted((len(c) for c in components), reverse=True)
 
-	n_train = int(n * train_ratio)
-	n_val = int(n * val_ratio)
-	n_test = n - n_train - n_val
+	assigned = {
+		"train": [],
+		"val": [],
+		"test": [],
+	}
+	counts = {"train": 0, "val": 0, "test": 0}
+	priority = ["train", "val", "test"]
 
-	train_idx = set(idx[:n_train])
-	val_idx = set(idx[n_train:n_train + n_val])
-	test_idx = set(idx[n_train + n_val:n_train + n_val + n_test])
+	for comp in components:
+		comp_size = len(comp)
 
-	train_rows = [rows[i] for i in range(n) if i in train_idx]
-	val_rows = [rows[i] for i in range(n) if i in val_idx]
-	test_rows = [rows[i] for i in range(n) if i in test_idx]
+		# First try to fill the split with the largest remaining deficit (train-priority tie-break).
+		deficit_splits = [
+			s for s in priority
+			if targets[s] - counts[s] > 0
+		]
 
-	return train_rows, val_rows, test_rows
+		if deficit_splits:
+			best_split = max(
+				deficit_splits,
+				key=lambda s: (targets[s] - counts[s], -priority.index(s))
+			)
+		else:
+			# If all targets are already met/over, place component where overshoot is smallest.
+			best_split = min(
+				priority,
+				key=lambda s: (
+					(counts[s] + comp_size - targets[s]) ** 2,
+					priority.index(s),
+				)
+			)
+
+		assigned[best_split].extend(comp)
+		counts[best_split] += comp_size
+
+	train_rows = [rows[i] for i in assigned["train"]]
+	val_rows = [rows[i] for i in assigned["val"]]
+	test_rows = [rows[i] for i in assigned["test"]]
+
+	# Safety check: no document overlap across splits.
+	def docs_for(indices):
+		docs = set()
+		for i in indices:
+			docs.update(triplet_docs[i])
+		return docs
+
+	train_docs = docs_for(assigned["train"])
+	val_docs = docs_for(assigned["val"])
+	test_docs = docs_for(assigned["test"])
+
+	if (train_docs & val_docs) or (train_docs & test_docs) or (val_docs & test_docs):
+		raise RuntimeError("Split leakage detected: some document IDs appear in multiple sets")
+
+	split_info = {
+		"targets": targets,
+		"achieved": counts,
+		"components": {
+			"count": len(components),
+			"largest": component_sizes[0] if component_sizes else 0,
+			"smallest": component_sizes[-1] if component_sizes else 0,
+			"singletons": sum(1 for s in component_sizes if s == 1),
+		},
+	}
+
+	return train_rows, val_rows, test_rows, split_info
 
 
 if __name__ == "__main__":
@@ -101,7 +204,30 @@ if __name__ == "__main__":
 
 	print()
 
-	train_rows, val_rows, test_rows = split_triplets(dfi_rows)
+	train_rows, val_rows, test_rows, split_info = split_triplets(dfi_rows)
+
+	def collect_docs(split_rows):
+		docs = set()
+		for row in split_rows:
+			docs.update(extract_triplet_doc_ids(row))
+		return docs
+
+	train_docs = collect_docs(train_rows)
+	val_docs = collect_docs(val_rows)
+	test_docs = collect_docs(test_rows)
+
+	print("Leakage-safe component stats:")
+	print(
+		f"components={split_info['components']['count']} | "
+		f"largest={split_info['components']['largest']} | "
+		f"singletons={split_info['components']['singletons']}"
+	)
+	print(
+		"Target vs achieved triplets: "
+		f"train {split_info['targets']['train']}->{split_info['achieved']['train']}, "
+		f"val {split_info['targets']['val']}->{split_info['achieved']['val']}, "
+		f"test {split_info['targets']['test']}->{split_info['achieved']['test']}"
+	)
 
 	save_json(os.path.join(OUT_DIR, "train.json"), train_rows)
 	save_json(os.path.join(OUT_DIR, "val.json"), val_rows)
@@ -123,6 +249,17 @@ if __name__ == "__main__":
 				"train": len(train_rows),
 				"val": len(val_rows),
 				"test": len(test_rows),
+			},
+			"split_info": split_info,
+			"doc_sizes": {
+				"train": len(train_docs),
+				"val": len(val_docs),
+				"test": len(test_docs),
+			},
+			"doc_overlap": {
+				"train_val": len(train_docs & val_docs),
+				"train_test": len(train_docs & test_docs),
+				"val_test": len(val_docs & test_docs),
 			},
 		},
 	)

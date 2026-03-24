@@ -12,5 +12,33 @@
     "train": 3679,
     "val": 459,
     "test": 461
+  },
+  "split_info": {
+    "targets": {
+      "train": 3679,
+      "val": 459,
+      "test": 461
+    },
+    "achieved": {
+      "train": 3679,
+      "val": 459,
+      "test": 461
+    },
+    "components": {
+      "count": 371,
+      "largest": 742,
+      "smallest": 1,
+      "singletons": 133
+    }
+  },
+  "doc_sizes": {
+    "train": 1812,
+    "val": 521,
+    "test": 526
+  },
+  "doc_overlap": {
+    "train_val": 0,
+    "train_test": 0,
+    "val_test": 0
   }
 }
