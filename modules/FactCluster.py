@@ -56,7 +56,6 @@ def cluster(encoded_edus):
         n_clusters=AGGLOMERATIVE_PARAMS["n_clusters"],
     )
     # REPORT: explain clustering params
-    # TODO: experiment with clustering params
     
     ids = list(encoded_edus.keys())
     embeddings = np.array(list(encoded_edus.values()))
@@ -71,7 +70,6 @@ def cluster(encoded_edus):
     return clusters
 
 def validate_cluster(cluster_ids, edu_lookup, threshold=PAIR_VALIDATION_THRESHOLD):
-    # TODO: try different thresholds
     # REPORT: explain threshold choice and its impact on precision/recall of fact clustering
 
     if len(cluster_ids) < 2:
@@ -150,8 +148,6 @@ class FactCluster:
         self.clusters = refined
         # must be called separately
         
-    # TODO: build_facts() => include nuclearity etc
-
     @staticmethod
     def _roles(nuclearity):
         if nuclearity == "NS":

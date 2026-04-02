@@ -14,7 +14,7 @@ class DFIGenerator:
         self.clusters = clusters
         self.edu_lookup = edu_lookup
 
-    def W(self, depth, sat_count):  # TODO: tune these later
+    def W(self, depth, sat_count): 
         return (self.alpha ** (depth + 1)) * (self.gamma ** sat_count)
         # REPORT: explain simplified formula
 
