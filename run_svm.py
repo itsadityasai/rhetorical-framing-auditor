@@ -1,12 +1,14 @@
 import json
 import numpy as np
 import yaml
+import time
 
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.model_selection import GridSearchCV, PredefinedSplit, ParameterGrid
+from modules.run_logger import init_run_logging, log_run_results, close_run_logging
 
 
 with open("params.yaml", "r") as f:
@@ -38,6 +40,33 @@ SWEEP_RESULTS_PATH = params["paths"]["files"]["svm_sweep_results"]
 
 RUN_INITIAL_TEST = svm_grid_params["run_initial_test"]
 RUN_GRID_SEARCH = svm_grid_params["run_grid_search"]
+
+RUN_LOG = init_run_logging(
+    script_subdir="run_svm",
+    hyperparams={
+        "train_path": TRAIN_PATH,
+        "val_path": VAL_PATH,
+        "aggregate_feature_options": AGGREGATE_FEATURE_OPTIONS,
+        "initial_aggregate_features": INITIAL_AGGREGATE_FEATURES,
+        "svm": {
+            "kernel": SVM_KERNEL,
+            "C": SVM_C,
+            "gamma": SVM_GAMMA,
+            "degree": SVM_DEGREE,
+        },
+        "grid_search": {
+            "c_values": C_VALUES,
+            "gamma_values": GAMMA_VALUES,
+            "n_jobs": GRID_N_JOBS,
+            "verbose": GRID_VERBOSE,
+            "run_initial_test": RUN_INITIAL_TEST,
+            "run_grid_search": RUN_GRID_SEARCH,
+        },
+        "sweep_results_path": SWEEP_RESULTS_PATH,
+    },
+)
+
+RUN_START_TIME = time.time()
 
 
 # -------- LOAD --------
@@ -274,9 +303,11 @@ def grid_search_for_mode(train_data, val_data, aggregate_features):
 
 
 if __name__ == "__main__":
+    initial_result = None
+
     if RUN_INITIAL_TEST:
         print("\n===== Initial single run (no grid) =====")
-        run(
+        initial_result = run(
             train_path=TRAIN_PATH,
             val_path=VAL_PATH,
             aggregate_features=INITIAL_AGGREGATE_FEATURES,
@@ -288,6 +319,18 @@ if __name__ == "__main__":
 
     if not RUN_GRID_SEARCH:
         print("\nGrid search skipped (RUN_GRID_SEARCH=False)")
+        log_run_results(
+            RUN_LOG,
+            {
+                "mode": "initial_only",
+                "initial_result": {
+                    "accuracy": None if initial_result is None else initial_result["accuracy"],
+                    "params": None if initial_result is None else initial_result["params"],
+                },
+                "elapsed_seconds": round(time.time() - RUN_START_TIME, 3),
+            },
+        )
+        close_run_logging(RUN_LOG, status="success")
         raise SystemExit(0)
 
     train = load(TRAIN_PATH)
@@ -322,3 +365,19 @@ if __name__ == "__main__":
     print(f"Total runs: {len(all_records)}")
     print("Best overall:", best_overall)
     print(f"Saved sweep results to {SWEEP_RESULTS_PATH}")
+
+    log_run_results(
+        RUN_LOG,
+        {
+            "mode": "grid_search",
+            "initial_result": {
+                "accuracy": None if initial_result is None else initial_result["accuracy"],
+                "params": None if initial_result is None else initial_result["params"],
+            },
+            "best_overall": best_overall,
+            "total_runs": len(all_records),
+            "sweep_results_path": SWEEP_RESULTS_PATH,
+            "elapsed_seconds": round(time.time() - RUN_START_TIME, 3),
+        },
+    )
+    close_run_logging(RUN_LOG, status="success")

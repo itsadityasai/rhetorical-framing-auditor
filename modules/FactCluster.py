@@ -20,6 +20,7 @@ AGGLOMERATIVE_PARAMS = params["fact_clustering"]["agglomerative"]
 PAIR_VALIDATION_THRESHOLD = params["fact_clustering"]["pair_validation"]["threshold"]
 DEFAULT_REFINE_THRESHOLD = params["fact_clustering"]["refine_threshold"]
 SINGLETON_KEEP_BIAS = params["fact_clustering"]["singleton_keep_bias"]
+DATA_DIR = params["paths"]["dirs"]["data"]
 
 
 def idify_edus(article): # article: {article_id, bias:left, center, right, edus: [{id, text}]}
@@ -243,12 +244,17 @@ class FactCluster:
         triplet = cluster_result["triplet"]
         clusters = cluster_result["clusters"]
         edu_lookup = cluster_result["edu_lookup"]
+        rst_lookup = FactCluster._lookup_for_triplet(triplet, data_dir=DATA_DIR)
         
         enriched_lookup = {}
         for edu_id, edu_info in edu_lookup.items():
+            rst_info = rst_lookup.get(edu_id, {})
             enriched_lookup[edu_id] = {
-                "text": edu_info["text"],
-                "bias": edu_info["bias"]
+                "text": rst_info.get("text", edu_info.get("text")),
+                "bias": rst_info.get("bias", edu_info.get("bias")),
+                "depth": rst_info.get("depth", 0),
+                "role": rst_info.get("role"),
+                "satellite_edges_to_root": rst_info.get("satellite_edges_to_root", 0),
             }
         
         facts = []

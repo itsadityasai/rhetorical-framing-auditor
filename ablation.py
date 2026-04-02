@@ -10,6 +10,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
 from modules.DFIGenerator import DFIGenerator
+from modules.run_logger import init_run_logging, log_run_results, close_run_logging
 
 
 # =========================
@@ -35,6 +36,26 @@ SVM_DEGREE = params["ablation"]["svm"]["degree"]
 ALPHA = params["ablation"]["alpha"]
 BASELINE_GAMMA = params["ablation"]["baseline_gamma"]
 ABLATION_GAMMA = params["ablation"]["ablation_gamma"]  # removes satellite/nuclearity weighting
+
+RUN_LOG = init_run_logging(
+    script_subdir="ablation",
+    hyperparams={
+        "facts_path": FACTS_PATH,
+        "train_path": TRAIN_PATH,
+        "val_path": VAL_PATH,
+        "test_path": TEST_PATH,
+        "alpha": ALPHA,
+        "baseline_gamma": BASELINE_GAMMA,
+        "ablation_gamma": ABLATION_GAMMA,
+        "svm": {
+            "kernel": SVM_KERNEL,
+            "C": SVM_C,
+            "gamma": SVM_GAMMA,
+            "degree": SVM_DEGREE,
+        },
+        "out_path": OUT_PATH,
+    },
+)
 
 
 # =========================
@@ -235,3 +256,15 @@ if __name__ == "__main__":
         f"Delta (abl - base) | val: {delta_val:+.4f} | test: {delta_test:+.4f}"
     )
     print(f"Saved detailed results to {OUT_PATH}")
+
+    log_run_results(
+        RUN_LOG,
+        {
+            "out_path": OUT_PATH,
+            "baseline": results["baseline"],
+            "ablation_depth_only": results["ablation_depth_only"],
+            "delta_ablation_minus_baseline": results["delta_ablation_minus_baseline"],
+            "triplet_counts": results["triplet_counts"],
+        },
+    )
+    close_run_logging(RUN_LOG, status="success")

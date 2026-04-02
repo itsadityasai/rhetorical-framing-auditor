@@ -3,6 +3,7 @@ import json
 import os
 import time
 import yaml
+from modules.run_logger import init_run_logging, log_run_results, close_run_logging
 
 with open("params.yaml", "r") as f:
     params = yaml.safe_load(f)
@@ -13,6 +14,17 @@ CLUSTERS_PATH = params["paths"]["files"]["clusters"]
 
 MIN_ARTICLES_PER_TRIPLET = params["fact_clustering"]["min_articles_per_triplet"]
 REFINE_THRESHOLD = params["fact_clustering"]["refine_threshold"]
+
+RUN_LOG = init_run_logging(
+    script_subdir="build_clusters",
+    hyperparams={
+        "triplets_path": TRIPLETS_PATH,
+        "rst_output_dir": RST_OUTPUT_DIR,
+        "clusters_path": CLUSTERS_PATH,
+        "min_articles_per_triplet": MIN_ARTICLES_PER_TRIPLET,
+        "refine_threshold": REFINE_THRESHOLD,
+    },
+)
 
 
 def load_triplets(path):
@@ -122,6 +134,19 @@ with open(CLUSTERS_PATH, "w") as f:
     json.dump(all_results, f, indent=4)
 
 print(f"\nResults saved to {CLUSTERS_PATH}")
+
+log_run_results(
+    RUN_LOG,
+    {
+        "total_triplets": total,
+        "successful": successful,
+        "errors": errors,
+        "empty_clusters": empties,
+        "output_path": CLUSTERS_PATH,
+        "elapsed_seconds": round(total_time, 3),
+    },
+)
+close_run_logging(RUN_LOG, status="success")
 
 
 

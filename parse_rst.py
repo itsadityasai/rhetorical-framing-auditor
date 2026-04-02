@@ -5,6 +5,7 @@ import torch
 import orjson
 import yaml
 from isanlp_rst.parser import Parser
+from modules.run_logger import init_run_logging, log_run_results, close_run_logging
 
 import gc
 gc.disable()  # faster loops
@@ -21,6 +22,18 @@ PROGRESS_EVERY_TRIPLETS = parse_params["progress_every_triplets"]
 RAW_JSON_DIR = paths["dirs"]["raw_jsons"]
 RST_OUTPUT_DIR = paths["dirs"]["rst_output"]
 TRIPLETS_PATH = paths["files"]["triplets"]
+
+RUN_LOG = init_run_logging(
+    script_subdir="parse_rst",
+    hyperparams={
+        "triplets_path": TRIPLETS_PATH,
+        "raw_json_dir": RAW_JSON_DIR,
+        "rst_output_dir": RST_OUTPUT_DIR,
+        "timeout_seconds": RST_TIMEOUT_SECONDS,
+        "progress_every_triplets": PROGRESS_EVERY_TRIPLETS,
+        "parser": parser_params,
+    },
+)
 
 
 class TimeoutError(Exception):
@@ -224,3 +237,16 @@ if __name__ == "__main__":
             print(f"{i + 1}/{total_triplets} triplets done | ETA: {eta_mins}m {eta_secs}s")
 
     print(f"\nDone! Newly processed: {processed}, Failed docs: {len(failed)}, Skipped triplets: {skipped_triplets}")
+
+    log_run_results(
+        RUN_LOG,
+        {
+            "total_triplets": total_triplets,
+            "newly_processed_docs": processed,
+            "failed_docs": len(failed),
+            "skipped_triplets": skipped_triplets,
+            "already_processed_docs": len(done),
+            "elapsed_seconds": round(time.time() - start_time, 3),
+        },
+    )
+    close_run_logging(RUN_LOG, status="success")

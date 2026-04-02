@@ -12,6 +12,7 @@ from transformers import (
     Trainer,
     set_seed,
 )
+from modules.run_logger import init_run_logging, log_run_results, close_run_logging
 
 # =========================
 # 1. CONFIG
@@ -42,6 +43,23 @@ METRICS_PATH = path_params["bert_metrics"]
 
 LABEL_MAP = bert_params["label_map"]
 ID2LABEL = {v: k for k, v in LABEL_MAP.items()}
+
+RUN_LOG = init_run_logging(
+	script_subdir="bert",
+	hyperparams={
+		"model_name": MODEL_NAME,
+		"max_length": MAX_LENGTH,
+		"seed": SEED,
+		"batch_size": BATCH_SIZE,
+		"learning_rate": LR,
+		"epochs": EPOCHS,
+		"trainer_args": trainer_params,
+		"train_split": TRAIN_SPLIT,
+		"val_split": VAL_SPLIT,
+		"test_split": TEST_SPLIT,
+		"out_dir": OUT_DIR,
+	},
+)
 
 
 
@@ -255,3 +273,14 @@ with open(METRICS_PATH, "w") as f:
 	json.dump(out, f, indent=2)
 
 print(f"Saved metrics to {METRICS_PATH}")
+
+log_run_results(
+	RUN_LOG,
+	{
+		"metrics_path": METRICS_PATH,
+		"val": out["val"],
+		"test": out["test"],
+		"doc_counts": out["doc_counts"],
+	},
+)
+close_run_logging(RUN_LOG, status="success")

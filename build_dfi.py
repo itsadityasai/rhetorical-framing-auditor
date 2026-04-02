@@ -6,6 +6,7 @@ from collections import defaultdict, deque
 import yaml
 
 from modules.DFIGenerator import DFIGenerator
+from modules.run_logger import init_run_logging, log_run_results, close_run_logging
 
 with open("params.yaml", "r") as f:
     params = yaml.safe_load(f)
@@ -21,6 +22,22 @@ RATIO_TOLERANCE = params["dfi"]["splits"]["ratio_tolerance"]
 
 DFI_ALPHA = params["dfi"]["alpha"]
 DFI_GAMMA = params["dfi"]["gamma"]
+
+RUN_LOG = init_run_logging(
+	script_subdir="build_dfi",
+	hyperparams={
+		"facts_path": FACTS_PATH,
+		"out_dir": OUT_DIR,
+		"dfi": {"alpha": DFI_ALPHA, "gamma": DFI_GAMMA},
+		"splits": {
+			"train_ratio": TRAIN_RATIO,
+			"val_ratio": VAL_RATIO,
+			"test_ratio": TEST_RATIO,
+			"random_seed": RANDOM_SEED,
+			"ratio_tolerance": RATIO_TOLERANCE,
+		},
+	},
+)
 
 
 
@@ -276,3 +293,29 @@ if __name__ == "__main__":
 	print(f"Built rows: {len(dfi_rows)} (errors: {errors})")
 	print(f"Train/Val/Test: {len(train_rows)}/{len(val_rows)}/{len(test_rows)}")
 	print(f"Saved split files to {OUT_DIR}")
+
+	log_run_results(
+		RUN_LOG,
+		{
+			"total_input_triplets": total,
+			"total_built_rows": len(dfi_rows),
+			"errors": errors,
+			"split_sizes": {
+				"train": len(train_rows),
+				"val": len(val_rows),
+				"test": len(test_rows),
+			},
+			"doc_sizes": {
+				"train": len(train_docs),
+				"val": len(val_docs),
+				"test": len(test_docs),
+			},
+			"doc_overlap": {
+				"train_val": len(train_docs & val_docs),
+				"train_test": len(train_docs & test_docs),
+				"val_test": len(val_docs & test_docs),
+			},
+			"elapsed_seconds": round(total_time, 3),
+		},
+	)
+	close_run_logging(RUN_LOG, status="success")

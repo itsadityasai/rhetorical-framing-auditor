@@ -1,8 +1,13 @@
 from sentence_transformers import SentenceTransformer
 import json
 import glob
+import os
+import sys
 from sklearn.neighbors import NearestNeighbors
 import yaml
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from modules.run_logger import init_run_logging, log_run_results, close_run_logging
 
 with open("../params.yaml", "r") as f:
     params = yaml.safe_load(f)
@@ -51,6 +56,19 @@ distances, indices = nn.kneighbors(embeddings)
 threshold = sort_params["similarity_threshold"] # REPORT: mention chosen threshold
 triples = []
 
+RUN_LOG = init_run_logging(
+    script_subdir="sort_data",
+    hyperparams={
+        "input_glob": sort_params["input_glob"],
+        "text_char_limit": sort_params["text_char_limit"],
+        "encode_batch_size": sort_params["encode_batch_size"],
+        "nearest_neighbors": nn_params,
+        "similarity_threshold": threshold,
+        "output_path": sort_params["output_path"],
+        "sbert_model_name": sbert_params["model_name"],
+    },
+)
+
 
 for i in range(len(texts)):
 
@@ -93,6 +111,16 @@ print("Found", len(triples), "triples")
 
 with open(sort_params["output_path"], "w") as f:
     json.dump(triples, f, indent=2)
+
+log_run_results(
+    RUN_LOG,
+    {
+        "num_documents": len(texts),
+        "num_triples": len(triples),
+        "output_path": sort_params["output_path"],
+    },
+)
+close_run_logging(RUN_LOG, status="success")
     
     
 # REPORT: while most of the ones we checked are accurate there may be a very small percentage (likely ~1%) that are not actually true triplets.
