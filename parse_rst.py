@@ -3,10 +3,24 @@ import signal
 import time
 import torch
 import orjson
+import yaml
 from isanlp_rst.parser import Parser
 
 import gc
 gc.disable()  # faster loops
+
+with open("params.yaml", "r") as f:
+    params = yaml.safe_load(f)
+
+parse_params = params["parse_rst"]
+parser_params = parse_params["parser"]
+paths = params["paths"]
+
+RST_TIMEOUT_SECONDS = parse_params["timeout_seconds"]
+PROGRESS_EVERY_TRIPLETS = parse_params["progress_every_triplets"]
+RAW_JSON_DIR = paths["dirs"]["raw_jsons"]
+RST_OUTPUT_DIR = paths["dirs"]["rst_output"]
+TRIPLETS_PATH = paths["files"]["triplets"]
 
 
 class TimeoutError(Exception):
@@ -71,7 +85,7 @@ parser = None
 def get_rst(text, article_id):
     # REPORT: explain timeout mechanism and why we need it
     signal.signal(signal.SIGALRM, timeout_handler)
-    signal.alarm(5)  
+    signal.alarm(RST_TIMEOUT_SECONDS)
     try:
         with torch.inference_mode():
             res = parser(text)
@@ -118,7 +132,7 @@ def get_rst(text, article_id):
     }
 
 
-os.makedirs("data/rst_output", exist_ok=True)
+os.makedirs(RST_OUTPUT_DIR, exist_ok=True)
 
 
 def process_doc(article_id, done, failed):
@@ -127,7 +141,7 @@ def process_doc(article_id, done, failed):
         return article_id not in failed
     
     try:
-        file_path = f"data/raw/jsons/{article_id}.json"
+        file_path = os.path.join(RAW_JSON_DIR, f"{article_id}.json")
         with open(file_path, "rb") as f:
             data = orjson.loads(f.read())
 
@@ -139,7 +153,7 @@ def process_doc(article_id, done, failed):
             failed.add(article_id)
             return False
 
-        output_path = f"data/rst_output/{article_id}.json"
+        output_path = os.path.join(RST_OUTPUT_DIR, f"{article_id}.json")
         with open(output_path, "wb") as f:
             f.write(orjson.dumps(result))
         
@@ -157,21 +171,21 @@ if __name__ == "__main__":
 
     print("Initializing parser (loading model)...")
     parser = Parser(
-        hf_model_name="tchewik/isanlp_rst_v3",
-        hf_model_version="unirst",
-        cuda_device=0,
-        relinventory="eng.erst.gum"
+        hf_model_name=parser_params["hf_model_name"],
+        hf_model_version=parser_params["hf_model_version"],
+        cuda_device=parser_params["cuda_device"],
+        relinventory=parser_params["relinventory"],
     )
     # REPORT: explain parser params
     print("Parser ready!")
 
     # Load triplets
-    with open("data/bias_triplets.json", "rb") as f:
+    with open(TRIPLETS_PATH, "rb") as f:
         triplets = orjson.loads(f.read())
     print(f"Loaded {len(triplets)} triplets")
 
     # Already processed files
-    done = set(os.path.basename(f).replace(".json", "") for f in os.listdir("data/rst_output") if f.endswith(".json"))
+    done = set(os.path.basename(f).replace(".json", "") for f in os.listdir(RST_OUTPUT_DIR) if f.endswith(".json"))
     print(f"Already processed: {len(done)} documents")
 
     # Track failed documents (timeout/error) - skip all triplets with these
@@ -201,7 +215,7 @@ if __name__ == "__main__":
                     processed += 1
 
         # Print progress every 10 triplets
-        if (i + 1) % 10 == 0:
+        if (i + 1) % PROGRESS_EVERY_TRIPLETS == 0:
             elapsed = time.time() - start_time
             rate = (i + 1) / elapsed
             remaining = (total_triplets - i - 1) / rate

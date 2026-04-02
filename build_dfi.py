@@ -3,18 +3,25 @@ import os
 import random
 import time
 from collections import defaultdict, deque
+import yaml
 
 from modules.DFIGenerator import DFIGenerator
 
+with open("params.yaml", "r") as f:
+    params = yaml.safe_load(f)
 
-DATA_DIR = "data"
-FACTS_PATH = os.path.join(DATA_DIR, "facts_results.json")
-OUT_DIR = os.path.join(DATA_DIR, "dfi_splits")
+FACTS_PATH = params["paths"]["files"]["facts"]
+OUT_DIR = params["paths"]["dirs"]["dfi_splits"]
 
-TRAIN_RATIO = 0.8
-VAL_RATIO = 0.1
-TEST_RATIO = 0.1
-RANDOM_SEED = 782
+TRAIN_RATIO = params["dfi"]["splits"]["train_ratio"]
+VAL_RATIO = params["dfi"]["splits"]["val_ratio"]
+TEST_RATIO = params["dfi"]["splits"]["test_ratio"]
+RANDOM_SEED = params["dfi"]["splits"]["random_seed"]
+RATIO_TOLERANCE = params["dfi"]["splits"]["ratio_tolerance"]
+
+DFI_ALPHA = params["dfi"]["alpha"]
+DFI_GAMMA = params["dfi"]["gamma"]
+
 
 
 def load_facts(path):
@@ -42,7 +49,7 @@ def build_triplet_dfi(fact_result):
 	clusters = fact_result.get("clusters", {})
 	edu_lookup = fact_result.get("edu_lookup", {})
 
-	dfi = DFIGenerator(clusters=clusters, edu_lookup=edu_lookup)
+	dfi = DFIGenerator(alpha=DFI_ALPHA, gamma=DFI_GAMMA, clusters=clusters, edu_lookup=edu_lookup)
 	cluster_ps = dfi.get_ps()
 	dfi_left, dfi_right = dfi.get_DFIs(cluster_ps)
 
@@ -97,7 +104,7 @@ def build_connected_components(rows):
 
 
 def split_triplets(rows, train_ratio=TRAIN_RATIO, val_ratio=VAL_RATIO, test_ratio=TEST_RATIO, seed=RANDOM_SEED):
-	if abs((train_ratio + val_ratio + test_ratio) - 1.0) > 1e-8:
+	if abs((train_ratio + val_ratio + test_ratio) - 1.0) > RATIO_TOLERANCE:
 		raise ValueError("Split ratios must sum to 1.0")
 
 	n = len(rows)
@@ -229,12 +236,12 @@ if __name__ == "__main__":
 		f"test {split_info['targets']['test']}->{split_info['achieved']['test']}"
 	)
 
-	save_json(os.path.join(OUT_DIR, "train.json"), train_rows)
-	save_json(os.path.join(OUT_DIR, "val.json"), val_rows)
-	save_json(os.path.join(OUT_DIR, "test.json"), test_rows)
+	save_json(params["paths"]["files"]["dfi_train"], train_rows)
+	save_json(params["paths"]["files"]["dfi_val"], val_rows)
+	save_json(params["paths"]["files"]["dfi_test"], test_rows)
 
 	save_json(
-		os.path.join(OUT_DIR, "meta.json"),
+		params["paths"]["files"]["dfi_meta"],
 		{
 			"total_input_triplets": total,
 			"total_built_rows": len(dfi_rows),

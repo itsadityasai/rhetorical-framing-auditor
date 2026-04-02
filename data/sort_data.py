@@ -2,11 +2,18 @@ from sentence_transformers import SentenceTransformer
 import json
 import glob
 from sklearn.neighbors import NearestNeighbors
+import yaml
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
+with open("../params.yaml", "r") as f:
+    params = yaml.safe_load(f)
+
+sort_params = params["sort_data"]
+sbert_params = params["models"]["sbert"]
+
+model = SentenceTransformer(sbert_params["model_name"])
 
 texts = []
-files = glob.glob('raw/jsons/*.json')
+files = glob.glob(sort_params["input_glob"])
 biases = []
 
 
@@ -14,24 +21,25 @@ for file in files:
     with open(file) as f:
         data = json.load(f)
 
-    texts.append(data["content"][:1000])
+    texts.append(data["content"][: sort_params["text_char_limit"]])
     # REPORT: explain why :1000
     biases.append(data["bias_text"])
 
 
 embeddings = model.encode(
     texts,
-    batch_size=64,
+    batch_size=sort_params["encode_batch_size"],
     show_progress_bar=True
 )
 
 
-k = 10  
+nn_params = sort_params["nearest_neighbors"]
+k = nn_params["k"]
 
 nn = NearestNeighbors(
     n_neighbors=k,
-    metric="cosine",
-    algorithm="brute"
+    metric=nn_params["metric"],
+    algorithm=nn_params["algorithm"]
 )
 
 # REPORT: explain k value and nearest neighbors params
@@ -40,8 +48,9 @@ nn.fit(embeddings)
 
 distances, indices = nn.kneighbors(embeddings)
 
-threshold = 0.8 # REPORT: mention chosen threshold
+threshold = sort_params["similarity_threshold"] # REPORT: mention chosen threshold
 triples = []
+
 
 for i in range(len(texts)):
 
@@ -82,7 +91,7 @@ for i in range(len(texts)):
 
 print("Found", len(triples), "triples")
 
-with open("bias_triplets.json", "w") as f:
+with open(sort_params["output_path"], "w") as f:
     json.dump(triples, f, indent=2)
     
     

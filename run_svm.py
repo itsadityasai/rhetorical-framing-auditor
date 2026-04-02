@@ -1,5 +1,6 @@
 import json
 import numpy as np
+import yaml
 
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -8,27 +9,35 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.model_selection import GridSearchCV, PredefinedSplit, ParameterGrid
 
 
+with open("params.yaml", "r") as f:
+    params = yaml.safe_load(f)
+
+svm_params = params["svm"]
+svm_model_params = svm_params["model"]
+svm_grid_params = svm_params["grid_search"]
+
+
 # -------- CONFIG --------
-TRAIN_PATH = "data/dfi_splits/train.json"
-VAL_PATH = "data/dfi_splits/val.json"
+TRAIN_PATH = svm_params["train_path"]
+VAL_PATH = svm_params["val_path"]
 
-AGGREGATE_FEATURE_OPTIONS = [False, True]
-INITIAL_AGGREGATE_FEATURES = False
+AGGREGATE_FEATURE_OPTIONS = svm_params["aggregate_feature_options"]
+INITIAL_AGGREGATE_FEATURES = svm_params["initial_aggregate_features"]
 
-SVM_KERNEL = "rbf"
-SVM_C = 10
-SVM_GAMMA = 0.1
-SVM_DEGREE = 3  # ignored unless kernel = poly
+SVM_KERNEL = svm_model_params["kernel"]
+SVM_C = svm_model_params["C"]
+SVM_GAMMA = svm_model_params["gamma"]
+SVM_DEGREE = svm_model_params["degree"]  # ignored unless kernel = poly
 
-C_VALUES = [0.01, 0.1, 1, 10, 100]
-GAMMA_VALUES = [0.01, 0.1, 1, 10, 100]
+C_VALUES = svm_grid_params["c_values"]
+GAMMA_VALUES = svm_grid_params["gamma_values"]
 
-GRID_N_JOBS = -1
-GRID_VERBOSE = 3
-SWEEP_RESULTS_PATH = "data/svm_sweep_results.json"
+GRID_N_JOBS = svm_grid_params["n_jobs"]
+GRID_VERBOSE = svm_grid_params["verbose"]
+SWEEP_RESULTS_PATH = params["paths"]["files"]["svm_sweep_results"]
 
-RUN_INITIAL_TEST = True
-RUN_GRID_SEARCH = True
+RUN_INITIAL_TEST = svm_grid_params["run_initial_test"]
+RUN_GRID_SEARCH = svm_grid_params["run_grid_search"]
 
 
 # -------- LOAD --------

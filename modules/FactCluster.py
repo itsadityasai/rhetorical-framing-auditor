@@ -1,12 +1,26 @@
 import json
 import os
 from sentence_transformers import SentenceTransformer
-SBERT_MODEL_NAME = "sentence-transformers/all-mpnet-base-v2"
+import yaml
+
+with open("params.yaml", "r") as f:
+    params = yaml.safe_load(f)
+
+SBERT_MODEL_NAME = params["models"]["sbert"]["model_name"]
+SBERT_ENCODE_BATCH_SIZE = params["models"]["sbert"]["encode_batch_size"]
+SBERT_NORMALIZE = params["models"]["sbert"]["normalize_embeddings"]
 sbert_model = SentenceTransformer(SBERT_MODEL_NAME)
 
 from sentence_transformers import CrossEncoder
-CROSS_ENCODER_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+CROSS_ENCODER_NAME = params["models"]["cross_encoder"]["model_name"]
+CROSS_ENCODER_BATCH_SIZE = params["models"]["cross_encoder"]["predict_batch_size"]
 cross_encoder = CrossEncoder(CROSS_ENCODER_NAME)
+
+AGGLOMERATIVE_PARAMS = params["fact_clustering"]["agglomerative"]
+PAIR_VALIDATION_THRESHOLD = params["fact_clustering"]["pair_validation"]["threshold"]
+DEFAULT_REFINE_THRESHOLD = params["fact_clustering"]["refine_threshold"]
+SINGLETON_KEEP_BIAS = params["fact_clustering"]["singleton_keep_bias"]
+
 
 def idify_edus(article): # article: {article_id, bias:left, center, right, edus: [{id, text}]}
     article_id = article["article_id"]
@@ -19,7 +33,12 @@ def idify_edus(article): # article: {article_id, bias:left, center, right, edus:
 def encode_edus(edus): # each edu is a {id, text} object
 
     ids = [edu["id"] for edu in edus]
-    embeddings = sbert_model.encode([edu["text"] for edu in edus], batch_size=64, convert_to_numpy=True, normalize_embeddings=True) 
+    embeddings = sbert_model.encode(
+        [edu["text"] for edu in edus],
+        batch_size=SBERT_ENCODE_BATCH_SIZE,
+        convert_to_numpy=True,
+        normalize_embeddings=SBERT_NORMALIZE,
+    )
     # REPORT: explain encode() params
     return dict(zip(ids, embeddings))
 
@@ -30,10 +49,10 @@ def cluster(encoded_edus):
     import numpy as np
 
     clustering = AgglomerativeClustering(
-        metric="cosine",
-        linkage="average",
-        distance_threshold=0.35,
-        n_clusters=None
+        metric=AGGLOMERATIVE_PARAMS["metric"],
+        linkage=AGGLOMERATIVE_PARAMS["linkage"],
+        distance_threshold=AGGLOMERATIVE_PARAMS["distance_threshold"],
+        n_clusters=AGGLOMERATIVE_PARAMS["n_clusters"],
     )
     # REPORT: explain clustering params
     # TODO: experiment with clustering params
@@ -50,7 +69,7 @@ def cluster(encoded_edus):
 
     return clusters
 
-def validate_cluster(cluster_ids, edu_lookup, threshold=0.7):
+def validate_cluster(cluster_ids, edu_lookup, threshold=PAIR_VALIDATION_THRESHOLD):
     # TODO: try different thresholds
     # REPORT: explain threshold choice and its impact on precision/recall of fact clustering
 
@@ -71,7 +90,7 @@ def validate_cluster(cluster_ids, edu_lookup, threshold=0.7):
             pairs.append((text1, text2))
             pair_map.append((id1, id2))
 
-    scores = cross_encoder.predict(pairs, batch_size=64)
+    scores = cross_encoder.predict(pairs, batch_size=CROSS_ENCODER_BATCH_SIZE)
 
     valid_pairs = []
     for (id1, id2), score in zip(pair_map, scores):
@@ -94,7 +113,7 @@ class FactCluster:
             self.encoded_edus.update(encode_edus(edus))
         self.clusters = cluster(self.encoded_edus)
         
-    def refine_clusters(self, refine_threshold=0.7):
+    def refine_clusters(self, refine_threshold=DEFAULT_REFINE_THRESHOLD):
         refined = {}
 
         for cluster_id, edu_ids in self.clusters.items():
@@ -102,7 +121,7 @@ class FactCluster:
             # Keep singleton clusters if they are center EDUs.
             if len(edu_ids) == 1:
                 only_id = edu_ids[0]
-                if self.edu_lookup[only_id]["bias"] == "center":
+                if self.edu_lookup[only_id]["bias"] == SINGLETON_KEEP_BIAS:
                     refined[cluster_id] = [only_id]
                 continue # skip validate_cluster
 
@@ -220,27 +239,21 @@ class FactCluster:
         return lookup
 
     @staticmethod
-    def build_facts(cluster_result, data_dir="data"):
-        triplet = cluster_result.get("triplet", {})
-        clusters = cluster_result.get("clusters", {})
-
-        enriched_lookup = FactCluster._lookup_for_triplet(triplet, data_dir=data_dir)
-
+    def build_facts(cluster_result):
+        triplet = cluster_result["triplet"]
+        clusters = cluster_result["clusters"]
+        edu_lookup = cluster_result["edu_lookup"]
+        
+        enriched_lookup = {}
+        for edu_id, edu_info in edu_lookup.items():
+            enriched_lookup[edu_id] = {
+                "text": edu_info["text"],
+                "bias": edu_info["bias"]
+            }
+        
         facts = []
         for cluster_id, edu_ids in clusters.items():
-            fact_edus = []
-            for edu_id in edu_ids:
-                meta = enriched_lookup.get(edu_id)
-                if meta is None:
-                    continue
-                fact_edus.append({
-                    "edu_id": edu_id,
-                    **meta
-                })
-
-            if not fact_edus:
-                continue
-
+            fact_edus = [enriched_lookup[edu_id] for edu_id in edu_ids if edu_id in enriched_lookup]
             facts.append({
                 "cluster_id": cluster_id,
                 "edus": fact_edus
@@ -257,4 +270,3 @@ class FactCluster:
     
     def get_clusters(self):
         return self.clusters
-   

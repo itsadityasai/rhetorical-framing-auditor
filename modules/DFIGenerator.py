@@ -1,5 +1,14 @@
+import yaml
+
+with open("params.yaml", "r") as f:
+    params = yaml.safe_load(f)
+
+DEFAULT_ALPHA = params["dfi"]["alpha"]
+DEFAULT_GAMMA = params["dfi"]["gamma"]
+
+
 class DFIGenerator:
-    def __init__(self, alpha=0.8, gamma=0.5, clusters=None, edu_lookup=None):
+    def __init__(self, alpha=DEFAULT_ALPHA, gamma=DEFAULT_GAMMA, clusters=None, edu_lookup=None):
         self.alpha = alpha
         self.gamma = gamma
         self.clusters = clusters

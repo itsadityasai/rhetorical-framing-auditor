@@ -1,18 +1,26 @@
 from modules.FactCluster import FactCluster
 import json
 import os
+import time
+import yaml
 
-DATA_DIR = "data"
-TRIPLETS_PATH = os.path.join(DATA_DIR, "bias_triplets.json")
-RST_OUTPUT_DIR = os.path.join(DATA_DIR, "rst_output")
+with open("params.yaml", "r") as f:
+    params = yaml.safe_load(f)
+
+TRIPLETS_PATH = params["paths"]["files"]["triplets"]
+RST_OUTPUT_DIR = params["paths"]["dirs"]["rst_output"]
+CLUSTERS_PATH = params["paths"]["files"]["clusters"]
+
+MIN_ARTICLES_PER_TRIPLET = params["fact_clustering"]["min_articles_per_triplet"]
+REFINE_THRESHOLD = params["fact_clustering"]["refine_threshold"]
+
 
 def load_triplets(path):
     with open(path, "r") as f:
         return json.load(f)
 
 def load_article(path): # path to raw article json
-    full_path = os.path.join(DATA_DIR, path)
-    with open(full_path, "r") as f:
+    with open(path, "r") as f:
         data = json.load(f)
     return {
         "article_id": data["ID"],
@@ -45,14 +53,14 @@ def process_triplet(triplet):
         if article:
             articles.append(article)
     
-    if len(articles) < 2:
+    if len(articles) < MIN_ARTICLES_PER_TRIPLET:
         return None, None
     
     # above check not really needed because we all triplets in bias_triplets.json have corresponding files,
     # but just there for good practice
     
     fc = FactCluster(articles)
-    fc.refine_clusters()
+    fc.refine_clusters(refine_threshold=REFINE_THRESHOLD)
     
     clusters = fc.get_clusters()
     edu_lookup = {}
@@ -75,8 +83,6 @@ def print_progress(current, total, elapsed, empties, errors):
         eta_str = "ETA: --"
     
     print(f"\r{current}/{total} - {eta_str} - {empties} empty, {errors} errors   ", end="", flush=True)
-
-import time
 
 triplets = load_triplets(TRIPLETS_PATH)
 
@@ -112,10 +118,10 @@ print()
 total_time = time.time() - start_time
 print(f"\nCompleted in {total_time:.1f}s: {successful} successful, {errors} errors, {empties} empty clusters")
 
-output_path = os.path.join(DATA_DIR, "cluster_results.json")
-with open(output_path, "w") as f:
-    json.dump(all_results, f, indent=2)
-print(f"\nSaved {len(all_results)} triplet results to {output_path}")
+with open(CLUSTERS_PATH, "w") as f:
+    json.dump(all_results, f, indent=4)
+
+print(f"\nResults saved to {CLUSTERS_PATH}")
 
 
 

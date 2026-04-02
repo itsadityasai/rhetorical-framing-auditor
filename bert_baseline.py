@@ -1,42 +1,48 @@
 import json
 import os
+import yaml
 
 import numpy as np
 import torch
 from sklearn.metrics import classification_report, f1_score, accuracy_score
 from transformers import (
-	AutoTokenizer,
-	AutoModelForSequenceClassification,
-	TrainingArguments,
-	Trainer,
-	set_seed,
+    AutoTokenizer,
+    AutoModelForSequenceClassification,
+    TrainingArguments,
+    Trainer,
+    set_seed,
 )
-
 
 # =========================
 # 1. CONFIG
 # =========================
 
-DATA_DIR = "data"
-SPLITS_DIR = os.path.join(DATA_DIR, "dfi_splits")
+with open("params.yaml", "r") as f:
+    params = yaml.safe_load(f)
 
-TRAIN_SPLIT = os.path.join(SPLITS_DIR, "train.json")
-VAL_SPLIT = os.path.join(SPLITS_DIR, "val.json")
-TEST_SPLIT = os.path.join(SPLITS_DIR, "test.json")
+bert_params = params["bert_baseline"]
+trainer_params = bert_params["training_args"]
+path_params = params["paths"]["files"]
+path_dirs = params["paths"]["dirs"]
 
-MODEL_NAME = "roberta-base"
-MAX_LENGTH = 512
-SEED = 78
+TRAIN_SPLIT = path_params["dfi_train"]
+VAL_SPLIT = path_params["dfi_val"]
+TEST_SPLIT = path_params["dfi_test"]
 
-BATCH_SIZE = 12
-LR = 2e-5
-EPOCHS = 4
+MODEL_NAME = bert_params["model_name"]
+MAX_LENGTH = bert_params["max_length"]
+SEED = bert_params["seed"]
 
-OUT_DIR = os.path.join(DATA_DIR, "bert_baseline")
-METRICS_PATH = os.path.join(OUT_DIR, "metrics.json")
+BATCH_SIZE = bert_params["batch_size"]
+LR = bert_params["learning_rate"]
+EPOCHS = bert_params["epochs"]
 
-LABEL_MAP = {"left": 0, "center": 1, "right": 2}
+OUT_DIR = path_dirs["bert_baseline"]
+METRICS_PATH = path_params["bert_metrics"]
+
+LABEL_MAP = bert_params["label_map"]
 ID2LABEL = {v: k for k, v in LABEL_MAP.items()}
+
 
 
 # =========================
@@ -68,12 +74,8 @@ def get_doc_label_map(split_rows):
 
 
 def load_text_from_rel_path(rel_path):
-	abs_path = os.path.join(DATA_DIR, rel_path)
-	article = load_json(abs_path)
-	title = article.get("title", "") or ""
-	content = article.get("content", "") or ""
-	text = f"{title}\n\n{content}".strip()
-	return text
+    article = load_json(rel_path)
+    return article["text"]
 
 
 def build_texts_labels(split_rows):
@@ -162,7 +164,7 @@ test_dataset = NewsDataset(test_enc, y_test)
 
 model = AutoModelForSequenceClassification.from_pretrained(
 	MODEL_NAME,
-	num_labels=3,
+	num_labels=len(LABEL_MAP),
 	id2label=ID2LABEL,
 	label2id=LABEL_MAP,
 )
@@ -174,15 +176,15 @@ training_args = TrainingArguments(
     per_device_eval_batch_size=BATCH_SIZE,
     num_train_epochs=EPOCHS,
 
-    eval_strategy="epoch",   
-    save_strategy="epoch",         
+	eval_strategy=trainer_params["eval_strategy"],
+	save_strategy=trainer_params["save_strategy"],
 
-    logging_steps=50,
-    load_best_model_at_end=True,
-    metric_for_best_model="macro_f1",
+	logging_steps=trainer_params["logging_steps"],
+	load_best_model_at_end=trainer_params["load_best_model_at_end"],
+	metric_for_best_model=trainer_params["metric_for_best_model"],
 
-    report_to="none",
-    fp16=True,
+	report_to=trainer_params["report_to"],
+	fp16=trainer_params["fp16"],
 )
 
 trainer = Trainer(

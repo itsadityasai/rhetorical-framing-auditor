@@ -2,10 +2,14 @@ import json
 import os
 import time
 from modules.FactCluster import FactCluster
+import yaml
 
-DATA_DIR = "data"
-CLUSTERS_PATH = os.path.join(DATA_DIR, "cluster_results.json")
-FACTS_PATH = os.path.join(DATA_DIR, "facts_results.json")
+with open("params.yaml", "r") as f:
+    params = yaml.safe_load(f)
+
+CLUSTERS_PATH = params["paths"]["files"]["clusters"]
+FACTS_PATH = params["paths"]["files"]["facts"]
+
 
 
 def load_clusters(path):
@@ -38,7 +42,7 @@ if __name__ == "__main__":
         elapsed = time.time() - start_time
         print_progress(i + 1, total, elapsed)
         try:
-            fact_result = FactCluster.build_facts(cluster_result, data_dir=DATA_DIR)
+            fact_result = FactCluster.build_facts(cluster_result)
             all_facts.append(fact_result)
         except Exception as e:
             errors += 1

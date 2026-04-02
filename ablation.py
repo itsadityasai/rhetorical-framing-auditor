@@ -1,6 +1,7 @@
 import json
 import os
 from typing import Dict, List, Set, Tuple
+import yaml
 
 import numpy as np
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
@@ -14,27 +15,26 @@ from modules.DFIGenerator import DFIGenerator
 # =========================
 # CONFIG
 # =========================
-DATA_DIR = "data"
-FACTS_PATH = os.path.join(DATA_DIR, "facts_results.json")
-SPLITS_DIR = os.path.join(DATA_DIR, "dfi_splits")
+with open("params.yaml", "r") as f:
+    params = yaml.safe_load(f)
 
-TRAIN_PATH = os.path.join(SPLITS_DIR, "train.json")
-VAL_PATH = os.path.join(SPLITS_DIR, "val.json")
-TEST_PATH = os.path.join(SPLITS_DIR, "test.json")
+FACTS_PATH = params["paths"]["files"]["facts"]
+TRAIN_PATH = params["paths"]["files"]["dfi_train"]
+VAL_PATH = params["paths"]["files"]["dfi_val"]
+TEST_PATH = params["paths"]["files"]["dfi_test"]
 
-OUT_DIR = os.path.join(DATA_DIR, "ablation")
-OUT_PATH = os.path.join(OUT_DIR, "nuclearity_ablation.json")
+OUT_PATH = params["paths"]["files"]["ablation_nuclearity"]
 
 # Same SVM hyperparams for fair comparison
-SVM_KERNEL = "rbf"
-SVM_C = 10
-SVM_GAMMA = 0.1
-SVM_DEGREE = 3
+SVM_KERNEL = params["ablation"]["svm"]["kernel"]
+SVM_C = params["ablation"]["svm"]["C"]
+SVM_GAMMA = params["ablation"]["svm"]["gamma"]
+SVM_DEGREE = params["ablation"]["svm"]["degree"]
 
 # DFI params
-ALPHA = 0.8
-BASELINE_GAMMA = 0.5
-ABLATION_GAMMA = 1.0  # removes satellite/nuclearity weighting
+ALPHA = params["ablation"]["alpha"]
+BASELINE_GAMMA = params["ablation"]["baseline_gamma"]
+ABLATION_GAMMA = params["ablation"]["ablation_gamma"]  # removes satellite/nuclearity weighting
 
 
 # =========================
