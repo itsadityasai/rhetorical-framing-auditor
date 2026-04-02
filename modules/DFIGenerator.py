@@ -6,7 +6,7 @@ class DFIGenerator:
         self.edu_lookup = edu_lookup
 
     def W(self, depth, sat_count):  # TODO: tune these later
-        return (self.alpha ** depth) * (self.gamma ** sat_count)
+        return (self.alpha ** (depth + 1)) * (self.gamma ** sat_count)
         # REPORT: explain simplified formula
 
     def get_ps(self, clusters=None, edu_lookup=None):
