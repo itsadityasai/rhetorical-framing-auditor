@@ -31,6 +31,24 @@ fact_clustering:
   min_articles_per_triplet: 2
   refine_threshold: 0.7
   singleton_keep_bias: "center"
+  min_biases_per_cluster: 2
+  edu_filter:
+    enabled: true
+    min_tokens: 3
+    drop_punct_only: true
+    drop_url_like: true
+    drop_social_meta: true
+    drop_short_attribution: true
+    short_attribution_max_tokens: 8
+    boilerplate_phrases:
+      - "story highlights"
+      - "just watched"
+      - "must watch"
+      - "read more"
+      - "add interest"
+      - "more :"
+      - "follow us"
+      - "newsletter"
   agglomerative:
     metric: "cosine"
     linkage: "average"

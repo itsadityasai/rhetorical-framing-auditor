@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from sentence_transformers import SentenceTransformer
 import yaml
 
@@ -20,16 +21,92 @@ AGGLOMERATIVE_PARAMS = params["fact_clustering"]["agglomerative"]
 PAIR_VALIDATION_THRESHOLD = params["fact_clustering"]["pair_validation"]["threshold"]
 DEFAULT_REFINE_THRESHOLD = params["fact_clustering"]["refine_threshold"]
 SINGLETON_KEEP_BIAS = params["fact_clustering"]["singleton_keep_bias"]
+MIN_BIASES_PER_CLUSTER = params["fact_clustering"].get("min_biases_per_cluster", 2)
+
+EDU_FILTER_PARAMS = params["fact_clustering"].get("edu_filter", {})
+EDU_FILTER_ENABLED = EDU_FILTER_PARAMS.get("enabled", True)
+EDU_FILTER_MIN_TOKENS = EDU_FILTER_PARAMS.get("min_tokens", 3)
+EDU_FILTER_DROP_PUNCT_ONLY = EDU_FILTER_PARAMS.get("drop_punct_only", True)
+EDU_FILTER_DROP_URL_LIKE = EDU_FILTER_PARAMS.get("drop_url_like", True)
+EDU_FILTER_DROP_SOCIAL_META = EDU_FILTER_PARAMS.get("drop_social_meta", True)
+EDU_FILTER_DROP_SHORT_ATTR = EDU_FILTER_PARAMS.get("drop_short_attribution", True)
+EDU_FILTER_SHORT_ATTR_MAX_TOKENS = EDU_FILTER_PARAMS.get("short_attribution_max_tokens", 8)
+EDU_FILTER_BOILERPLATE_PHRASES = [
+    p.lower() for p in EDU_FILTER_PARAMS.get(
+        "boilerplate_phrases",
+        [
+            "story highlights",
+            "just watched",
+            "must watch",
+            "read more",
+            "add interest",
+            "more :",
+            "follow us",
+            "newsletter",
+        ],
+    )
+]
 DATA_DIR = params["paths"]["dirs"]["data"]
+
+URL_OR_SOCIAL_PATTERN = re.compile(r"https?://|www\.|\.com\b|\.org\b|pic\.twitter|twitter\.com|<\s*a\s+href", re.IGNORECASE)
+PUNCT_ONLY_PATTERN = re.compile(r"[^A-Za-z0-9]+")
+SHORT_ATTR_PATTERN = re.compile(r"\b(said|says|told|according to|asked|wrote|added)\b", re.IGNORECASE)
+
+
+def _token_count(text):
+    return len(text.split())
+
+
+def _is_edu_fact_candidate(text):
+    if text is None:
+        return False
+
+    text = text.strip()
+    if not text:
+        return False
+
+    if not EDU_FILTER_ENABLED:
+        return True
+
+    token_count = _token_count(text)
+
+    if token_count < EDU_FILTER_MIN_TOKENS:
+        return False
+
+    if EDU_FILTER_DROP_PUNCT_ONLY and PUNCT_ONLY_PATTERN.fullmatch(text):
+        return False
+
+    lowered = text.lower()
+
+    if EDU_FILTER_DROP_URL_LIKE and URL_OR_SOCIAL_PATTERN.search(lowered):
+        return False
+
+    if EDU_FILTER_DROP_SOCIAL_META and any(phrase in lowered for phrase in EDU_FILTER_BOILERPLATE_PHRASES):
+        return False
+
+    if EDU_FILTER_DROP_SHORT_ATTR and token_count <= EDU_FILTER_SHORT_ATTR_MAX_TOKENS and SHORT_ATTR_PATTERN.search(lowered):
+        return False
+
+    return True
 
 
 def idify_edus(article): # article: {article_id, bias:left, center, right, edus: [{id, text}]}
     article_id = article["article_id"]
     edus = article["edus"]
+
+    filtered = []
     for edu in edus:
-        edu["id"] = f"{article_id}_{edu['id']}"
-        edu["bias"] = article["bias"]
-    return edus
+        text = (edu.get("text") or "").strip()
+        if not _is_edu_fact_candidate(text):
+            continue
+
+        kept = dict(edu)
+        kept["id"] = f"{article_id}_{edu['id']}"
+        kept["bias"] = article["bias"]
+        kept["text"] = text
+        filtered.append(kept)
+
+    return filtered
 
 def encode_edus(edus): # each edu is a {id, text} object
 
@@ -48,6 +125,13 @@ def cluster(encoded_edus):
     from sklearn.cluster import AgglomerativeClustering
     from collections import defaultdict
     import numpy as np
+
+    if len(encoded_edus) == 0:
+        return {}
+
+    if len(encoded_edus) == 1:
+        only_id = next(iter(encoded_edus.keys()))
+        return {0: [only_id]}
 
     clustering = AgglomerativeClustering(
         metric=AGGLOMERATIVE_PARAMS["metric"],
@@ -105,11 +189,24 @@ class FactCluster:
         self.edu_lookup = {}
         self.encoded_edus = {}
         self.clusters = {}
+        self.filter_stats = {
+            "input_edus": 0,
+            "kept_edus": 0,
+            "dropped_edus": 0,
+        }
 
         for article in articles:
+            raw_edus = article.get("edus", [])
+            self.filter_stats["input_edus"] += len(raw_edus)
+
             edus = idify_edus(article)
+            self.filter_stats["kept_edus"] += len(edus)
+
             self.edu_lookup.update({edu["id"]: edu for edu in edus})
-            self.encoded_edus.update(encode_edus(edus))
+            if edus:
+                self.encoded_edus.update(encode_edus(edus))
+
+        self.filter_stats["dropped_edus"] = self.filter_stats["input_edus"] - self.filter_stats["kept_edus"]
         self.clusters = cluster(self.encoded_edus)
         
     def refine_clusters(self, refine_threshold=DEFAULT_REFINE_THRESHOLD):
@@ -119,9 +216,10 @@ class FactCluster:
 
             # Keep singleton clusters if they are center EDUs.
             if len(edu_ids) == 1:
-                only_id = edu_ids[0]
-                if self.edu_lookup[only_id]["bias"] == SINGLETON_KEEP_BIAS:
-                    refined[cluster_id] = [only_id]
+                if MIN_BIASES_PER_CLUSTER <= 1:
+                    only_id = edu_ids[0]
+                    if self.edu_lookup[only_id]["bias"] == SINGLETON_KEEP_BIAS:
+                        refined[cluster_id] = [only_id]
                 continue # skip validate_cluster
 
             valid_pairs = validate_cluster(
@@ -139,6 +237,9 @@ class FactCluster:
                 continue
             if all(self.edu_lookup[eid]["bias"] != "center" for eid in valid_edus):
                 continue # dont include cluster if there is no center edu as we won't be able to calculate dfi later
+            biases_in_cluster = {self.edu_lookup[eid]["bias"] for eid in valid_edus}
+            if len(biases_in_cluster) < MIN_BIASES_PER_CLUSTER:
+                continue
             
 
 
