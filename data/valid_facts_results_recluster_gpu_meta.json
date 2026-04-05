@@ -1,0 +1,9 @@
+{
+  "input_clusters": "data/valid_cluster_results_recluster_gpu.json",
+  "output_facts": "data/valid_facts_results_recluster_gpu.json",
+  "input_rows": 1730,
+  "output_rows": 1730,
+  "total_clusters_processed": 16170,
+  "errors": 0,
+  "elapsed_seconds": 2.236
+}

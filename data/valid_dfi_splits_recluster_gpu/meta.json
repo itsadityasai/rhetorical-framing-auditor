@@ -1,0 +1,15 @@
+{
+  "input_facts": "data/valid_facts_results_recluster_gpu.json",
+  "split_dir": "data/valid_triplet_splits",
+  "out_dir": "data/valid_dfi_splits_recluster_gpu",
+  "facts_rows": 1730,
+  "matched_rows": 1730,
+  "unmatched_rows": 0,
+  "errors": 0,
+  "dfi_rows": {
+    "train": 1383,
+    "val": 171,
+    "test": 176
+  },
+  "elapsed_seconds": 0.075
+}
