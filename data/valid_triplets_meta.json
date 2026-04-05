@@ -1,0 +1,11 @@
+{
+  "input_triplets": "capped_triplets.json",
+  "remaining_file": "remaining_articles.json",
+  "output_triplets": "valid_triplets.json",
+  "output_articles": "valid_unique_articles.json",
+  "input_triplet_count": 2631,
+  "excluded_triplet_count": 883,
+  "valid_triplet_count": 1748,
+  "remaining_article_count": 596,
+  "unique_article_count_in_valid_triplets": 2617
+}
