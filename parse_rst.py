@@ -192,59 +192,45 @@ if __name__ == "__main__":
     # REPORT: explain parser params
     print("Parser ready!")
 
-    # Load triplets
-    with open(TRIPLETS_PATH, "rb") as f:
-        triplets = orjson.loads(f.read())
-    print(f"Loaded {len(triplets)} triplets")
+    # Load remaining articles
+    remaining_path = os.path.join(paths["dirs"]["data"], "remaining_articles.json")
+    with open(remaining_path, "r") as f:
+        remaining_articles = orjson.loads(f.read())
+    print(f"Loaded {len(remaining_articles)} remaining articles to parse")
 
     # Already processed files
     done = set(os.path.basename(f).replace(".json", "") for f in os.listdir(RST_OUTPUT_DIR) if f.endswith(".json"))
     print(f"Already processed: {len(done)} documents")
 
-    # Track failed documents (timeout/error) - skip all triplets with these
     failed = set()
-
     processed = 0
-    skipped_triplets = 0
-    total_triplets = len(triplets)
+    total_articles = len(remaining_articles)
     start_time = time.time()
 
-    for i, triplet in enumerate(triplets):
-        # Extract article IDs from paths
-        left_id = os.path.basename(triplet["left"]).replace(".json", "")
-        center_id = os.path.basename(triplet["center"]).replace(".json", "")
-        right_id = os.path.basename(triplet["right"]).replace(".json", "")
+    for i, article_filename in enumerate(remaining_articles):
+        article_id = article_filename.replace(".json", "")
+        
+        if article_id not in done and article_id not in failed:
+            success = process_doc(article_id, done, failed)
+            if success:
+                processed += 1
 
-        # Skip triplet if any doc has already failed
-        if left_id in failed or center_id in failed or right_id in failed:
-            skipped_triplets += 1
-            continue
-
-        # Process each doc in the triplet (skips if already done)
-        for article_id in [left_id, center_id, right_id]:
-            if article_id not in done and article_id not in failed:
-                success = process_doc(article_id, done, failed)
-                if success:
-                    processed += 1
-
-        # Print progress every 10 triplets
-        if (i + 1) % PROGRESS_EVERY_TRIPLETS == 0:
+        if (i + 1) % 10 == 0:
             elapsed = time.time() - start_time
             rate = (i + 1) / elapsed
-            remaining = (total_triplets - i - 1) / rate
+            remaining = (total_articles - i - 1) / rate
             eta_mins = int(remaining // 60)
             eta_secs = int(remaining % 60)
-            print(f"{i + 1}/{total_triplets} triplets done | ETA: {eta_mins}m {eta_secs}s")
+            print(f"{i + 1}/{total_articles} articles done | ETA: {eta_mins}m {eta_secs}s")
 
-    print(f"\nDone! Newly processed: {processed}, Failed docs: {len(failed)}, Skipped triplets: {skipped_triplets}")
+    print(f"\nDone! Newly processed: {processed}, Failed docs: {len(failed)}")
 
     log_run_results(
         RUN_LOG,
         {
-            "total_triplets": total_triplets,
+            "total_articles_targeted": total_articles,
             "newly_processed_docs": processed,
             "failed_docs": len(failed),
-            "skipped_triplets": skipped_triplets,
             "already_processed_docs": len(done),
             "elapsed_seconds": round(time.time() - start_time, 3),
         },
