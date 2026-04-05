@@ -1,9 +1,10 @@
+import argparse
 import json
 import os
+import pickle
 from typing import Dict, List, Set, Tuple
-import yaml
-
 import numpy as np
+import yaml
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -13,68 +14,59 @@ from modules.DFIGenerator import DFIGenerator
 from modules.run_logger import init_run_logging, log_run_results, close_run_logging
 
 
-# =========================
-# CONFIG
-# =========================
-with open("params.yaml", "r") as f:
+with open("params.yaml", "r", encoding="utf-8") as f:
     params = yaml.safe_load(f)
 
-FACTS_PATH = params["paths"]["files"]["facts"]
-TRAIN_PATH = params["paths"]["files"]["dfi_train"]
-VAL_PATH = params["paths"]["files"]["dfi_val"]
-TEST_PATH = params["paths"]["files"]["dfi_test"]
 
-OUT_PATH = params["paths"]["files"]["ablation_nuclearity"]
+DEFAULT_FACTS_PATH = "data/valid_facts_results_recluster_gpu.json"
+DEFAULT_SPLIT_DIR = "data/valid_dfi_splits_recluster_gpu"
+DEFAULT_OUT_PATH = "data/ablation/structural_ablation_recluster_gpu.json"
+DEFAULT_MODEL_DIR = "data/ablation/models_recluster_gpu"
 
-# Same SVM hyperparams for fair comparison
-SVM_KERNEL = params["ablation"]["svm"]["kernel"]
-SVM_C = params["ablation"]["svm"]["C"]
-SVM_GAMMA = params["ablation"]["svm"]["gamma"]
-SVM_DEGREE = params["ablation"]["svm"]["degree"]
+default_svm_cfg = params.get("ablation", {}).get("svm", params.get("svm", {}).get("model", {}))
+DEFAULT_SVM_KERNEL = default_svm_cfg.get("kernel", "rbf")
+DEFAULT_SVM_C = default_svm_cfg.get("C", 10)
+DEFAULT_SVM_GAMMA = default_svm_cfg.get("gamma", 0.1)
+DEFAULT_SVM_DEGREE = default_svm_cfg.get("degree", 3)
 
-# DFI params
-ALPHA = params["ablation"]["alpha"]
-BASELINE_GAMMA = params["ablation"]["baseline_gamma"]
-ABLATION_GAMMA = params["ablation"]["ablation_gamma"]  # removes satellite/nuclearity weighting
-
-RUN_LOG = init_run_logging(
-    script_subdir="ablation",
-    hyperparams={
-        "facts_path": FACTS_PATH,
-        "train_path": TRAIN_PATH,
-        "val_path": VAL_PATH,
-        "test_path": TEST_PATH,
-        "alpha": ALPHA,
-        "baseline_gamma": BASELINE_GAMMA,
-        "ablation_gamma": ABLATION_GAMMA,
-        "svm": {
-            "kernel": SVM_KERNEL,
-            "C": SVM_C,
-            "gamma": SVM_GAMMA,
-            "degree": SVM_DEGREE,
-        },
-        "out_path": OUT_PATH,
-    },
-)
+DEFAULT_BASELINE_ALPHA = params.get("dfi", {}).get("alpha", 0.8)
+DEFAULT_BASELINE_GAMMA = params.get("dfi", {}).get("gamma", 0.5)
 
 
-# =========================
-# IO HELPERS
-# =========================
+def parse_args():
+    parser = argparse.ArgumentParser(description="Run structural DFI ablations and train SVMs")
+    parser.add_argument("--facts", default=DEFAULT_FACTS_PATH, help="Facts JSON built from fresh clusters")
+    parser.add_argument(
+        "--split-dir",
+        default=DEFAULT_SPLIT_DIR,
+        help="Directory with train/val/test DFI split rows (used only for triplet_idx partition)",
+    )
+    parser.add_argument("--out", default=DEFAULT_OUT_PATH, help="Ablation summary JSON output path")
+    parser.add_argument("--model-dir", default=DEFAULT_MODEL_DIR, help="Directory to store trained SVM models")
+
+    parser.add_argument("--baseline-alpha", type=float, default=DEFAULT_BASELINE_ALPHA)
+    parser.add_argument("--baseline-gamma", type=float, default=DEFAULT_BASELINE_GAMMA)
+
+    parser.add_argument("--svm-kernel", default=DEFAULT_SVM_KERNEL)
+    parser.add_argument("--svm-c", type=float, default=DEFAULT_SVM_C)
+    parser.add_argument("--svm-gamma", type=float, default=DEFAULT_SVM_GAMMA)
+    parser.add_argument("--svm-degree", type=int, default=DEFAULT_SVM_DEGREE)
+    return parser.parse_args()
+
+
 def load_json(path: str):
-    with open(path, "r") as f:
+    with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def save_json(path: str, payload):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as f:
+    dir_name = os.path.dirname(path)
+    if dir_name:
+        os.makedirs(dir_name, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(payload, f, indent=2)
 
 
-# =========================
-# DATA PREP
-# =========================
 def get_split_triplet_idx(split_rows: List[dict]) -> Set[int]:
     return {row["triplet_idx"] for row in split_rows if "triplet_idx" in row}
 
@@ -119,109 +111,175 @@ def build_dfi_rows_from_facts(facts_rows: List[dict], alpha: float, gamma: float
     return out
 
 
-# =========================
-# MODEL HELPERS
-# =========================
 def build_xy_raw(rows: List[dict]):
-    X, y = [], []
+    x, y = [], []
     for row in rows:
-        X.append(list(row["dfi_left"]))
+        x.append(list(row["dfi_left"]))
         y.append(0)
-        X.append(list(row["dfi_right"]))
+        x.append(list(row["dfi_right"]))
         y.append(1)
-    return X, np.array(y)
+    return x, np.array(y)
 
 
-def pad_or_truncate(raw_X, target_len):
-    X = np.zeros((len(raw_X), target_len), dtype=float)
-    for i, vec in enumerate(raw_X):
-        limit = min(len(vec), target_len)
-        if limit > 0:
-            X[i, :limit] = np.array(vec[:limit], dtype=float)
-    return X
+def pad_or_truncate(raw_x, target_len):
+    arr = np.zeros((len(raw_x), target_len), dtype=float)
+    for i, vec in enumerate(raw_x):
+        lim = min(len(vec), target_len)
+        if lim > 0:
+            arr[i, :lim] = np.array(vec[:lim], dtype=float)
+    return arr
 
 
-def train_eval(train_rows: List[dict], eval_rows: List[dict]) -> Dict:
-    X_train_raw, y_train = build_xy_raw(train_rows)
-    X_eval_raw, y_eval = build_xy_raw(eval_rows)
-
-    max_len = max((len(v) for v in X_train_raw), default=0)
-    X_train = pad_or_truncate(X_train_raw, max_len)
-    X_eval = pad_or_truncate(X_eval_raw, max_len)
-
-    model = make_pipeline(
-        StandardScaler(),
-        SVC(kernel=SVM_KERNEL, C=SVM_C, gamma=SVM_GAMMA, degree=SVM_DEGREE),
-    )
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_eval)
-
-    acc = accuracy_score(y_eval, y_pred)
-    macro_f1 = f1_score(y_eval, y_pred, average="macro")
-    cm = confusion_matrix(y_eval, y_pred).tolist()
-
+def evaluate(model, rows: List[dict], max_len: int) -> Dict:
+    x_raw, y = build_xy_raw(rows)
+    x = pad_or_truncate(x_raw, max_len)
+    pred = model.predict(x)
     return {
-        "accuracy": float(acc),
-        "macro_f1": float(macro_f1),
-        "confusion_matrix": cm,
-        "samples": int(len(y_eval)),
+        "samples": int(len(y)),
+        "accuracy": float(accuracy_score(y, pred)),
+        "macro_f1": float(f1_score(y, pred, average="macro")),
+        "confusion_matrix": confusion_matrix(y, pred).tolist(),
     }
 
 
-# =========================
-# MAIN
-# =========================
-if __name__ == "__main__":
-    print("Loading facts and leakage-safe splits...")
-    facts = load_json(FACTS_PATH)
-    train_split = load_json(TRAIN_PATH)
-    val_split = load_json(VAL_PATH)
-    test_split = load_json(TEST_PATH)
+def train_and_evaluate(train_rows: List[dict], val_rows: List[dict], test_rows: List[dict], svm_cfg: Dict):
+    x_train_raw, y_train = build_xy_raw(train_rows)
+    max_len = max((len(v) for v in x_train_raw), default=0)
+    x_train = pad_or_truncate(x_train_raw, max_len)
+
+    model = make_pipeline(
+        StandardScaler(),
+        SVC(
+            kernel=svm_cfg["kernel"],
+            C=svm_cfg["C"],
+            gamma=svm_cfg["gamma"],
+            degree=svm_cfg["degree"],
+        ),
+    )
+    model.fit(x_train, y_train)
+
+    return model, max_len, {
+        "train": evaluate(model, train_rows, max_len),
+        "val": evaluate(model, val_rows, max_len),
+        "test": evaluate(model, test_rows, max_len),
+    }
+
+
+def save_model(path: str, model, max_len: int, experiment_name: str, alpha: float, gamma: float, svm_cfg: Dict):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    payload = {
+        "model": model,
+        "max_len": int(max_len),
+        "experiment": experiment_name,
+        "alpha": float(alpha),
+        "gamma": float(gamma),
+        "svm": svm_cfg,
+    }
+    with open(path, "wb") as f:
+        pickle.dump(payload, f)
+
+
+def main():
+    args = parse_args()
+    svm_cfg = {
+        "kernel": args.svm_kernel,
+        "C": args.svm_c,
+        "gamma": args.svm_gamma,
+        "degree": args.svm_degree,
+    }
+
+    run_log = init_run_logging(
+        script_subdir="ablation",
+        hyperparams={
+            "facts": args.facts,
+            "split_dir": args.split_dir,
+            "out": args.out,
+            "model_dir": args.model_dir,
+            "baseline_alpha": args.baseline_alpha,
+            "baseline_gamma": args.baseline_gamma,
+            "svm": svm_cfg,
+            "experiments": ["baseline", "without_s", "without_d", "without_both"],
+        },
+    )
+
+    print("Loading facts and split partitions...")
+    facts = load_json(args.facts)
+    train_split = load_json(os.path.join(args.split_dir, "train.json"))
+    val_split = load_json(os.path.join(args.split_dir, "val.json"))
+    test_split = load_json(os.path.join(args.split_dir, "test.json"))
 
     train_ids = get_split_triplet_idx(train_split)
     val_ids = get_split_triplet_idx(val_split)
     test_ids = get_split_triplet_idx(test_split)
 
     facts_train, facts_val, facts_test = split_facts_by_existing_splits(
-        facts, train_ids, val_ids, test_ids
+        facts,
+        train_ids,
+        val_ids,
+        test_ids,
     )
 
     print(
         f"Triplets mapped from facts -> train: {len(facts_train)}, val: {len(facts_val)}, test: {len(facts_test)}"
     )
 
-    print("Building baseline DFI rows (with nuclearity weighting)...")
-    base_train = build_dfi_rows_from_facts(facts_train, alpha=ALPHA, gamma=BASELINE_GAMMA)
-    base_val = build_dfi_rows_from_facts(facts_val, alpha=ALPHA, gamma=BASELINE_GAMMA)
-    base_test = build_dfi_rows_from_facts(facts_test, alpha=ALPHA, gamma=BASELINE_GAMMA)
+    experiments = [
+        ("baseline", args.baseline_alpha, args.baseline_gamma, "Full structure: depth and satellite effects."),
+        ("without_s", args.baseline_alpha, 1.0, "Without s: remove satellite/nuclearity effect (gamma=1)."),
+        ("without_d", 1.0, args.baseline_gamma, "Without d: remove depth effect (alpha=1)."),
+        ("without_both", 1.0, 1.0, "Without d and s: no structural weighting."),
+    ]
 
-    print("Building ablation DFI rows (nuclearity removed: gamma=1.0)...")
-    abl_train = build_dfi_rows_from_facts(facts_train, alpha=ALPHA, gamma=ABLATION_GAMMA)
-    abl_val = build_dfi_rows_from_facts(facts_val, alpha=ALPHA, gamma=ABLATION_GAMMA)
-    abl_test = build_dfi_rows_from_facts(facts_test, alpha=ALPHA, gamma=ABLATION_GAMMA)
+    os.makedirs(args.model_dir, exist_ok=True)
+    results_by_experiment = {}
 
-    print("Training/evaluating baseline...")
-    baseline_val = train_eval(base_train, base_val)
-    baseline_test = train_eval(base_train, base_test)
+    for name, alpha, gamma, description in experiments:
+        print(f"\nBuilding DFI rows for {name} (alpha={alpha}, gamma={gamma})...")
+        train_rows = build_dfi_rows_from_facts(facts_train, alpha=alpha, gamma=gamma)
+        val_rows = build_dfi_rows_from_facts(facts_val, alpha=alpha, gamma=gamma)
+        test_rows = build_dfi_rows_from_facts(facts_test, alpha=alpha, gamma=gamma)
 
-    print("Training/evaluating ablation...")
-    ablation_val = train_eval(abl_train, abl_val)
-    ablation_test = train_eval(abl_train, abl_test)
+        print(f"Training/evaluating SVM for {name}...")
+        model, max_len, metrics = train_and_evaluate(train_rows, val_rows, test_rows, svm_cfg)
 
-    delta_val = ablation_val["macro_f1"] - baseline_val["macro_f1"]
-    delta_test = ablation_test["macro_f1"] - baseline_test["macro_f1"]
+        model_path = os.path.join(args.model_dir, f"{name}.pkl")
+        save_model(model_path, model, max_len, name, alpha, gamma, svm_cfg)
 
-    results = {
+        results_by_experiment[name] = {
+            "description": description,
+            "alpha": float(alpha),
+            "gamma": float(gamma),
+            "feature_mode": "raw_padded_dfi",
+            "input_dim": int(max_len),
+            "triplet_rows": {
+                "train": len(train_rows),
+                "val": len(val_rows),
+                "test": len(test_rows),
+            },
+            "metrics": metrics,
+            "model_path": model_path,
+        }
+
+    baseline = results_by_experiment["baseline"]
+    delta_vs_baseline = {}
+    for name in ["without_s", "without_d", "without_both"]:
+        exp = results_by_experiment[name]
+        delta_vs_baseline[name] = {
+            "val_accuracy": exp["metrics"]["val"]["accuracy"] - baseline["metrics"]["val"]["accuracy"],
+            "val_macro_f1": exp["metrics"]["val"]["macro_f1"] - baseline["metrics"]["val"]["macro_f1"],
+            "test_accuracy": exp["metrics"]["test"]["accuracy"] - baseline["metrics"]["test"]["accuracy"],
+            "test_macro_f1": exp["metrics"]["test"]["macro_f1"] - baseline["metrics"]["test"]["macro_f1"],
+        }
+
+    output = {
         "setup": {
-            "description": "Nuclearity ablation: set gamma=1.0 so satellite count has no effect; prominence becomes depth-only.",
-            "alpha": ALPHA,
-            "baseline_gamma": BASELINE_GAMMA,
-            "ablation_gamma": ABLATION_GAMMA,
-            "svm": {
-                "kernel": SVM_KERNEL,
-                "C": SVM_C,
-                "gamma": SVM_GAMMA,
-                "degree": SVM_DEGREE,
+            "goal": "Structural ablation of DFI weighting",
+            "facts": args.facts,
+            "split_dir": args.split_dir,
+            "svm": svm_cfg,
+            "baseline": {
+                "alpha": float(args.baseline_alpha),
+                "gamma": float(args.baseline_gamma),
             },
         },
         "triplet_counts": {
@@ -229,42 +287,35 @@ if __name__ == "__main__":
             "val": len(facts_val),
             "test": len(facts_test),
         },
-        "baseline": {
-            "val": baseline_val,
-            "test": baseline_test,
-        },
-        "ablation_depth_only": {
-            "val": ablation_val,
-            "test": ablation_test,
-        },
-        "delta_ablation_minus_baseline": {
-            "val_macro_f1": float(delta_val),
-            "test_macro_f1": float(delta_test),
-        },
+        "experiments": results_by_experiment,
+        "delta_vs_baseline": delta_vs_baseline,
     }
 
-    save_json(OUT_PATH, results)
+    save_json(args.out, output)
 
-    print("\n=== Nuclearity Ablation Summary ===")
-    print(
-        f"Baseline  macro-F1 | val: {baseline_val['macro_f1']:.4f} | test: {baseline_test['macro_f1']:.4f}"
-    )
-    print(
-        f"Ablation  macro-F1 | val: {ablation_val['macro_f1']:.4f} | test: {ablation_test['macro_f1']:.4f}"
-    )
-    print(
-        f"Delta (abl - base) | val: {delta_val:+.4f} | test: {delta_test:+.4f}"
-    )
-    print(f"Saved detailed results to {OUT_PATH}")
+    print("\n=== Structural Ablation Summary ===")
+    for name in ["baseline", "without_s", "without_d", "without_both"]:
+        exp = results_by_experiment[name]
+        print(
+            f"{name:12s} | "
+            f"val acc={exp['metrics']['val']['accuracy']:.4f}, val f1={exp['metrics']['val']['macro_f1']:.4f} | "
+            f"test acc={exp['metrics']['test']['accuracy']:.4f}, test f1={exp['metrics']['test']['macro_f1']:.4f} | "
+            f"model={exp['model_path']}"
+        )
+
+    print(f"Saved ablation report to {args.out}")
 
     log_run_results(
-        RUN_LOG,
+        run_log,
         {
-            "out_path": OUT_PATH,
-            "baseline": results["baseline"],
-            "ablation_depth_only": results["ablation_depth_only"],
-            "delta_ablation_minus_baseline": results["delta_ablation_minus_baseline"],
-            "triplet_counts": results["triplet_counts"],
+            "out": args.out,
+            "model_dir": args.model_dir,
+            "baseline": results_by_experiment["baseline"]["metrics"],
+            "delta_vs_baseline": delta_vs_baseline,
         },
     )
-    close_run_logging(RUN_LOG, status="success")
+    close_run_logging(run_log, status="success")
+
+
+if __name__ == "__main__":
+    main()
