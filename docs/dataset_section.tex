@@ -1,0 +1,315 @@
+\section{Dataset}
+
+The starting corpus contains 37,554 raw news articles (from \texttt{data/raw/jsons}).
+Triplets are constructed in \texttt{data/sort_data.py} by embedding each article,
+retrieving nearest neighbors, and then using an anchor-based enumeration strategy:
+for each anchor article $i$, all valid neighbor pairs $(j, k)$ are tested, and a triplet is added when the three bias labels form \{left, center, right\}.
+
+This anchor iteration is the exact reason duplicate triplets were produced.
+The same semantic group of three articles can be rediscovered when a different member of the same group is used as the anchor.
+Because triplets are written in bias-slot form (left/center/right), rediscovering the same 3-article set can produce an exact duplicate row.
+In practice, this created copies that appeared either twice or three times.
+These exact duplicates were removed, reducing 6,714 rows to 4,849 unique triplets (saved in \texttt{data/unique\_triplets.json}).
+
+To reduce long-tail over-representation from highly connected articles, we further applied a participation cap of 5 triplets per article.
+This optimization step drops triplets while maximizing retained coverage under the cap constraint.
+The capped dataset contains 2,631 triplets (saved in \texttt{data/capped\_triplets.json}), i.e., 2,218 triplets removed from the 4,849 unique-triplet set.
+
+After capping, 3,485 unique articles participate in triplets, and the mean participation is
+\[
+\text{avg triplets per article} = \frac{3 \times 2631}{3485} = 2.26.
+\]
+
+The participation rate after capping is
+\[
+\frac{3485}{37554} \times 100 = 9.28\%.
+\]
+
+The fact that only about 9--10\% of raw articles participate is expected from the construction constraints in \texttt{data/sort_data.py}:
+(1) only top-$k$ nearest neighbors are considered ($k=10$),
+(2) neighbors must pass a strict cosine similarity threshold $>0.8$,
+and (3) a valid candidate must simultaneously satisfy the left-center-right label requirement.
+Together, these filters favor high-confidence event matches and exclude most articles that do not have sufficiently similar cross-bias counterparts.
+
+We apply the cap for the following reasons:
+\begin{itemize}
+\item Reduces over-representation from a few highly connected articles.
+\item Makes training signal less skewed toward repeated anchors/events.
+\item Usually improves robustness and fairness of comparisons across events/bias groups.
+\item Gives cleaner interpretation when triplets are treated as event-level groupings.
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{cc}
+\hline
+\textbf{Number of Articles} & \textbf{Participated in How Many Triplets} \\
+\hline
+1587 & 1 \\
+741 & 2 \\
+366 & 3 \\
+229 & 4 \\
+562 & 5 \\
+\hline
+\end{tabular}
+\caption{Article participation distribution after capping at 5 triplets per article.}
+\label{tab:capped_triplet_participation}
+\end{table}
+
+\subsection{Operational Valid-Triplet Subset (RST-Available Only)}
+
+For model training without waiting for pending RST parses, we define an operational subset by excluding any triplet
+that contains an article listed in \texttt{data/remaining\_articles.json}.
+This yields a strictly RST-available triplet set.
+
+Starting from 2,631 capped triplets, 883 triplets are excluded and 1,748 triplets remain valid
+(stored in \texttt{data/valid\_triplets.json}).
+The resulting valid subset contains 2,617 unique articles
+(auxiliary list archived at \texttt{data/optional/extra/valid\_unique\_articles.json}).
+
+This subset is used for immediate splitting, fact clustering, DFI construction, and SVM training.
+
+\subsection{Leakage-safe Train/Val/Test Split}
+
+We split the 1,748 valid triplets into train/validation/test with target ratio 80/10/10,
+under a hard no-overlap constraint: no article ID may appear across different splits.
+The split is solved at connected-component level over the triplet-document overlap graph.
+
+The split is exactly feasible and yields:
+\begin{itemize}
+\item Train: 1,398 triplets
+\item Validation: 174 triplets
+\item Test: 176 triplets
+\end{itemize}
+
+The achieved proportions are 0.7998 / 0.0995 / 0.1007 (train/val/test),
+and document overlap is zero across all split pairs.
+Split metadata is stored in \texttt{data/valid\_triplet\_splits/meta.json}.
+
+\section{EDU Filtering Pipeline}
+
+The original RST output is rich but noisy: not every EDU is a standalone factual unit.
+Since downstream fact alignment assumes that candidate EDUs correspond to factual propositions,
+we introduced an explicit filtering stage in \texttt{modules/FactCluster.py} before SBERT encoding and clustering.
+This reduces non-factual fragments (metadata, social-media markup, and short attribution shells)
+that otherwise inflate clusters and distort prominence-based DFI computation.
+
+\subsection{Pre-filter Audit (Before Filtering)}
+
+Before implementing the filter, we audited the generated RST artifacts (3,005 documents)
+and observed the following distributional properties:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lr}
+\hline
+\textbf{Metric (Before Filtering)} & \textbf{Value} \\
+\hline
+Total EDUs & 353,410 \\
+Average EDU length (tokens) & 8.41 \\
+Median EDU length (tokens) & 7 \\
+EDUs with $\leq 3$ tokens & 53,938 (15.26\%) \\
+EDUs with $\leq 2$ tokens & 24,795 (7.02\%) \\
+URL-like EDUs & 302 (0.09\%) \\
+Punctuation-only EDUs & 560 (0.16\%) \\
+Short attribution-like EDUs & 21,717 (6.14\%) \\
+\hline
+\end{tabular}
+\caption{Global EDU audit on RST outputs before EDU candidate filtering.}
+\label{tab:edu_prefilter_audit}
+\end{table}
+
+In practice, these artifacts included examples such as \textit{``Story highlights''},
+\textit{``JUST WATCHED''}, \textit{``More:''}, social-media/link fragments, and short shells
+like \textit{``he said''} that carry little standalone factual content.
+
+\subsection{Implemented Filtering Logic}
+
+Filtering is applied in \texttt{idify\_edus(...)} via
+\texttt{\_is\_edu\_fact\_candidate(...)}.
+The rules are configurable in \texttt{params.yaml} under \texttt{fact\_clustering.edu\_filter}.
+
+\begin{itemize}
+\item \textbf{Minimum lexical content}:
+	EDUs with fewer than 3 tokens are dropped.
+	This suppresses fragments that are unlikely to represent complete facts.
+
+\item \textbf{Punctuation-only removal}:
+	EDUs consisting only of punctuation/symbols are dropped,
+	because they are parser artifacts rather than semantic units.
+
+\item \textbf{URL and social markup removal}:
+	URL-like/text-markup patterns (e.g., \texttt{https://}, \texttt{pic.twitter}, HTML-style links)
+	are removed to avoid clustering on formatting or source metadata.
+
+\item \textbf{Boilerplate/meta phrase removal}:
+	editorial wrappers such as \textit{``Story highlights''}, \textit{``Read more''}, and similar
+	non-propositional cues are filtered out.
+
+\item \textbf{Short attribution-shell removal}:
+	short EDUs dominated by attribution verbs (e.g., \textit{said/told/according to}) are removed,
+	since they often encode discourse framing without independent factual content.
+\end{itemize}
+
+\subsection{Cluster-level Constraints After Filtering}
+
+Beyond per-EDU filtering, we also tightened cluster retention:
+
+\begin{itemize}
+\item \textbf{Cross-bias minimum}:
+	retained clusters must include center and at least one non-center side
+	(\texttt{fact\_clustering.min\_biases\_per\_cluster = 2}).
+	This allows center-left, center-right, and center-left-right clusters,
+	which directly supports left-vs-center and right-vs-center DFI construction.
+
+\item \textbf{Center-only singleton suppression}:
+	singleton retention is disabled under cross-bias constraints,
+	preventing isolated center-only fragments from entering the fact set.
+
+\item \textbf{No representative-EDU downsampling}:
+	for each retained cluster, all validated EDUs are kept.
+	We do not collapse to one EDU per bias side.
+\end{itemize}
+
+Overall, the filtering pipeline improves precision of fact candidates,
+aligns EDU selection with the intended notion of ``matchable fact'',
+and reduces noise propagation into prominence scoring and DFI vectors.
+
+\subsection{Operational Methodology: Fresh Re-clustering and Training (GPU)}
+
+After creating the valid subset and leakage-safe split files, we execute the downstream pipeline
+from repository root in four command stages (environment creation and dependency installation are omitted here):
+
+\begin{enumerate}
+\item \textbf{Fresh reclustering on valid triplets}
+\begin{verbatim}
+python run_fact_clustering.py \
+	--triplets data/valid_triplets.json \
+	--out data/valid_cluster_results_recluster_gpu.json \
+	--meta data/valid_cluster_results_recluster_gpu_meta.json
+\end{verbatim}
+
+\item \textbf{Fact construction from fresh clusters}
+\begin{verbatim}
+python data/build_facts_from_clusters.py \
+	--clusters data/valid_cluster_results_recluster_gpu.json \
+	--out data/valid_facts_results_recluster_gpu.json \
+	--meta data/valid_facts_results_recluster_gpu_meta.json
+\end{verbatim}
+
+\item \textbf{DFI split construction using predefined leakage-safe triplet splits}
+\begin{verbatim}
+python build_dfi_from_splits.py \
+	--facts data/valid_facts_results_recluster_gpu.json \
+	--split-dir data/valid_triplet_splits \
+	--out-dir data/valid_dfi_splits_recluster_gpu
+\end{verbatim}
+
+\item \textbf{SVM training and evaluation}
+\begin{verbatim}
+python train_svm_from_dfi_splits.py \
+	--split-dir data/valid_dfi_splits_recluster_gpu \
+	--out data/valid_svm_metrics_recluster_gpu.json
+\end{verbatim}
+\end{enumerate}
+
+Operational notes used in this run:
+\begin{itemize}
+\item Fresh clustering enforces center-required retention with \(\texttt{min\_biases\_per\_cluster}=2\)
+			(center+left, center+right, or center+left+right).
+\item All validated EDUs are retained in kept clusters (no representative-EDU downsampling).
+\item Fresh clustering output files are guarded against accidental overwrite unless \texttt{--overwrite} is supplied.
+\end{itemize}
+
+\subsection{Fresh Valid-Subset Fact Clustering Results}
+
+From 1,748 valid triplets, fresh reclustering produces:
+\begin{itemize}
+\item Triplets with non-empty retained clusters: 1,730
+\item Empty/dropped triplets: 18
+\item Errors: 0
+\item Total retained clusters: 16,170
+\item Total clustered EDU mentions: 47,668
+\end{itemize}
+
+EDU filtering statistics during clustering:
+\begin{itemize}
+\item Input EDU mentions: 630,516
+\item Kept EDU mentions: 548,960
+\item Dropped EDU mentions: 81,556
+\item Drop ratio: 0.1293
+\end{itemize}
+
+Outputs:
+\texttt{data/valid\_cluster\_results\_recluster\_gpu.json} and
+\texttt{data/valid\_cluster\_results\_recluster\_gpu\_meta.json}.
+
+\subsection{Fact Construction from Fresh Clusters}
+
+Fact construction is run directly on the fresh cluster artifact.
+All 1,730 cluster rows are converted into fact rows (errors: 0),
+covering 16,170 clusters.
+
+Outputs:
+\begin{itemize}
+\item Facts: \texttt{data/valid\_facts\_results\_recluster\_gpu.json}
+\item Metadata: \texttt{data/valid\_facts\_results\_recluster\_gpu\_meta.json}
+\end{itemize}
+
+\subsection{DFI Split Construction from Predefined Triplet Splits}
+
+DFI vectors are generated from
+\texttt{data/valid\_facts\_results\_recluster\_gpu.json}
+and assigned using
+\texttt{data/valid\_triplet\_splits/train.json},
+\texttt{val.json}, and \texttt{test.json}.
+
+All 1,730 fact rows are matched to one split partition (unmatched: 0, errors: 0), yielding:
+\begin{itemize}
+\item Train DFI rows: 1,383
+\item Validation DFI rows: 171
+\item Test DFI rows: 176
+\end{itemize}
+
+DFI outputs are stored in
+\texttt{data/valid\_dfi\_splits\_recluster\_gpu/}
+with metadata in
+\texttt{data/valid\_dfi\_splits\_recluster\_gpu/meta.json}.
+
+\subsection{SVM Protocol and Evaluation (Fresh Re-clustering)}
+
+The SVM stage uses binary side-comparison targets:
+left-vs-center examples are labeled 0 and right-vs-center examples are labeled 1,
+so each triplet contributes exactly two examples.
+
+With 1,383/171/176 triplets in train/val/test DFI files, the effective binary example counts are:
+\begin{itemize}
+\item Train: 2,766
+\item Validation: 342
+\item Test: 352
+\end{itemize}
+
+Using RBF SVM (\(C=10\), \(\gamma=0.1\), degree 3), raw padded DFI features
+(input dimension 69), we obtain:
+\begin{itemize}
+\item Validation accuracy: 0.6988, macro-F1: 0.6987
+\item Test accuracy: 0.6705, macro-F1: 0.6702
+\end{itemize}
+
+Detailed metrics are stored in
+\texttt{data/valid\_svm\_metrics\_recluster\_gpu.json}.
+
+\subsection{Expected Fresh-Run Artifacts}
+
+The complete fresh-run artifact set is:
+\begin{itemize}
+\item \texttt{data/valid\_cluster\_results\_recluster\_gpu.json}
+\item \texttt{data/valid\_cluster\_results\_recluster\_gpu\_meta.json}
+\item \texttt{data/valid\_facts\_results\_recluster\_gpu.json}
+\item \texttt{data/valid\_facts\_results\_recluster\_gpu\_meta.json}
+\item \texttt{data/valid\_dfi\_splits\_recluster\_gpu/train.json}
+\item \texttt{data/valid\_dfi\_splits\_recluster\_gpu/val.json}
+\item \texttt{data/valid\_dfi\_splits\_recluster\_gpu/test.json}
+\item \texttt{data/valid\_dfi\_splits\_recluster\_gpu/meta.json}
+\item \texttt{data/valid\_svm\_metrics\_recluster\_gpu.json}
+\end{itemize}

@@ -19,7 +19,7 @@ paths = params["paths"]
 
 RST_TIMEOUT_SECONDS = parse_params["timeout_seconds"]
 PROGRESS_EVERY_TRIPLETS = parse_params["progress_every_triplets"]
-RAW_JSON_DIR = paths["dirs"]["raw_jsons"]
+RAW_JSON_DIR = paths["dirs"].get("remaining_raw_jsons", os.path.join(paths["dirs"]["data"], "remaining_raw_jsons"))
 RST_OUTPUT_DIR = paths["dirs"]["rst_output"]
 TRIPLETS_PATH = paths["files"]["triplets"]
 
@@ -193,10 +193,14 @@ if __name__ == "__main__":
     print("Parser ready!")
 
     # Load remaining articles
-    remaining_path = os.path.join(paths["dirs"]["data"], "remaining_articles.json")
-    with open(remaining_path, "r") as f:
-        remaining_articles = orjson.loads(f.read())
-    print(f"Loaded {len(remaining_articles)} remaining articles to parse")
+    if not os.path.isdir(RAW_JSON_DIR):
+        raise FileNotFoundError(f"Input directory not found: {RAW_JSON_DIR}")
+
+    remaining_articles = sorted(
+        f for f in os.listdir(RAW_JSON_DIR)
+        if f.endswith(".json")
+    )
+    print(f"Loaded {len(remaining_articles)} remaining articles from {RAW_JSON_DIR}")
 
     # Already processed files
     done = set(os.path.basename(f).replace(".json", "") for f in os.listdir(RST_OUTPUT_DIR) if f.endswith(".json"))

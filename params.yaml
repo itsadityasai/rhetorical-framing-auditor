@@ -2,6 +2,7 @@ paths:
   dirs:
     data: "data"
     raw_jsons: "data/raw/jsons"
+    remaining_raw_jsons: "data/remaining_raw_jsons"
     rst_output: "data/rst_output"
     dfi_splits: "data/dfi_splits"
     bert_baseline: "data/bert_baseline"

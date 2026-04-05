@@ -1,4 +1,6 @@
 notes.txt
+data/optional/
 modules/__pycache__
 .vscode/
 data/bert_baseline
+__pycache__
