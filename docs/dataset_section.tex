@@ -1,7 +1,7 @@
 \section{Dataset}
 
 The starting corpus contains 37,554 raw news articles (from \texttt{data/raw/jsons}).
-Triplets are constructed in \texttt{data/sort_data.py} by embedding each article,
+Triplets are constructed in \texttt{data/sort\_data.py} by embedding each article,
 retrieving nearest neighbors, and then using an anchor-based enumeration strategy:
 for each anchor article $i$, all valid neighbor pairs $(j, k)$ are tested, and a triplet is added when the three bias labels form \{left, center, right\}.
 
@@ -25,7 +25,7 @@ The participation rate after capping is
 \frac{3485}{37554} \times 100 = 9.28\%.
 \]
 
-The fact that only about 9--10\% of raw articles participate is expected from the construction constraints in \texttt{data/sort_data.py}:
+The fact that only about 9--10\% of raw articles participate is expected from the construction constraints in \texttt{data/sort\_data.py}:
 (1) only top-$k$ nearest neighbors are considered ($k=10$),
 (2) neighbors must pass a strict cosine similarity threshold $>0.8$,
 and (3) a valid candidate must simultaneously satisfy the left-center-right label requirement.
@@ -276,6 +276,43 @@ DFI outputs are stored in
 with metadata in
 \texttt{data/valid\_dfi\_splits\_recluster\_gpu/meta.json}.
 
+\subsection{How DFI Vectors Are Built}
+
+Each triplet uses one shared set of retained clusters.
+For each cluster $c$, side-level prominence is computed for left, center, and right.
+If multiple EDUs from the same side occur in a cluster, the side score is the maximum over that side.
+If a side is absent in cluster $c$, its score is set to zero (omission case).
+
+Using side scores $W^{(c)}_{left}$, $W^{(c)}_{center}$, and $W^{(c)}_{right}$,
+the per-cluster DFI deltas are:
+\[
+\Delta^{(c)}_{left}=W^{(c)}_{left}-W^{(c)}_{center},\qquad
+\Delta^{(c)}_{right}=W^{(c)}_{right}-W^{(c)}_{center}.
+\]
+
+The triplet-level vectors are then formed by concatenating these deltas across all $K$ retained clusters:
+\[
+\mathrm{DFI}_{left}=[\Delta^{(1)}_{left},\ldots,\Delta^{(K)}_{left}],\qquad
+\mathrm{DFI}_{right}=[\Delta^{(1)}_{right},\ldots,\Delta^{(K)}_{right}].
+\]
+Therefore, both vectors always have the same length:
+\[
+|\mathrm{DFI}_{left}|=|\mathrm{DFI}_{right}|=K.
+\]
+
+For binary training, each triplet contributes exactly two samples:
+\begin{itemize}
+\item left-vs-center with label 0 (negative)
+\item right-vs-center with label 1 (positive)
+\end{itemize}
+Hence for $N$ triplets, the class counts are exactly balanced:
+\[
+\#(\text{label }0)=N,\qquad \#(\text{label }1)=N.
+\]
+
+Before SVM training, all DFI vectors are converted to a fixed input dimension by right-padding with zeros
+to the maximum training-vector length (and truncating longer vectors if needed at evaluation time).
+
 \subsection{SVM Protocol and Evaluation (Fresh Re-clustering)}
 
 The SVM stage uses binary side-comparison targets:
@@ -289,6 +326,23 @@ With 1,383/171/176 triplets in train/val/test DFI files, the effective binary ex
 \item Test: 352
 \end{itemize}
 
+Positive/negative distribution is exactly balanced in each split
+(negative = left-vs-center, label 0; positive = right-vs-center, label 1):
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\hline
+\textbf{Split} & \textbf{Negative (label 0)} & \textbf{Positive (label 1)} & \textbf{Ratio} \\
+\hline
+Train & 1,383 & 1,383 & 50\% / 50\% \\
+Validation & 171 & 171 & 50\% / 50\% \\
+Test & 176 & 176 & 50\% / 50\% \\
+\hline
+\end{tabular}
+\caption{Exact class balance induced by two-sample construction per triplet.}
+\label{tab:binary_class_balance}
+\end{table}
+
 Using RBF SVM (\(C=10\), \(\gamma=0.1\), degree 3), raw padded DFI features
 (input dimension 69), we obtain:
 \begin{itemize}
@@ -298,6 +352,57 @@ Using RBF SVM (\(C=10\), \(\gamma=0.1\), degree 3), raw padded DFI features
 
 Detailed metrics are stored in
 \texttt{data/valid\_svm\_metrics\_recluster\_gpu.json}.
+
+\subsection{Coverage-controlled Structural Ablation (Size-3 Clusters Only)}
+
+To isolate structural weighting effects from cross-bias coverage/omission cues,
+we run a stricter ablation where DFI is generated only from clusters that are
+\textit{exactly size 3} and contain all three bias sides (left, center, right).
+This removes center+left / center+right omission patterns from the feature construction.
+
+Methodology for this control setting:
+\begin{itemize}
+\item Keep only exact size-3 tri-side clusters per triplet.
+\item Drop triplets that have no retained cluster after this filtering.
+\item Rebuild DFI vectors and rerun the same four experiments:
+baseline, without $s$, without $d$, and without both.
+\item Use the same SVM configuration (RBF, $C=10$, $\gamma=0.1$, degree 3).
+\end{itemize}
+
+After filtering, the usable triplet counts become:
+\begin{itemize}
+\item Train: 489 (from 1,383)
+\item Validation: 84 (from 171)
+\item Test: 72 (from 176)
+\end{itemize}
+
+Since each triplet still contributes two binary examples, the corresponding sample counts are:
+Train 978, Validation 168, Test 144 (still exactly 50/50 label balance).
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcccc}
+\hline
+\textbf{Experiment} & \textbf{Val Acc.} & \textbf{Val Macro-F1} & \textbf{Test Acc.} & \textbf{Test Macro-F1} \\
+\hline
+Baseline & 0.5238 & 0.5121 & 0.5347 & 0.5309 \\
+Without $s$ & 0.5119 & 0.5049 & 0.5625 & 0.5615 \\
+Without $d$ & 0.5179 & 0.4841 & 0.5139 & 0.4852 \\
+Without both ($d,s$) & 0.5000 & 0.3333 & 0.5000 & 0.3333 \\
+\hline
+\end{tabular}
+\caption{Size-3 tri-side ablation results (coverage-controlled setting).}
+\label{tab:size3_structural_ablation_results}
+\end{table}
+
+Interpretation in the coverage-controlled setting:
+\begin{itemize}
+\item The large gain from ``without both'' seen in the unrestricted setting disappears.
+\item ``Without both'' collapses to near-chance accuracy with macro-F1 $\approx 0.333$, indicating loss of discriminative structure signal.
+\item Compared with baseline, removing depth ($d$) hurts more than removing satellite term ($s$), suggesting depth contributes useful information in this stricter setup.
+\item The slight test improvement for ``without $s$'' suggests satellite-edge weighting may be noisier than depth under these constraints.
+\item Absolute scores are lower than the unrestricted setting because the exact size-3 filter substantially reduces available training/evaluation data.
+\end{itemize}
 
 \subsection{Expected Fresh-Run Artifacts}
 

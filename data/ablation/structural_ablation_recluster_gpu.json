@@ -1,0 +1,284 @@
+{
+  "setup": {
+    "goal": "Structural ablation of DFI weighting",
+    "facts": "data/valid_facts_results_recluster_gpu.json",
+    "split_dir": "data/valid_dfi_splits_recluster_gpu",
+    "svm": {
+      "kernel": "rbf",
+      "C": 10,
+      "gamma": 0.1,
+      "degree": 3
+    },
+    "baseline": {
+      "alpha": 0.8,
+      "gamma": 0.5
+    }
+  },
+  "triplet_counts": {
+    "train": 1383,
+    "val": 171,
+    "test": 176
+  },
+  "experiments": {
+    "baseline": {
+      "description": "Full structure: depth and satellite effects.",
+      "alpha": 0.8,
+      "gamma": 0.5,
+      "feature_mode": "raw_padded_dfi",
+      "input_dim": 69,
+      "triplet_rows": {
+        "train": 1383,
+        "val": 171,
+        "test": 176
+      },
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8159797541576284,
+          "macro_f1": 0.8158370359460063,
+          "confusion_matrix": [
+            [
+              1167,
+              216
+            ],
+            [
+              293,
+              1090
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.6988304093567251,
+          "macro_f1": 0.6987041868023778,
+          "confusion_matrix": [
+            [
+              116,
+              55
+            ],
+            [
+              48,
+              123
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.6704545454545454,
+          "macro_f1": 0.6701883622500081,
+          "confusion_matrix": [
+            [
+              113,
+              63
+            ],
+            [
+              53,
+              123
+            ]
+          ]
+        }
+      },
+      "model_path": "data/ablation/models_recluster_gpu/baseline.pkl"
+    },
+    "without_s": {
+      "description": "Without s: remove satellite/nuclearity effect (gamma=1).",
+      "alpha": 0.8,
+      "gamma": 1.0,
+      "feature_mode": "raw_padded_dfi",
+      "input_dim": 69,
+      "triplet_rows": {
+        "train": 1383,
+        "val": 171,
+        "test": 176
+      },
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8637020968908171,
+          "macro_f1": 0.8636969481732292,
+          "confusion_matrix": [
+            [
+              1203,
+              180
+            ],
+            [
+              197,
+              1186
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.6812865497076024,
+          "macro_f1": 0.6802998207593287,
+          "confusion_matrix": [
+            [
+              107,
+              64
+            ],
+            [
+              45,
+              126
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.7017045454545454,
+          "macro_f1": 0.7008329083800782,
+          "confusion_matrix": [
+            [
+              114,
+              62
+            ],
+            [
+              43,
+              133
+            ]
+          ]
+        }
+      },
+      "model_path": "data/ablation/models_recluster_gpu/without_s.pkl"
+    },
+    "without_d": {
+      "description": "Without d: remove depth effect (alpha=1).",
+      "alpha": 1.0,
+      "gamma": 0.5,
+      "feature_mode": "raw_padded_dfi",
+      "input_dim": 69,
+      "triplet_rows": {
+        "train": 1383,
+        "val": 171,
+        "test": 176
+      },
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8402024584237165,
+          "macro_f1": 0.8402024584237165,
+          "confusion_matrix": [
+            [
+              1162,
+              221
+            ],
+            [
+              221,
+              1162
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.7134502923976608,
+          "macro_f1": 0.7133620689655172,
+          "confusion_matrix": [
+            [
+              119,
+              52
+            ],
+            [
+              46,
+              125
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.6590909090909091,
+          "macro_f1": 0.6590799031476997,
+          "confusion_matrix": [
+            [
+              115,
+              61
+            ],
+            [
+              59,
+              117
+            ]
+          ]
+        }
+      },
+      "model_path": "data/ablation/models_recluster_gpu/without_d.pkl"
+    },
+    "without_both": {
+      "description": "Without d and s: no structural weighting.",
+      "alpha": 1.0,
+      "gamma": 1.0,
+      "feature_mode": "raw_padded_dfi",
+      "input_dim": 69,
+      "triplet_rows": {
+        "train": 1383,
+        "val": 171,
+        "test": 176
+      },
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8253796095444685,
+          "macro_f1": 0.8247859789752827,
+          "confusion_matrix": [
+            [
+              1222,
+              161
+            ],
+            [
+              322,
+              1061
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.7865497076023392,
+          "macro_f1": 0.7845436893203883,
+          "confusion_matrix": [
+            [
+              151,
+              20
+            ],
+            [
+              53,
+              118
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.7528409090909091,
+          "macro_f1": 0.7503729244613992,
+          "confusion_matrix": [
+            [
+              150,
+              26
+            ],
+            [
+              61,
+              115
+            ]
+          ]
+        }
+      },
+      "model_path": "data/ablation/models_recluster_gpu/without_both.pkl"
+    }
+  },
+  "delta_vs_baseline": {
+    "without_s": {
+      "val_accuracy": -0.01754385964912275,
+      "val_macro_f1": -0.01840436604304907,
+      "test_accuracy": 0.03125,
+      "test_macro_f1": 0.03064454613007006
+    },
+    "without_d": {
+      "val_accuracy": 0.014619883040935644,
+      "val_macro_f1": 0.014657882163139457,
+      "test_accuracy": -0.011363636363636354,
+      "test_macro_f1": -0.011108459102308399
+    },
+    "without_both": {
+      "val_accuracy": 0.08771929824561409,
+      "val_macro_f1": 0.08583950251801054,
+      "test_accuracy": 0.08238636363636365,
+      "test_macro_f1": 0.08018456221139114
+    }
+  }
+}

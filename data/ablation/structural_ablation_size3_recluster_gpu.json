@@ -1,0 +1,314 @@
+{
+  "setup": {
+    "goal": "Structural ablation with coverage signal removed via tri-side cluster filtering",
+    "facts": "data/valid_facts_results_recluster_gpu.json",
+    "split_dir": "data/valid_dfi_splits_recluster_gpu",
+    "cluster_filter": "exact3_all3",
+    "min_clusters_per_triplet": 1,
+    "svm": {
+      "kernel": "rbf",
+      "C": 10,
+      "gamma": 0.1,
+      "degree": 3
+    },
+    "baseline": {
+      "alpha": 0.8,
+      "gamma": 0.5
+    }
+  },
+  "triplet_counts_before_filter": {
+    "train": 1383,
+    "val": 171,
+    "test": 176
+  },
+  "triplet_counts_after_filter": {
+    "train": 489,
+    "val": 84,
+    "test": 72
+  },
+  "filter_stats": {
+    "train": {
+      "input_triplets": 1383,
+      "kept_triplets": 489,
+      "dropped_triplets": 894,
+      "clusters_before": 12620,
+      "clusters_after": 767
+    },
+    "val": {
+      "input_triplets": 171,
+      "kept_triplets": 84,
+      "dropped_triplets": 87,
+      "clusters_before": 1806,
+      "clusters_after": 187
+    },
+    "test": {
+      "input_triplets": 176,
+      "kept_triplets": 72,
+      "dropped_triplets": 104,
+      "clusters_before": 1744,
+      "clusters_after": 166
+    }
+  },
+  "experiments": {
+    "baseline": {
+      "description": "Full structure: depth and satellite effects.",
+      "alpha": 0.8,
+      "gamma": 0.5,
+      "feature_mode": "raw_padded_dfi_size3_clusters",
+      "input_dim": 13,
+      "triplet_rows": {
+        "train": 489,
+        "val": 84,
+        "test": 72
+      },
+      "metrics": {
+        "train": {
+          "samples": 978,
+          "accuracy": 0.556237218813906,
+          "macro_f1": 0.5372710622710622,
+          "confusion_matrix": [
+            [
+              371,
+              118
+            ],
+            [
+              316,
+              173
+            ]
+          ]
+        },
+        "val": {
+          "samples": 168,
+          "accuracy": 0.5238095238095238,
+          "macro_f1": 0.5121242921446203,
+          "confusion_matrix": [
+            [
+              57,
+              27
+            ],
+            [
+              53,
+              31
+            ]
+          ]
+        },
+        "test": {
+          "samples": 144,
+          "accuracy": 0.5347222222222222,
+          "macro_f1": 0.5308990129819614,
+          "confusion_matrix": [
+            [
+              45,
+              27
+            ],
+            [
+              40,
+              32
+            ]
+          ]
+        }
+      },
+      "model_path": "data/ablation/models_size3_recluster_gpu/baseline.pkl"
+    },
+    "without_s": {
+      "description": "Without s: remove satellite/nuclearity effect (gamma=1).",
+      "alpha": 0.8,
+      "gamma": 1.0,
+      "feature_mode": "raw_padded_dfi_size3_clusters",
+      "input_dim": 13,
+      "triplet_rows": {
+        "train": 489,
+        "val": 84,
+        "test": 72
+      },
+      "metrics": {
+        "train": {
+          "samples": 978,
+          "accuracy": 0.5725971370143149,
+          "macro_f1": 0.5697180459833026,
+          "confusion_matrix": [
+            [
+              320,
+              169
+            ],
+            [
+              249,
+              240
+            ]
+          ]
+        },
+        "val": {
+          "samples": 168,
+          "accuracy": 0.5119047619047619,
+          "macro_f1": 0.5048878665899943,
+          "confusion_matrix": [
+            [
+              53,
+              31
+            ],
+            [
+              51,
+              33
+            ]
+          ]
+        },
+        "test": {
+          "samples": 144,
+          "accuracy": 0.5625,
+          "macro_f1": 0.5614637211775511,
+          "confusion_matrix": [
+            [
+              44,
+              28
+            ],
+            [
+              35,
+              37
+            ]
+          ]
+        }
+      },
+      "model_path": "data/ablation/models_size3_recluster_gpu/without_s.pkl"
+    },
+    "without_d": {
+      "description": "Without d: remove depth effect (alpha=1).",
+      "alpha": 1.0,
+      "gamma": 0.5,
+      "feature_mode": "raw_padded_dfi_size3_clusters",
+      "input_dim": 13,
+      "triplet_rows": {
+        "train": 489,
+        "val": 84,
+        "test": 72
+      },
+      "metrics": {
+        "train": {
+          "samples": 978,
+          "accuracy": 0.5501022494887525,
+          "macro_f1": 0.5047348964399656,
+          "confusion_matrix": [
+            [
+              121,
+              368
+            ],
+            [
+              72,
+              417
+            ]
+          ]
+        },
+        "val": {
+          "samples": 168,
+          "accuracy": 0.5178571428571429,
+          "macro_f1": 0.4840568720379147,
+          "confusion_matrix": [
+            [
+              22,
+              62
+            ],
+            [
+              19,
+              65
+            ]
+          ]
+        },
+        "test": {
+          "samples": 144,
+          "accuracy": 0.5138888888888888,
+          "macro_f1": 0.4851889683350358,
+          "confusion_matrix": [
+            [
+              20,
+              52
+            ],
+            [
+              18,
+              54
+            ]
+          ]
+        }
+      },
+      "model_path": "data/ablation/models_size3_recluster_gpu/without_d.pkl"
+    },
+    "without_both": {
+      "description": "Without d and s: no structural weighting.",
+      "alpha": 1.0,
+      "gamma": 1.0,
+      "feature_mode": "raw_padded_dfi_size3_clusters",
+      "input_dim": 13,
+      "triplet_rows": {
+        "train": 489,
+        "val": 84,
+        "test": 72
+      },
+      "metrics": {
+        "train": {
+          "samples": 978,
+          "accuracy": 0.5,
+          "macro_f1": 0.3333333333333333,
+          "confusion_matrix": [
+            [
+              0,
+              489
+            ],
+            [
+              0,
+              489
+            ]
+          ]
+        },
+        "val": {
+          "samples": 168,
+          "accuracy": 0.5,
+          "macro_f1": 0.3333333333333333,
+          "confusion_matrix": [
+            [
+              0,
+              84
+            ],
+            [
+              0,
+              84
+            ]
+          ]
+        },
+        "test": {
+          "samples": 144,
+          "accuracy": 0.5,
+          "macro_f1": 0.3333333333333333,
+          "confusion_matrix": [
+            [
+              0,
+              72
+            ],
+            [
+              0,
+              72
+            ]
+          ]
+        }
+      },
+      "model_path": "data/ablation/models_size3_recluster_gpu/without_both.pkl"
+    }
+  },
+  "delta_vs_baseline": {
+    "without_s": {
+      "val_accuracy": -0.011904761904761973,
+      "val_macro_f1": -0.0072364255546260026,
+      "test_accuracy": 0.02777777777777779,
+      "test_macro_f1": 0.03056470819558965
+    },
+    "without_d": {
+      "val_accuracy": -0.005952380952380931,
+      "val_macro_f1": -0.0280674201067056,
+      "test_accuracy": -0.02083333333333337,
+      "test_macro_f1": -0.04571004464692563
+    },
+    "without_both": {
+      "val_accuracy": -0.023809523809523836,
+      "val_macro_f1": -0.17879095881128698,
+      "test_accuracy": -0.03472222222222221,
+      "test_macro_f1": -0.1975656796486281
+    }
+  }
+}
