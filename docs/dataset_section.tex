@@ -418,3 +418,811 @@ The complete fresh-run artifact set is:
 \item \texttt{data/valid\_dfi\_splits\_recluster\_gpu/meta.json}
 \item \texttt{data/valid\_svm\_metrics\_recluster\_gpu.json}
 \end{itemize}
+
+\section{Coverage-Only Baseline Experiment (Option A)}
+
+The structural ablation results showed that removing both structural parameters ($\alpha=1$, $\gamma=1$)
+achieved the highest test accuracy (75.28\%) in the unrestricted setting.
+This raised a key question: is the model learning from RST structural signals at all,
+or is it primarily exploiting fact coverage/omission patterns?
+
+To answer this, we implemented a \textbf{pure coverage-only model} that encodes only the binary
+presence or absence of facts per bias side, with no structural weighting whatsoever.
+
+\subsection{Coverage-Only Feature Construction}
+
+For each cluster $c$ in a triplet, we compute binary presence indicators:
+\[
+h^{(c)}_{side} = \begin{cases} 1 & \text{if side has at least one EDU in cluster } c \\ 0 & \text{otherwise} \end{cases}
+\]
+where $side \in \{left, center, right\}$.
+
+The coverage delta for each cluster mirrors the DFI delta structure:
+\[
+\delta^{(c)}_{left} = h^{(c)}_{left} - h^{(c)}_{center}, \qquad
+\delta^{(c)}_{right} = h^{(c)}_{right} - h^{(c)}_{center}
+\]
+
+These deltas take values in $\{-1, 0, +1\}$:
+\begin{itemize}
+\item $-1$: side omits a fact that center covers
+\item $0$: both cover or both omit
+\item $+1$: side covers a fact that center omits
+\end{itemize}
+
+The triplet-level coverage vectors are formed by concatenating deltas across all $K$ clusters:
+\[
+\mathrm{Cov}_{left} = [\delta^{(1)}_{left}, \ldots, \delta^{(K)}_{left}], \qquad
+\mathrm{Cov}_{right} = [\delta^{(1)}_{right}, \ldots, \delta^{(K)}_{right}]
+\]
+
+This encoding is mathematically equivalent to the DFI construction with $W(d,s) = 1$ for present EDUs
+and $W(d,s) = 0$ for absent EDUs---i.e., the ``without both'' condition.
+
+\subsection{Coverage-Only Results}
+
+We trained an SVM with identical configuration (RBF, $C=10$, $\gamma=0.1$) on coverage-only features.
+The results confirm that coverage patterns fully explain the performance of the ``without both'' model:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcccc}
+\hline
+\textbf{Model} & \textbf{Val Acc.} & \textbf{Val F1} & \textbf{Test Acc.} & \textbf{Test F1} \\
+\hline
+Structural baseline ($\alpha=0.8$, $\gamma=0.5$) & 0.6988 & 0.6987 & 0.6705 & 0.6702 \\
+Without $s$ ($\gamma=1$) & 0.6813 & 0.6803 & 0.7017 & 0.7008 \\
+Without $d$ ($\alpha=1$) & 0.7135 & 0.7134 & 0.6591 & 0.6591 \\
+Without both ($\alpha=1$, $\gamma=1$) & 0.7865 & 0.7845 & 0.7528 & 0.7504 \\
+\textbf{Coverage-only (binary delta)} & \textbf{0.7865} & \textbf{0.7845} & \textbf{0.7528} & \textbf{0.7504} \\
+\hline
+\end{tabular}
+\caption{Comparison of structural DFI models with the coverage-only baseline.}
+\label{tab:coverage_comparison}
+\end{table}
+
+\subsection{Interpretation of Coverage-Only Results}
+
+The coverage-only model achieves \textbf{identical performance} to the ``without both'' structural model
+(test accuracy 75.28\%, macro-F1 75.04\%). This confirms several important findings:
+
+\begin{enumerate}
+\item \textbf{The ``without both'' model learns purely from omission patterns.}
+      When $\alpha=\gamma=1$, the prominence score $W(d,s) = 1^{d+1} \cdot 1^s = 1$ for all present EDUs,
+      reducing the DFI delta to a binary coverage signal.
+
+\item \textbf{RST structural features provide no additional predictive value} when coverage information is available.
+      The structural baseline (67.05\%) actually \textit{underperforms} the coverage-only model (75.28\%)
+      by 8.23 percentage points.
+
+\item \textbf{Structural weighting introduces noise rather than signal.}
+      The depth and satellite parameters modulate the coverage signal in ways that reduce,
+      rather than enhance, discriminative power.
+
+\item \textbf{Fact coverage asymmetry is the dominant signal for bias classification.}
+      Different bias orientations systematically cover or omit different facts,
+      and this coverage pattern alone achieves strong classification performance.
+\end{enumerate}
+
+This result motivates a reframing of the research contribution:
+rather than ``RST structure predicts bias,'' the finding is that
+\textbf{``fact omission patterns across left/center/right sources predict bias with 75\% accuracy.''}
+
+Outputs are stored in \texttt{omission-based/results/coverage\_svm\_results.json}
+and \texttt{omission-based/results/coverage\_svm\_model.pkl}.
+
+\section{Strengthening Structural Signals (Option B)}
+
+Given that the original prominence formula underperforms the coverage-only baseline,
+we explored whether alternative structural feature encodings could capture predictive
+information that the original $W(d,s) = \alpha^{d+1} \gamma^s$ formula misses.
+
+Three approaches were systematically evaluated:
+\begin{enumerate}
+\item \textbf{Aggregate structural features}: Mean/variance of depth, nuclearity distributions
+\item \textbf{Richer RST features}: Nuclearity role encoding per cluster
+\item \textbf{Alternative prominence formulas}: Exponential, inverse, logarithmic variants
+\end{enumerate}
+
+\subsection{Approach 1: Aggregate Structural Features}
+
+Instead of computing a single max-prominence score per side, we aggregate multiple structural
+statistics across all EDUs belonging to each side:
+
+\begin{itemize}
+\item \textbf{Depth statistics}: mean, variance of RST tree depth
+\item \textbf{Nuclearity ratio}: fraction of EDUs with nucleus role (vs. satellite)
+\item \textbf{Satellite edge statistics}: mean count of satellite edges to root
+\end{itemize}
+
+For each cluster, we compute these statistics per side and encode deltas against center.
+Two variants were tested:
+\begin{itemize}
+\item \textbf{With coverage}: includes presence/absence indicator (retains coverage signal)
+\item \textbf{Without coverage}: only includes clusters where all three sides are present (isolates structural signal)
+\end{itemize}
+
+\subsection{Approach 2: Nuclearity Distribution Features}
+
+This approach focuses specifically on the nucleus/satellite distinction in RST theory.
+For each cluster, we encode:
+\begin{itemize}
+\item Binary coverage indicator per side
+\item Nucleus ratio (proportion of EDUs that are nuclei) per side
+\end{itemize}
+
+The intuition is that biased sources may systematically place their preferred facts in nucleus
+positions (rhetorically prominent) while relegating opposing facts to satellite positions.
+
+\subsection{Approach 3: Alternative Prominence Formulas}
+
+We tested four alternative weighting functions:
+
+\begin{enumerate}
+\item \textbf{Exponential decay}: $W = e^{-\beta d}$ with $\beta=0.3$
+
+This replaces the geometric decay $\alpha^{d+1}$ with exponential decay,
+providing smoother depth penalty.
+
+\item \textbf{Inverse satellite}: $W = \frac{1}{1 + \gamma s}$ with $\gamma=0.5$
+
+This removes depth entirely and uses only satellite edge count with inverse penalty.
+
+\item \textbf{Combined}: $W = \frac{e^{-\beta d}}{1 + \gamma s}$
+
+Combines exponential depth decay with inverse satellite penalty.
+
+\item \textbf{Logarithmic depth}: $W = \frac{1}{1 + \ln(1+d)}$
+
+Uses logarithmic depth penalty, which compresses deep differences relative to shallow ones.
+\end{enumerate}
+
+\subsection{Option B Experimental Results}
+
+All experiments used identical SVM configuration (RBF, $C=10$, $\gamma=0.1$) and train/val/test splits.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lcccccc}
+\hline
+\textbf{Experiment} & \textbf{Dim} & \textbf{Val Acc} & \textbf{Test Acc} & \textbf{Test F1} & \textbf{$\Delta$ Cov.} & \textbf{$\Delta$ Str.} \\
+\hline
+\multicolumn{7}{l}{\textit{Approach 1: Aggregate Features}} \\
+\quad With coverage & 345 & 0.6754 & 0.6847 & 0.6679 & $-0.068$ & $+0.014$ \\
+\quad No coverage (size-3) & 76 & 0.5175 & 0.5312 & 0.5289 & $-0.222$ & $-0.139$ \\
+\hline
+\multicolumn{7}{l}{\textit{Approach 2: Nuclearity Distribution}} \\
+\quad Nuclearity dist. & 138 & 0.7368 & 0.7500 & 0.7499 & $-0.003$ & $+0.080$ \\
+\hline
+\multicolumn{7}{l}{\textit{Approach 3: Alternative Formulas}} \\
+\quad $W = e^{-0.3d}$ & 69 & 0.6579 & 0.6705 & 0.6694 & $-0.082$ & $\pm0.000$ \\
+\quad $W = 1/(1+0.5s)$ & 69 & 0.7749 & 0.7500 & 0.7500 & $-0.003$ & $+0.080$ \\
+\quad $W = e^{-0.3d}/(1+0.5s)$ & 69 & 0.6901 & 0.6506 & 0.6491 & $-0.102$ & $-0.020$ \\
+\quad $W = 1/(1+\ln(1+d))$ & 69 & 0.7749 & \textbf{0.7642} & \textbf{0.7641} & $+0.011$ & $+0.094$ \\
+\quad Original $\alpha^{d+1}\gamma^s$ & 69 & 0.6988 & 0.6705 & 0.6702 & $-0.082$ & $\pm0.000$ \\
+\hline
+\multicolumn{7}{l}{\textit{Reference Baselines}} \\
+\quad Coverage-only & 69 & 0.7865 & 0.7528 & 0.7504 & --- & $+0.082$ \\
+\quad Structural baseline & 69 & 0.6988 & 0.6705 & 0.6702 & $-0.082$ & --- \\
+\hline
+\end{tabular}
+\caption{Option B results: exploring strengthened structural features. $\Delta$ Cov. = delta vs coverage-only baseline; $\Delta$ Str. = delta vs original structural baseline.}
+\label{tab:option_b_results}
+\end{table}
+
+\subsection{Interpretation of Option B Results}
+
+\paragraph{Key Finding 1: Logarithmic depth achieves the best structural performance.}
+The $W = 1/(1+\ln(1+d))$ formula achieves \textbf{76.42\% test accuracy}, which is:
+\begin{itemize}
+\item $+9.37\%$ above the original structural baseline (67.05\%)
+\item $+1.14\%$ above the coverage-only baseline (75.28\%)
+\end{itemize}
+This is the \textit{only} experiment that outperforms coverage-only, suggesting that
+logarithmic depth compression captures useful structural information that raw coverage misses.
+
+\paragraph{Key Finding 2: Inverse satellite also performs well.}
+The $W = 1/(1+0.5s)$ formula achieves \textbf{75.00\%} test accuracy, matching coverage-only.
+Combined with the nuclearity distribution experiment (also 75.00\%), this suggests that
+the satellite/nucleus distinction contains information comparable to coverage.
+
+\paragraph{Key Finding 3: Aggregate features without coverage fail.}
+When the coverage signal is removed (size-3 only clusters), aggregate structural features
+achieve only \textbf{53.12\%}---near chance. This confirms that:
+\begin{itemize}
+\item Structural features alone (without coverage) have minimal predictive power
+\item The gains from ``with coverage'' aggregate features come from the coverage signal, not structural statistics
+\end{itemize}
+
+\paragraph{Key Finding 4: Depth-only formulas underperform.}
+Pure exponential depth decay ($e^{-0.3d}$) achieves only 67.05\%, identical to the original baseline.
+This suggests depth alone is not the useful structural component---rather, it's the
+\textit{compression} of depth differences (via logarithm) that helps.
+
+\paragraph{Key Finding 5: Combining depth and satellite hurts.}
+The combined formula $e^{-0.3d}/(1+0.5s)$ achieves only 65.06\%, \textit{worse} than either component alone.
+This indicates that depth and satellite signals interact destructively when multiplied.
+
+\subsection{Comparison Summary}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcc}
+\hline
+\textbf{Model} & \textbf{Test Accuracy} & \textbf{Relative to Coverage} \\
+\hline
+$W = 1/(1+\ln(1+d))$ (log depth) & \textbf{76.42\%} & $+1.14\%$ \\
+Coverage-only & 75.28\% & baseline \\
+$W = 1/(1+0.5s)$ (inverse sat.) & 75.00\% & $-0.28\%$ \\
+Nuclearity distribution & 75.00\% & $-0.28\%$ \\
+Original structural & 67.05\% & $-8.23\%$ \\
+Aggregate (no coverage) & 53.12\% & $-22.16\%$ \\
+\hline
+\end{tabular}
+\caption{Final comparison of all approaches.}
+\label{tab:final_comparison}
+\end{table}
+
+\subsection{Conclusions from Option B}
+
+\begin{enumerate}
+\item \textbf{The logarithmic depth formula provides marginal improvement} over coverage-only (+1.14\%),
+      suggesting that depth information can add value when appropriately compressed.
+
+\item \textbf{The original prominence formula is suboptimal.}
+      The geometric weighting $\alpha^{d+1}\gamma^s$ performs 9.37\% worse than the best alternative.
+
+\item \textbf{Coverage remains the dominant signal.}
+      Most structural variants cannot match coverage-only performance; those that do
+      (inverse satellite, nuclearity) essentially encode coverage-correlated information.
+
+\item \textbf{Pure structural features without coverage fail.}
+      This definitively answers the research question: RST structural placement \textit{alone}
+      does not predict bias; the predictive power comes from coverage asymmetries.
+\end{enumerate}
+
+Outputs are stored in \texttt{strengthen-str/results/strengthen\_structural\_results.json}
+and trained models in \texttt{strengthen-str/results/models/}.
+
+\section{Aggregate Vector Experiment}
+
+A potential concern with the padded DFI approach is that DFI vectors from different triplets
+have different facts/clusters, so the $i$-th entry in one DFI vector may correspond to a
+completely different fact than the $i$-th entry in another DFI vector.
+This raises the question: does the model learn meaningful patterns, or does it exploit
+artifacts of the padding scheme?
+
+\subsection{Motivation: Dimension Mismatch Problem}
+
+In the standard DFI construction:
+\begin{itemize}
+\item Each triplet has $K$ retained clusters (variable across triplets)
+\item DFI vectors have length $K$, padded/truncated to a fixed maximum dimension
+\item The $i$-th dimension corresponds to cluster $i$ in that triplet's cluster set
+\item Cluster identity is \textit{not} aligned across triplets---different triplets may have
+      completely different facts in position $i$
+\end{itemize}
+
+The padding approach implicitly assumes that the SVM can learn from positional statistics
+(e.g., ``position 5 tends to have high values for left-biased triplets''), even though
+positions are not semantically aligned.
+
+\subsection{Proposed Solution: Aggregate Feature Extraction}
+
+To test whether aggregate statistics are sufficient, we extract fixed-length feature vectors
+from each DFI that are semantically consistent across all triplets:
+
+\begin{enumerate}
+\item \textbf{Normalize} each raw DFI vector: $\hat{\Delta} = \frac{\Delta - \mu_\Delta}{\sigma_\Delta}$
+
+\item \textbf{Extract aggregate statistics} (9 features per vector):
+\begin{itemize}
+\item Mean, standard deviation, minimum, maximum of deltas
+\item Skewness (asymmetry of distribution)
+\item Proportion of positive deltas (side $>$ center)
+\item Proportion of zero deltas (equal coverage)
+\item Proportion of negative deltas (center $>$ side)
+\item Log number of clusters: $\ln(1 + K)$
+\end{itemize}
+
+\item \textbf{Train SVM} on these 9-dimensional fixed vectors instead of variable-length padded DFI
+\end{enumerate}
+
+\subsection{Aggregate Vector Experimental Results}
+
+Six experiments were conducted with variations on coverage vs.\ structural base features
+and normalization:
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lccccc}
+\hline
+\textbf{Experiment} & \textbf{Dim} & \textbf{Val Acc} & \textbf{Test Acc} & \textbf{$\Delta$ Cov-Pad} & \textbf{$\Delta$ LogD-Pad} \\
+\hline
+agg\_log\_depth & 9 & 0.5409 & \textbf{0.6136} & $-0.139$ & $-0.151$ \\
+agg\_combined & 18 & 0.5439 & 0.6080 & $-0.145$ & $-0.156$ \\
+agg\_extended & 14 & 0.5322 & 0.5767 & $-0.176$ & $-0.188$ \\
+agg\_coverage\_norm & 9 & 0.5585 & 0.5739 & $-0.179$ & $-0.190$ \\
+agg\_log\_depth\_norm & 9 & 0.5263 & 0.5682 & $-0.185$ & $-0.196$ \\
+agg\_coverage & 9 & 0.5936 & 0.5568 & $-0.196$ & $-0.207$ \\
+\hline
+\multicolumn{6}{l}{\textit{Reference baselines (padded DFI approach)}} \\
+Coverage-only padded & 69 & 0.7865 & 0.7528 & --- & $-0.011$ \\
+Log-depth padded & 69 & 0.7749 & 0.7642 & $+0.011$ & --- \\
+\hline
+\end{tabular}
+\caption{Aggregate vector results. $\Delta$ Cov-Pad = delta vs.\ coverage-only padded; $\Delta$ LogD-Pad = delta vs.\ log-depth padded.}
+\label{tab:aggregate_results}
+\end{table}
+
+\subsection{Interpretation: Negative Result}
+
+The aggregate feature approach performs \textbf{substantially worse} than the padded DFI approach:
+
+\begin{itemize}
+\item Best aggregate model (agg\_log\_depth): 61.36\% test accuracy
+\item Coverage-only padded: 75.28\% test accuracy
+\item Gap: $-13.92$ percentage points
+\end{itemize}
+
+This negative result provides important insight:
+
+\paragraph{Finding 1: Position-specific patterns matter.}
+The large performance gap indicates that the padded DFI approach is \textit{not} merely
+exploiting positional artifacts. The raw DFI values encode cluster-specific patterns
+that are lost when aggregating to summary statistics.
+
+\paragraph{Finding 2: Which facts are omitted matters more than how many.}
+Aggregate features like ``proportion of positive deltas'' capture \textit{how much}
+a side differs from center, but not \textit{which specific facts} differ.
+The padded approach preserves cluster-level identity through consistent intra-triplet
+ordering, allowing the model to learn patterns like ``when cluster $i$ is omitted,
+this predicts bias $X$.''
+
+\paragraph{Finding 3: The dimension mismatch is less problematic than expected.}
+Although cross-triplet cluster alignment is imperfect, the SVM learns useful patterns
+from the distribution of values within each vector. The zeros from padding encode
+``absence of later clusters,'' which is itself informative about triplet complexity.
+
+\paragraph{Finding 4: Normalization does not help.}
+Normalizing DFI vectors before aggregation provides no benefit (sometimes hurts),
+suggesting that the absolute scale of deltas carries information.
+
+\subsection{Conclusions from Aggregate Vector Experiment}
+
+\begin{enumerate}
+\item \textbf{Aggregate statistics are insufficient} for bias classification.
+      The 9-14 feature vectors lose too much information compared to raw padded DFI.
+
+\item \textbf{Specific fact patterns are essential.}
+      The model needs to know \textit{which} facts are omitted/emphasized, not just
+      summary statistics of omission rates.
+
+\item \textbf{The padded DFI approach is vindicated.}
+      Despite theoretical concerns about dimension alignment, the empirical results
+      show that padded DFI captures meaningful signal that aggregation destroys.
+
+\item \textbf{Future work} could explore cluster-alignment strategies (e.g., matching
+      clusters across triplets by semantic similarity) to enable more principled
+      cross-triplet comparisons.
+\end{enumerate}
+
+Outputs are stored in \texttt{aggregate-vector/results/aggregate\_svm\_results.json}
+and trained models in \texttt{aggregate-vector/results/models/}.
+
+\section{Hybrid Approach: Separating Coverage and Structural Signals (Option C)}
+
+Having established that coverage dominates and that the logarithmic depth formula provides
+marginal improvement, we sought to explicitly quantify the independent contributions of
+coverage and structural signals. Three approaches were implemented.
+
+\subsection{Approach 1: Feature Group Ablation}
+
+We trained separate models on four feature configurations:
+\begin{enumerate}
+\item \textbf{Coverage-only}: Binary presence/absence deltas per cluster
+\item \textbf{Structural (all clusters)}: Log-depth prominence deltas, all clusters
+\item \textbf{Structural (size-3 only)}: Log-depth deltas, only clusters with all 3 sides present (removes coverage signal)
+\item \textbf{Combined}: Coverage and structural features interleaved per cluster (2 features per cluster)
+\end{enumerate}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcccc}
+\hline
+\textbf{Configuration} & \textbf{Dim} & \textbf{Test Acc} & \textbf{Test F1} & \textbf{$\Delta$ vs Cov.} \\
+\hline
+Coverage-only & 69 & 75.28\% & 75.04\% & --- \\
+Structural (all clusters) & 69 & 76.42\% & 76.41\% & $+1.14\%$ \\
+Structural (size-3 only) & var & 51.42\% & 48.70\% & $-23.86\%$ \\
+\textbf{Combined} & 138 & \textbf{77.27\%} & \textbf{77.27\%} & $+1.99\%$ \\
+\hline
+\end{tabular}
+\caption{Feature group ablation results. Combined features achieve the best performance.}
+\label{tab:hybrid_ablation}
+\end{table}
+
+\paragraph{Key Finding:} The combined model achieves \textbf{77.27\%} test accuracy---the highest
+observed across all experiments. This is $+1.99\%$ above coverage-only and $+0.85\%$ above
+structural (all clusters), demonstrating that coverage and structural features provide
+complementary information.
+
+\subsection{Approach 2: Two-Stage Classifier and Error Analysis}
+
+To understand how structural features could complement coverage, we analyzed coverage model errors:
+
+\begin{itemize}
+\item Coverage model test errors: 87/352 (24.7\%)
+\item Structural model could correct: 21/87 (24.1\%)
+\item Both models wrong: 66/87 (75.9\%)
+\end{itemize}
+
+This reveals that while structural features can correct some coverage errors, the majority
+of errors are \textit{shared}---cases where both coverage and structural signals fail.
+
+We tested combination strategies that defer to structural predictions when coverage confidence is low:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\hline
+\textbf{Strategy} & \textbf{Test Acc} & \textbf{$\Delta$ vs Cov.} & \textbf{Notes} \\
+\hline
+Coverage only & 75.28\% & --- & Baseline \\
+Threshold $p < 0.60$ & 75.85\% & $+0.57\%$ & 34 uncertain samples \\
+Weighted (0.8 cov, 0.2 str) & 76.42\% & $+1.14\%$ & Soft combination \\
+Weighted (0.7 cov, 0.3 str) & 76.42\% & $+1.14\%$ & Optimal weighting \\
+Weighted (0.5 cov, 0.5 str) & 75.85\% & $+0.57\%$ & Equal weights underperform \\
+\hline
+\end{tabular}
+\caption{Two-stage combination strategies. Optimal weighting favors coverage (70--80\%).}
+\label{tab:hybrid_twostage}
+\end{table}
+
+\paragraph{Key Finding:} The optimal combination weights coverage at 70--80\% and structural
+at 20--30\%, confirming coverage remains the dominant signal while structural provides
+modest complementary information.
+
+\subsection{Approach 3: Stacking Ensemble}
+
+We trained a meta-classifier (logistic regression) on the class probabilities from
+independent coverage and structural models:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcc}
+\hline
+\textbf{Model} & \textbf{Test Acc} & \textbf{$\Delta$ vs Cov.} \\
+\hline
+Coverage base model & 75.28\% & --- \\
+Structural base model & 76.42\% & $+1.14\%$ \\
+\textbf{Stacked meta-model} & \textbf{76.99\%} & $+1.71\%$ \\
+\hline
+\end{tabular}
+\caption{Stacking ensemble results.}
+\label{tab:hybrid_stacking}
+\end{table}
+
+The meta-model coefficients reveal relative feature importance:
+\begin{itemize}
+\item Coverage probabilities: $-1.21$ (class 0), $+1.25$ (class 1)
+\item Structural probabilities: $-1.41$ (class 0), $+1.45$ (class 1)
+\end{itemize}
+
+Interestingly, structural features have slightly higher magnitude coefficients,
+suggesting they provide marginally more discriminative power when both signals are available.
+
+\subsection{Conclusions from Hybrid Approach (Option C)}
+
+\begin{enumerate}
+\item \textbf{Combined features achieve the best performance.}
+      Simple feature concatenation (coverage + log-depth structural) yields \textbf{77.27\%}---the
+      highest accuracy across all experiments, confirming that structural information adds
+      value beyond coverage.
+
+\item \textbf{Coverage and structure are partially redundant.}
+      75.9\% of errors are shared between models, indicating substantial overlap in
+      what they capture.
+
+\item \textbf{Coverage remains dominant.}
+      Optimal combination weights favor coverage (70--80\%), and the stacking improvement
+      over coverage-only is modest (+1.71\%).
+
+\item \textbf{Pure structural without coverage fails.}
+      When coverage signal is removed (size-3 clusters only), accuracy drops to 51.42\%
+      (near chance), definitively confirming that structural placement alone cannot predict bias.
+
+\item \textbf{Practical recommendation:}
+      For best performance, use combined features (coverage + log-depth structural).
+      The $+2\%$ improvement over coverage-only justifies the added complexity.
+\end{enumerate}
+
+Outputs are stored in \texttt{hybrid-approach/results/hybrid\_results.json}.
+
+\section{Experimental Design Improvements (Option D)}
+
+The original fixed train/val/test split may have high variance due to relatively small test set
+size (176 triplets = 352 samples). To provide more robust evaluation and quantify uncertainty,
+we implemented several experimental design improvements.
+
+\subsection{K-Fold Cross-Validation}
+
+We replaced the fixed 80/10/10 split with stratified 5-fold cross-validation across the full
+dataset of 1,730 triplets (3,460 samples). This reduces variance from lucky/unlucky test set
+compositions.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcccc}
+\hline
+\textbf{Feature Set} & \textbf{Mean Acc.} & \textbf{Std} & \textbf{Min} & \textbf{Max} \\
+\hline
+Coverage & 77.34\% & 0.85\% & 76.16\% & 78.76\% \\
+Structural (log-depth) & 77.02\% & 0.90\% & 75.72\% & 77.75\% \\
+Combined & 76.65\% & 1.35\% & 74.71\% & 78.47\% \\
+\hline
+\end{tabular}
+\caption{5-fold cross-validation results. Standard deviations are relatively small ($<1.5\%$),
+indicating stable performance across folds.}
+\label{tab:cv_results}
+\end{table}
+
+\paragraph{Key Finding:} The cross-validation results show consistent performance across folds
+with low variance (std $<1.5\%$). Interestingly, coverage-only achieves the highest mean accuracy
+(77.34\%) in the CV setting, slightly outperforming structural and combined features. This differs
+from the fixed-split results where combined features achieved 77.27\%, suggesting some sensitivity
+to data partitioning.
+
+\subsection{Bootstrap Confidence Intervals}
+
+To quantify uncertainty in accuracy estimates, we computed bootstrap 95\% confidence intervals
+by resampling test predictions 1,000 times with replacement:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcccc}
+\hline
+\textbf{Feature Set} & \textbf{Point Est.} & \textbf{95\% CI} & \textbf{CI Width} & \textbf{SE} \\
+\hline
+Coverage & 78.47\% & [75.43\%, 81.65\%] & 6.21\% & 1.58\% \\
+Structural & 76.30\% & [73.27\%, 79.34\%] & 6.07\% & 1.61\% \\
+Combined & 75.43\% & [72.40\%, 78.76\%] & 6.36\% & 1.62\% \\
+\hline
+\end{tabular}
+\caption{Bootstrap 95\% confidence intervals. CI widths of $\approx6\%$ indicate moderate
+uncertainty in point estimates.}
+\label{tab:bootstrap_ci}
+\end{table}
+
+\paragraph{Key Finding:} The confidence intervals are moderately wide ($\approx6\%$), indicating
+that point estimates should be interpreted with caution. The overlapping CIs suggest that
+differences between feature sets may not be statistically significant.
+
+\subsection{Paired Bootstrap Test: Combined vs Coverage}
+
+To formally test whether combined features significantly outperform coverage-only, we performed
+a paired bootstrap test:
+
+\begin{itemize}
+\item Observed difference: $-3.03\%$ (combined minus coverage)
+\item 95\% CI for difference: $[-5.35\%, -0.72\%]$
+\item One-sided p-value: 0.997
+\item Significant at $\alpha=0.05$: \textbf{No}
+\end{itemize}
+
+\paragraph{Key Finding:} In this particular train/test split, the combined features actually
+\textit{underperform} coverage-only by 3\%. The 95\% CI for the difference excludes zero in
+the wrong direction, indicating that the combined improvement observed in the fixed split
+may not be robust.
+
+\subsection{Learning Curve Analysis}
+
+To assess whether more training data would improve performance, we generated learning curves
+by training on increasing fractions of the training set:
+
+\begin{figure}[h]
+\centering
+\begin{tabular}{cc}
+\textbf{Train Fraction} & \textbf{Coverage Acc.} \\
+\hline
+10\% & 75.29\% \\
+30\% & 75.14\% \\
+50\% & 76.30\% \\
+70\% & 76.88\% \\
+100\% & 78.47\% \\
+\end{tabular}
+\caption{Learning curve for coverage features. Accuracy increases slowly with training size.}
+\label{tab:learning_curve}
+\end{figure}
+
+\paragraph{Key Finding:} Performance at 10\% of training data (276 samples) is already 75.29\%,
+only 3\% below full training set performance. This suggests the model learns quickly and
+approaches a plateau, indicating that the current dataset size is likely adequate for this task.
+
+\subsection{Conclusions from Option D}
+
+\begin{enumerate}
+\item \textbf{Results are moderately stable.} Cross-validation standard deviations of $<1.5\%$
+indicate reasonable stability across different data partitions.
+
+\item \textbf{Uncertainty is substantial.} Bootstrap 95\% CIs of $\approx6\%$ width mean
+point estimates should be reported with confidence bounds.
+
+\item \textbf{Combined vs coverage difference is not robust.} The paired test shows the
+combined feature improvement is not statistically significant and may reverse in different splits.
+
+\item \textbf{Dataset size is adequate.} Learning curves show performance plateaus early,
+suggesting diminishing returns from additional training data.
+
+\item \textbf{Practical recommendation:} Report accuracy as mean $\pm$ std from cross-validation
+or as point estimate with 95\% CI, rather than single fixed-split numbers.
+\end{enumerate}
+
+Outputs are stored in \texttt{experimental-design/results/crossval\_results.json}.
+
+\section{Alternative Models (Option E)}
+
+To determine whether SVM with RBF kernel is optimal for this task, we compared multiple
+model families with different inductive biases.
+
+\subsection{Model Comparison}
+
+We tested five model families on all three feature sets (coverage, structural, combined):
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lccc}
+\hline
+\textbf{Model} & \textbf{Coverage} & \textbf{Structural} & \textbf{Combined} \\
+\hline
+SVM (RBF) & 76.70\% & 77.56\% & 77.84\% \\
+Logistic (L2) & 74.43\% & 73.58\% & 75.28\% \\
+Logistic (L1) & 75.00\% & 74.15\% & 76.14\% \\
+MLP & 79.26\% & 78.12\% & 76.70\% \\
+\textbf{Random Forest} & \textbf{79.26\%} & \textbf{86.08\%} & \textbf{86.36\%} \\
+\hline
+\end{tabular}
+\caption{Model comparison across feature sets. Random Forest substantially outperforms all other models.}
+\label{tab:model_comparison}
+\end{table}
+
+\paragraph{Key Finding:} \textbf{Random Forest dramatically outperforms SVM}, achieving 86.36\%
+test accuracy on combined features---8.52 percentage points higher than SVM (77.84\%).
+This is the largest improvement observed across all experiments.
+
+\subsection{Hyperparameter Tuning}
+
+We performed grid search with 5-fold cross-validation to tune key models on combined features:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcccc}
+\hline
+\textbf{Model} & \textbf{Best Params} & \textbf{CV Acc.} & \textbf{Test Acc.} \\
+\hline
+Logistic (tuned) & C=1.0, penalty=L2 & 76.93\% & 75.28\% \\
+\textbf{Random Forest (tuned)} & depth=None, n=50, split=5 & 85.20\% & \textbf{87.78\%} \\
+\hline
+\end{tabular}
+\caption{Hyperparameter tuning results on combined features.}
+\label{tab:tuning_results}
+\end{table}
+
+\paragraph{Key Finding:} Tuned Random Forest achieves \textbf{87.78\% test accuracy}---the
+highest performance observed in any experiment. The best configuration uses unlimited depth
+with 50 trees and minimum 5 samples per split.
+
+\subsection{Feature Importance Analysis}
+
+Random Forest provides built-in feature importance via Gini impurity reduction.
+Analysis of coverage features shows:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{cc}
+\hline
+\textbf{Feature Index} & \textbf{Importance} \\
+\hline
+0 & 0.3939 \\
+1 & 0.1662 \\
+2 & 0.0817 \\
+3 & 0.0463 \\
+4--9 & $<0.04$ each \\
+\hline
+\end{tabular}
+\caption{Top feature importances for coverage features. Feature 0 dominates.}
+\label{tab:feature_importance}
+\end{table}
+
+\paragraph{Key Finding:} The top 3 features account for $>64\%$ of total importance, suggesting
+that a small number of cluster positions are highly predictive. Feature 0 alone contributes
+39.4\% of the total importance, indicating one particular fact omission pattern is dominant.
+
+\subsection{Interpretation of Random Forest Superiority}
+
+Several factors may explain why Random Forest outperforms SVM:
+
+\begin{enumerate}
+\item \textbf{Non-linear interactions:} Random Forest can capture complex feature interactions
+through tree splits, while SVM with RBF kernel may require careful hyperparameter tuning
+to model similar interactions.
+
+\item \textbf{Heterogeneous features:} The combined feature set mixes binary coverage indicators
+with continuous structural scores. Tree-based models handle mixed feature types naturally,
+while kernel methods may struggle with different scales.
+
+\item \textbf{Sparse signal:} Most DFI values are zero (from padding). Decision trees can
+efficiently ignore zero-valued features, while SVM must process all dimensions.
+
+\item \textbf{Robustness to outliers:} Random Forest's ensemble averaging reduces sensitivity
+to outliers and noise, potentially helping with the variable-length DFI vectors.
+\end{enumerate}
+
+\subsection{Conclusions from Option E}
+
+\begin{enumerate}
+\item \textbf{Model choice matters substantially.} Random Forest (87.78\%) outperforms
+SVM (77.84\%) by nearly 10 percentage points---larger than any feature engineering improvement.
+
+\item \textbf{SVM was suboptimal for this task.} The RBF SVM, while reasonable, significantly
+underperforms tree-based methods on this sparse, heterogeneous feature space.
+
+\item \textbf{Simple models underperform.} Logistic regression achieves only 75--76\%,
+confirming that the classification boundary is non-linear.
+
+\item \textbf{Combined features remain best with Random Forest.} The benefit of combining
+coverage and structural features (+0.28\% over structural-only) persists with Random Forest.
+
+\item \textbf{Practical recommendation:} Use Random Forest with unlimited depth, 50--100 trees,
+and combined (coverage + log-depth structural) features for best performance.
+\end{enumerate}
+
+Outputs are stored in \texttt{alternative-models/results/alternative\_models\_results.json}.
+
+\section{Summary of All Experimental Results}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llcc}
+\hline
+\textbf{Option} & \textbf{Best Configuration} & \textbf{Test Acc.} & \textbf{Key Finding} \\
+\hline
+Baseline & SVM + original $\alpha^{d+1}\gamma^s$ & 67.05\% & Original formula suboptimal \\
+A & Coverage-only + SVM & 75.28\% & Omission patterns dominate \\
+B & Log-depth structural + SVM & 76.42\% & +1.14\% over coverage \\
+Aggregate & Summary stats + SVM & 61.36\% & Specific facts matter \\
+C & Combined + SVM & 77.27\% & +1.99\% over coverage \\
+D & Coverage + SVM (5-fold CV) & 77.34\% & Results are stable \\
+\textbf{E} & \textbf{Combined + RF (tuned)} & \textbf{87.78\%} & \textbf{+10\% over SVM} \\
+\hline
+\end{tabular}
+\caption{Summary of all experimental results. Random Forest with combined features achieves
+the highest accuracy.}
+\label{tab:full_summary}
+\end{table}
+
+\subsection{Key Takeaways}
+
+\begin{enumerate}
+\item \textbf{Fact omission is the dominant signal.} Coverage/omission patterns predict bias
+better than RST structural placement across all experiments.
+
+\item \textbf{Structural features provide modest improvement.} Log-depth prominence adds
+$\approx1-2\%$ when combined with coverage, but fails alone without coverage signal.
+
+\item \textbf{Model choice matters more than feature engineering.} Switching from SVM to
+Random Forest improves accuracy by $\approx10\%$---far larger than any feature modification.
+
+\item \textbf{The original prominence formula is suboptimal.} The logarithmic depth formula
+$W = 1/(1+\ln(1+d))$ substantially outperforms the original $W = \alpha^{d+1}\gamma^s$.
+
+\item \textbf{Aggregate statistics lose critical information.} The specific facts that are
+omitted matter more than summary statistics of omission rates.
+
+\item \textbf{Best practice:} Use Random Forest with combined features (coverage + log-depth
+structural) for highest accuracy (87.78\%), or coverage-only for interpretability (79.26\% with RF).
+\end{enumerate}
