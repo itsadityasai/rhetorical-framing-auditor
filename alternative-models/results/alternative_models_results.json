@@ -1,0 +1,556 @@
+{
+  "setup": {
+    "goal": "Alternative models comparison (Option E)",
+    "facts": "data/valid_facts_results_recluster_gpu.json",
+    "split_dir": "data/valid_dfi_splits_recluster_gpu",
+    "seed": 42,
+    "cv_folds": 5,
+    "has_xgboost": false,
+    "has_lightgbm": false,
+    "created": "2026-04-06T17:41:24.044173"
+  },
+  "data_info": {
+    "train_samples": 2766,
+    "val_samples": 342,
+    "test_samples": 352,
+    "feature_dims": {
+      "coverage": 69,
+      "structural": 69,
+      "combined": 138
+    }
+  },
+  "reference_baselines": {
+    "svm_coverage_original": 0.7528,
+    "svm_combined_original": 0.7727
+  },
+  "experiments": {
+    "model_comparison": {
+      "coverage": {
+        "svm_rbf": {
+          "name": "SVM (RBF kernel)",
+          "metrics": {
+            "train": {
+              "accuracy": 0.8281853281853282,
+              "f1": 0.8276325912730789
+            },
+            "val": {
+              "accuracy": 0.8538011695906432,
+              "f1": 0.8533950617283951
+            },
+            "test": {
+              "accuracy": 0.7670454545454546,
+              "f1": 0.7648515658096262,
+              "confusion_matrix": [
+                [
+                  152,
+                  24
+                ],
+                [
+                  58,
+                  118
+                ]
+              ]
+            }
+          }
+        },
+        "logistic_l2": {
+          "name": "Logistic Regression (L2)",
+          "metrics": {
+            "train": {
+              "accuracy": 0.7683397683397684,
+              "f1": 0.766444176885221
+            },
+            "val": {
+              "accuracy": 0.7690058479532164,
+              "f1": 0.7652955739912262
+            },
+            "test": {
+              "accuracy": 0.7443181818181818,
+              "f1": 0.74291557113643,
+              "confusion_matrix": [
+                [
+                  144,
+                  32
+                ],
+                [
+                  58,
+                  118
+                ]
+              ]
+            }
+          }
+        },
+        "logistic_l1": {
+          "name": "Logistic Regression (L1)",
+          "metrics": {
+            "train": {
+              "accuracy": 0.7686615186615187,
+              "f1": 0.7667549030587839
+            },
+            "val": {
+              "accuracy": 0.7690058479532164,
+              "f1": 0.7652955739912262
+            },
+            "test": {
+              "accuracy": 0.75,
+              "f1": 0.7484080571799869,
+              "confusion_matrix": [
+                [
+                  146,
+                  30
+                ],
+                [
+                  58,
+                  118
+                ]
+              ]
+            }
+          }
+        },
+        "random_forest": {
+          "name": "Random Forest",
+          "metrics": {
+            "train": {
+              "accuracy": 0.8018018018018018,
+              "f1": 0.801642781954264
+            },
+            "val": {
+              "accuracy": 0.8187134502923976,
+              "f1": 0.8182098765432099
+            },
+            "test": {
+              "accuracy": 0.7926136363636364,
+              "f1": 0.7925315893585241,
+              "confusion_matrix": [
+                [
+                  143,
+                  33
+                ],
+                [
+                  40,
+                  136
+                ]
+              ]
+            }
+          }
+        },
+        "mlp": {
+          "name": "MLP Neural Network",
+          "metrics": {
+            "train": {
+              "accuracy": 0.8088803088803089,
+              "f1": 0.8084220925309447
+            },
+            "val": {
+              "accuracy": 0.8391812865497076,
+              "f1": 0.8388713283478528
+            },
+            "test": {
+              "accuracy": 0.7926136363636364,
+              "f1": 0.7922363537868191,
+              "confusion_matrix": [
+                [
+                  147,
+                  29
+                ],
+                [
+                  44,
+                  132
+                ]
+              ]
+            }
+          }
+        }
+      },
+      "structural": {
+        "svm_rbf": {
+          "name": "SVM (RBF kernel)",
+          "metrics": {
+            "train": {
+              "accuracy": 0.8552123552123552,
+              "f1": 0.8548276199950509
+            },
+            "val": {
+              "accuracy": 0.8830409356725146,
+              "f1": 0.8828446149630036
+            },
+            "test": {
+              "accuracy": 0.7755681818181818,
+              "f1": 0.7755228892709822,
+              "confusion_matrix": [
+                [
+                  139,
+                  37
+                ],
+                [
+                  42,
+                  134
+                ]
+              ]
+            }
+          }
+        },
+        "logistic_l2": {
+          "name": "Logistic Regression (L2)",
+          "metrics": {
+            "train": {
+              "accuracy": 0.7593307593307593,
+              "f1": 0.7582479930119379
+            },
+            "val": {
+              "accuracy": 0.7660818713450293,
+              "f1": 0.7634609399315282
+            },
+            "test": {
+              "accuracy": 0.7357954545454546,
+              "f1": 0.7354345981331071,
+              "confusion_matrix": [
+                [
+                  136,
+                  40
+                ],
+                [
+                  53,
+                  123
+                ]
+              ]
+            }
+          }
+        },
+        "logistic_l1": {
+          "name": "Logistic Regression (L1)",
+          "metrics": {
+            "train": {
+              "accuracy": 0.759009009009009,
+              "f1": 0.7578717940316997
+            },
+            "val": {
+              "accuracy": 0.7660818713450293,
+              "f1": 0.7634609399315282
+            },
+            "test": {
+              "accuracy": 0.7414772727272727,
+              "f1": 0.7411241766678789,
+              "confusion_matrix": [
+                [
+                  137,
+                  39
+                ],
+                [
+                  52,
+                  124
+                ]
+              ]
+            }
+          }
+        },
+        "random_forest": {
+          "name": "Random Forest",
+          "metrics": {
+            "train": {
+              "accuracy": 0.8738738738738738,
+              "f1": 0.8733906970944008
+            },
+            "val": {
+              "accuracy": 0.9093567251461988,
+              "f1": 0.9089449048825525
+            },
+            "test": {
+              "accuracy": 0.8607954545454546,
+              "f1": 0.8607043925603481,
+              "confusion_matrix": [
+                [
+                  156,
+                  20
+                ],
+                [
+                  29,
+                  147
+                ]
+              ]
+            }
+          }
+        },
+        "mlp": {
+          "name": "MLP Neural Network",
+          "metrics": {
+            "train": {
+              "accuracy": 0.8433075933075933,
+              "f1": 0.8433017371957376
+            },
+            "val": {
+              "accuracy": 0.8625730994152047,
+              "f1": 0.8625719244547421
+            },
+            "test": {
+              "accuracy": 0.78125,
+              "f1": 0.7812482345060249,
+              "confusion_matrix": [
+                [
+                  138,
+                  38
+                ],
+                [
+                  39,
+                  137
+                ]
+              ]
+            }
+          }
+        }
+      },
+      "combined": {
+        "svm_rbf": {
+          "name": "SVM (RBF kernel)",
+          "metrics": {
+            "train": {
+              "accuracy": 0.86003861003861,
+              "f1": 0.859572814598162
+            },
+            "val": {
+              "accuracy": 0.8801169590643275,
+              "f1": 0.87974580413883
+            },
+            "test": {
+              "accuracy": 0.7784090909090909,
+              "f1": 0.7782945736434108,
+              "confusion_matrix": [
+                [
+                  141,
+                  35
+                ],
+                [
+                  43,
+                  133
+                ]
+              ]
+            }
+          }
+        },
+        "logistic_l2": {
+          "name": "Logistic Regression (L2)",
+          "metrics": {
+            "train": {
+              "accuracy": 0.7853925353925354,
+              "f1": 0.7845789693493307
+            },
+            "val": {
+              "accuracy": 0.8011695906432749,
+              "f1": 0.7994134897360704
+            },
+            "test": {
+              "accuracy": 0.7528409090909091,
+              "f1": 0.7517811550151976,
+              "confusion_matrix": [
+                [
+                  144,
+                  32
+                ],
+                [
+                  55,
+                  121
+                ]
+              ]
+            }
+          }
+        },
+        "logistic_l1": {
+          "name": "Logistic Regression (L1)",
+          "metrics": {
+            "train": {
+              "accuracy": 0.7728442728442728,
+              "f1": 0.771526935533313
+            },
+            "val": {
+              "accuracy": 0.7748538011695907,
+              "f1": 0.7718874249629688
+            },
+            "test": {
+              "accuracy": 0.7613636363636364,
+              "f1": 0.7605907500971628,
+              "confusion_matrix": [
+                [
+                  144,
+                  32
+                ],
+                [
+                  52,
+                  124
+                ]
+              ]
+            }
+          }
+        },
+        "random_forest": {
+          "name": "Random Forest",
+          "metrics": {
+            "train": {
+              "accuracy": 0.8674388674388674,
+              "f1": 0.8668986722048634
+            },
+            "val": {
+              "accuracy": 0.9005847953216374,
+              "f1": 0.9000068794716566
+            },
+            "test": {
+              "accuracy": 0.8636363636363636,
+              "f1": 0.8634776987718165,
+              "confusion_matrix": [
+                [
+                  158,
+                  18
+                ],
+                [
+                  30,
+                  146
+                ]
+              ]
+            }
+          }
+        },
+        "mlp": {
+          "name": "MLP Neural Network",
+          "metrics": {
+            "train": {
+              "accuracy": 0.7815315315315315,
+              "f1": 0.7808044623267862
+            },
+            "val": {
+              "accuracy": 0.7660818713450293,
+              "f1": 0.7642679900744417
+            },
+            "test": {
+              "accuracy": 0.7670454545454546,
+              "f1": 0.7659574468085106,
+              "confusion_matrix": [
+                [
+                  147,
+                  29
+                ],
+                [
+                  53,
+                  123
+                ]
+              ]
+            }
+          }
+        }
+      }
+    },
+    "hyperparameter_tuning": {
+      "logistic_tuned": {
+        "best_params": {
+          "C": 1.0,
+          "penalty": "l2"
+        },
+        "cv_score": 0.7692897566936432,
+        "test_accuracy": 0.7528409090909091,
+        "test_f1": 0.7517811550151976
+      },
+      "random_forest_tuned": {
+        "best_params": {
+          "max_depth": null,
+          "min_samples_split": 5,
+          "n_estimators": 50
+        },
+        "cv_score": 0.8519911355504813,
+        "test_accuracy": 0.8778409090909091,
+        "test_f1": 0.8777925800331032
+      }
+    },
+    "feature_importance": {
+      "coverage": {
+        "top_features": [
+          {
+            "feature_idx": 0,
+            "importance": 0.39392224064158554
+          },
+          {
+            "feature_idx": 1,
+            "importance": 0.16619068110583565
+          },
+          {
+            "feature_idx": 2,
+            "importance": 0.08165399165823675
+          },
+          {
+            "feature_idx": 3,
+            "importance": 0.04627084119724395
+          },
+          {
+            "feature_idx": 4,
+            "importance": 0.033052811279857174
+          },
+          {
+            "feature_idx": 6,
+            "importance": 0.031230762633061168
+          },
+          {
+            "feature_idx": 5,
+            "importance": 0.026553979469185206
+          },
+          {
+            "feature_idx": 7,
+            "importance": 0.026465864590251634
+          },
+          {
+            "feature_idx": 9,
+            "importance": 0.025164978631365263
+          },
+          {
+            "feature_idx": 8,
+            "importance": 0.02176289004555952
+          }
+        ],
+        "total_features": 69,
+        "sum_top_10_importance": 0.8522690412521818
+      },
+      "combined": {
+        "top_features": [
+          {
+            "feature_idx": 1,
+            "importance": 0.18885546642172638
+          },
+          {
+            "feature_idx": 0,
+            "importance": 0.1625078654444162
+          },
+          {
+            "feature_idx": 2,
+            "importance": 0.06583579144543725
+          },
+          {
+            "feature_idx": 3,
+            "importance": 0.061333170778607435
+          },
+          {
+            "feature_idx": 5,
+            "importance": 0.04924959401554114
+          },
+          {
+            "feature_idx": 15,
+            "importance": 0.03449211547927239
+          },
+          {
+            "feature_idx": 11,
+            "importance": 0.0342764436849244
+          },
+          {
+            "feature_idx": 13,
+            "importance": 0.031056213820473414
+          },
+          {
+            "feature_idx": 7,
+            "importance": 0.030042013136467552
+          },
+          {
+            "feature_idx": 19,
+            "importance": 0.028757370291545115
+          }
+        ],
+        "total_features": 138,
+        "sum_top_10_importance": 0.6864060445184113
+      }
+    }
+  }
+}
