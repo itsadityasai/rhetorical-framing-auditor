@@ -1226,3 +1226,222 @@ omitted matter more than summary statistics of omission rates.
 \item \textbf{Best practice:} Use Random Forest with combined features (coverage + log-depth
 structural) for highest accuracy (87.78\%), or coverage-only for interpretability (79.26\% with RF).
 \end{enumerate}
+
+\section{Appendix: Feature Representation Clarifications}
+
+This section clarifies the feature representations used across experiments, addressing common
+questions about the relationship between different feature encodings.
+
+\subsection{What Features Were Used for Training Random Forest (Option E)?}
+
+Random Forest in Option E used \textbf{DFI-style padded vectors} (per-cluster deltas),
+\textit{not} aggregate vectors. The features are computed per-cluster as deltas (side minus center),
+then padded to a fixed length:
+
+\begin{itemize}
+\item \textbf{Coverage}: 69 dimensions (binary presence deltas)
+\item \textbf{Structural}: 69 dimensions (log-depth prominence deltas)
+\item \textbf{Combined}: 138 dimensions (both interleaved)
+\end{itemize}
+
+The aggregate vector experiment was a \textit{separate} negative result showing that summary
+statistics (9--14 dimensions) lose too much information compared to the full padded DFI approach.
+
+\subsection{Differences Between Coverage, Structural, and Combined Feature Sets}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\hline
+\textbf{Feature Set} & \textbf{Per-Cluster Value} & \textbf{Formula} \\
+\hline
+Coverage & Binary presence delta & $h_{side} - h_{center} \in \{-1, 0, +1\}$ \\
+Structural & Prominence delta & $W_{side} - W_{center}$ where $W = \frac{1}{1+\ln(1+d)}$ \\
+Combined & Both values & $[\text{coverage}_c, \text{structural}_c]$ per cluster $c$ \\
+\hline
+\end{tabular}
+\caption{Feature set definitions. Coverage encodes binary presence/absence; structural encodes
+log-depth weighted prominence; combined interleaves both per cluster.}
+\label{tab:feature_definitions}
+\end{table}
+
+\subsection{Consistency of Feature Sets Across Experiments}
+
+\textbf{Yes}---Options A, B, C, D, and E all use the same \textbf{per-cluster delta encoding
+with zero-padding} to a fixed maximum length. The only variations are:
+
+\begin{enumerate}
+\item \textbf{Which delta type}: coverage (binary) vs structural (continuous) vs combined (both)
+\item \textbf{Which weighting formula for structural}: original $\alpha^{d+1}\gamma^s$ vs
+      log-depth $1/(1+\ln(1+d))$ vs inverse-satellite $1/(1+\gamma s)$
+\end{enumerate}
+
+The \textbf{aggregate vector experiment was separate}---it used summary statistics (mean, std,
+skewness, etc.) instead of per-cluster vectors. This approach performed substantially worse
+(61\% vs 75\%+), confirming that specific cluster-level patterns are essential.
+
+\subsection{DFI Vectors vs Aggregate Vectors}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccl}
+\hline
+\textbf{Experiment} & \textbf{Encoding} & \textbf{Dim} & \textbf{Best Test Acc.} \\
+\hline
+Options A--E & DFI (per-cluster, padded) & 69--138 & 87.78\% (RF, combined) \\
+Aggregate Vector & Summary statistics & 9--14 & 61.36\% \\
+\hline
+\end{tabular}
+\caption{Comparison of DFI vs aggregate encoding approaches.}
+\label{tab:dfi_vs_aggregate}
+\end{table}
+
+The key insight is that \textbf{which specific facts are omitted} matters far more than
+aggregate statistics about omission rates. The per-cluster DFI encoding preserves this
+information through consistent intra-triplet ordering, while aggregation destroys it.
+
+\section{What Patterns Does the Model Learn?}
+
+A natural question arises: \textit{what is the model actually learning?} Each triplet has
+different fact clusters, so the $i$-th dimension in one DFI vector corresponds to a completely
+different fact than the $i$-th dimension in another vector. Yet Random Forest achieves 87.78\%
+accuracy, implying that meaningful cross-triplet patterns exist. This section investigates
+what those patterns are.
+
+\subsection{The Paradox of Unaligned Dimensions}
+
+In the padded DFI approach:
+\begin{itemize}
+\item Each triplet has $K$ retained clusters (variable, mean $\approx 9$, max = 69)
+\item DFI vectors are padded with zeros to a fixed length of 69
+\item Cluster $i$ in triplet A may be about ``economic policy'' while cluster $i$ in triplet B
+      is about ``immigration''---there is no semantic alignment
+\end{itemize}
+
+Despite this apparent misalignment, the model learns \textit{something} that generalizes.
+The key insight is that the model does not learn ``cluster 3 predicts right-wing bias.''
+Instead, it learns \textbf{distributional patterns} that are consistent across triplets.
+
+\subsection{Pattern 1: Asymmetric Omission Rates}
+
+The most robust pattern is that \textbf{right-leaning sources omit more facts that center covers}
+compared to left-leaning sources:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcc}
+\hline
+\textbf{Sample Type} & \textbf{Mean Omissions} & \textbf{Std} \\
+\hline
+Left (label 0): left omits, center covers & 3.52 & 4.68 \\
+Right (label 1): right omits, center covers & 3.97 & 4.31 \\
+\hline
+\end{tabular}
+\caption{Omission statistics across training triplets. Right sources omit $\approx 13\%$ more
+facts than left sources.}
+\label{tab:omission_rates}
+\end{table}
+
+This asymmetry means that right-vs-center samples have systematically more negative deltas
+(more $-1$ values in coverage vectors) than left-vs-center samples. The model can exploit
+this aggregate pattern without knowing what specific facts are involved.
+
+\subsection{Pattern 2: Position-Dependent Delta Distributions}
+
+Analysis of the training data reveals that early positions (clusters 0--5) show stronger
+systematic differences between left and right samples:
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{ccccc}
+\hline
+\textbf{Position} & \textbf{Left Mean} & \textbf{Right Mean} & \textbf{Difference} & \textbf{Non-zero Rate} \\
+\hline
+0 & $-0.069$ & $-0.566$ & $-0.497$ & 95--98\% \\
+1 & $-0.159$ & $-0.504$ & $-0.345$ & 93--94\% \\
+2 & $-0.222$ & $-0.452$ & $-0.230$ & 87--88\% \\
+3 & $-0.244$ & $-0.422$ & $-0.177$ & 79\% \\
+4 & $-0.239$ & $-0.350$ & $-0.111$ & 70\% \\
+5 & $-0.238$ & $-0.273$ & $-0.035$ & 62\% \\
+\hline
+\end{tabular}
+\caption{Coverage delta means by position for left (label 0) vs right (label 1) samples.
+Early positions show larger systematic differences.}
+\label{tab:position_deltas}
+\end{table}
+
+The key observations are:
+\begin{enumerate}
+\item \textbf{Both sides show negative means}: Both left and right sources omit facts that
+      center covers, but right omits more.
+\item \textbf{Differences decrease with position}: Early clusters (position 0--2) show the
+      largest differences between labels; later positions converge.
+\item \textbf{Non-zero rates decrease}: Later positions are mostly padding zeros, providing
+      less signal.
+\end{enumerate}
+
+\subsection{Pattern 3: Vector Length as Implicit Feature}
+
+The number of non-zero entries encodes triplet complexity. Triplets with more shared facts
+(larger clusters) have longer DFI vectors. This implicit feature may correlate with bias
+patterns---for example, highly contentious events may generate more coverage from all sides.
+
+\subsection{Why Random Forest Excels}
+
+Random Forest's architecture is particularly suited to exploit these patterns:
+
+\begin{enumerate}
+\item \textbf{Automatic feature selection}: Trees can learn to focus on early positions
+      (where signal is strongest) and ignore later positions (mostly zeros). The feature
+      importance analysis confirms this: position 0 accounts for 39.4\% of total importance.
+
+\item \textbf{Threshold-based splits}: Decision trees naturally handle the discrete coverage
+      deltas $\{-1, 0, +1\}$ through threshold splits, learning rules like
+      ``if position 0 $< -0.3$ then predict right.''
+
+\item \textbf{Robustness to sparse features}: Most DFI values are zero (padding). Trees
+      efficiently ignore uninformative zeros, while kernel methods (SVM) must process all
+      dimensions.
+
+\item \textbf{Non-linear interactions}: Random Forest captures interactions like
+      ``position 0 is negative AND position 1 is negative $\Rightarrow$ right,'' which
+      linear models cannot represent.
+\end{enumerate}
+
+\subsection{What the Model Does NOT Learn}
+
+It is important to clarify what the model is \textit{not} learning:
+
+\begin{itemize}
+\item \textbf{Not semantic fact content}: The model has no knowledge of what facts are
+      about (immigration, economy, etc.). It only sees numerical deltas.
+
+\item \textbf{Not cross-triplet fact alignment}: The model does not know that cluster 3
+      in triplet A is semantically similar to cluster 7 in triplet B.
+
+\item \textbf{Not RST structural placement}: The size-3 ablation showed that structural
+      signals alone (without coverage) achieve only 51\% accuracy---near chance.
+\end{itemize}
+
+\subsection{Summary: The Learned Pattern}
+
+The model learns a \textbf{distributional fingerprint} of bias-specific omission behavior:
+
+\begin{quote}
+\textit{Right-leaning sources systematically omit more facts that centrist sources cover,
+and this omission pattern is particularly pronounced in the first few (most salient) facts
+of each event.}
+\end{quote}
+
+This pattern is robust because:
+\begin{enumerate}
+\item It is a population-level tendency, not tied to specific facts
+\item It exploits the inherent ordering of clusters within each triplet (larger/more important
+      clusters tend to appear first)
+\item Random Forest can efficiently learn the position-dependent thresholds that capture
+      this asymmetry
+\end{enumerate}
+
+The 87.78\% accuracy reflects the model's ability to exploit these distributional regularities,
+even without explicit semantic alignment across triplets.
