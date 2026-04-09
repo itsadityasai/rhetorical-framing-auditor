@@ -1,0 +1,476 @@
+{
+  "setup": {
+    "goal": "Test if cluster ordering by coverage asymmetry improves classification",
+    "ordering_strategy": "by_coverage_asymmetry",
+    "description": "Clusters ordered by |left_coverage - right_coverage| (most asymmetric first)",
+    "hypothesis": "Position 0 = most biased fact should improve generalization",
+    "facts": "data/valid_facts_results_recluster_gpu.json",
+    "split_dir": "data/valid_dfi_splits_recluster_gpu",
+    "rf": {
+      "n_estimators": 200,
+      "max_depth": 15,
+      "min_samples_split": 2,
+      "min_samples_leaf": 1,
+      "seed": 42
+    },
+    "created": "2026-04-08T15:56:18.799252"
+  },
+  "reference_baselines": {
+    "unordered_padded_dfi_rf": {
+      "test_acc": 0.8778
+    },
+    "unordered_bipartite_coverage": {
+      "test_acc": 0.8977
+    }
+  },
+  "experiments": {
+    "baseline_combined_ordered": {
+      "description": "Baseline: coverage + max (ordered)",
+      "ordering_strategy": "by_coverage_asymmetry",
+      "input_dim": 138,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8561099060014461,
+          "macro_f1": 0.856082743127748,
+          "confusion_matrix": [
+            [
+              1203,
+              180
+            ],
+            [
+              218,
+              1165
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.8976608187134503,
+          "macro_f1": 0.8975898975898976,
+          "confusion_matrix": [
+            [
+              158,
+              13
+            ],
+            [
+              22,
+              149
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5795454545454546,
+          "macro_f1": 0.5794911532997546,
+          "confusion_matrix": [
+            [
+              104,
+              72
+            ],
+            [
+              76,
+              100
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.8606821106821106,
+          "macro_f1": 0.8606502437754046,
+          "confusion_matrix": [
+            [
+              1361,
+              193
+            ],
+            [
+              240,
+              1314
+            ]
+          ]
+        }
+      },
+      "model_path": "ordering-str/by-coverage-asymmetry/results/models/baseline_combined_ordered.pkl",
+      "feature_importances_top10": [
+        [
+          1,
+          0.08482320465515811
+        ],
+        [
+          9,
+          0.071659357358344
+        ],
+        [
+          3,
+          0.07103458991892488
+        ],
+        [
+          5,
+          0.06255378832551921
+        ],
+        [
+          7,
+          0.06243978699893524
+        ],
+        [
+          11,
+          0.05954223129394408
+        ],
+        [
+          15,
+          0.05391082260115447
+        ],
+        [
+          13,
+          0.051586279806681824
+        ],
+        [
+          17,
+          0.043564527971700434
+        ],
+        [
+          19,
+          0.03780603437212299
+        ]
+      ],
+      "delta_vs_unordered_baseline": -0.29825454545454544,
+      "delta_vs_unordered_bipartite": -0.31815454545454547
+    },
+    "cumulative_avg_ordered": {
+      "description": "Approach 1: Cumulative avg (ordered)",
+      "ordering_strategy": "by_coverage_asymmetry",
+      "input_dim": 69,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8770788141720897,
+          "macro_f1": 0.8770284088383052,
+          "confusion_matrix": [
+            [
+              1241,
+              142
+            ],
+            [
+              198,
+              1185
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9064327485380117,
+          "macro_f1": 0.9063174114021572,
+          "confusion_matrix": [
+            [
+              161,
+              10
+            ],
+            [
+              22,
+              149
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5909090909090909,
+          "macro_f1": 0.5908562572646261,
+          "confusion_matrix": [
+            [
+              102,
+              74
+            ],
+            [
+              70,
+              106
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.8803088803088803,
+          "macro_f1": 0.8802515577356489,
+          "confusion_matrix": [
+            [
+              1402,
+              152
+            ],
+            [
+              220,
+              1334
+            ]
+          ]
+        }
+      },
+      "model_path": "ordering-str/by-coverage-asymmetry/results/models/cumulative_avg_ordered.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.11697067383003193
+        ],
+        [
+          1,
+          0.09534209728841374
+        ],
+        [
+          4,
+          0.0866416748548966
+        ],
+        [
+          2,
+          0.07745954816316464
+        ],
+        [
+          3,
+          0.07249589874313078
+        ],
+        [
+          5,
+          0.06967584525597116
+        ],
+        [
+          6,
+          0.061489786862153215
+        ],
+        [
+          7,
+          0.05834248666122041
+        ],
+        [
+          8,
+          0.0448634964118423
+        ],
+        [
+          9,
+          0.04330957912116557
+        ]
+      ],
+      "delta_vs_unordered_baseline": -0.2868909090909091,
+      "delta_vs_unordered_bipartite": -0.3067909090909091
+    },
+    "distributional_3d_ordered": {
+      "description": "Approach 2: Distributional 3D (ordered)",
+      "ordering_strategy": "by_coverage_asymmetry",
+      "input_dim": 207,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8872017353579176,
+          "macro_f1": 0.8871996122663128,
+          "confusion_matrix": [
+            [
+              1221,
+              162
+            ],
+            [
+              150,
+              1233
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9298245614035088,
+          "macro_f1": 0.9298029556650247,
+          "confusion_matrix": [
+            [
+              156,
+              15
+            ],
+            [
+              9,
+              162
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.6022727272727273,
+          "macro_f1": 0.6018099547511313,
+          "confusion_matrix": [
+            [
+              100,
+              76
+            ],
+            [
+              64,
+              112
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.8918918918918919,
+          "macro_f1": 0.8918882656579021,
+          "confusion_matrix": [
+            [
+              1377,
+              177
+            ],
+            [
+              159,
+              1395
+            ]
+          ]
+        }
+      },
+      "model_path": "ordering-str/by-coverage-asymmetry/results/models/distributional_3d_ordered.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.05223317396683454
+        ],
+        [
+          1,
+          0.04775408112660493
+        ],
+        [
+          3,
+          0.043161680970897565
+        ],
+        [
+          4,
+          0.043126799823324215
+        ],
+        [
+          12,
+          0.037596410828106414
+        ],
+        [
+          7,
+          0.03338093416299813
+        ],
+        [
+          6,
+          0.03324197463684707
+        ],
+        [
+          9,
+          0.033071115176569355
+        ],
+        [
+          13,
+          0.03194008418405022
+        ],
+        [
+          10,
+          0.030960394243827925
+        ]
+      ],
+      "delta_vs_unordered_baseline": -0.27552727272727273,
+      "delta_vs_unordered_bipartite": -0.29542727272727276
+    },
+    "bipartite_coverage_ordered": {
+      "description": "Approach 3: Bipartite coverage (ordered)",
+      "ordering_strategy": "by_coverage_asymmetry",
+      "input_dim": 157,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8474331164135936,
+          "macro_f1": 0.8437972387922286,
+          "confusion_matrix": [
+            [
+              961,
+              422
+            ],
+            [
+              0,
+              1383
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.8801169590643275,
+          "macro_f1": 0.8783688835300956,
+          "confusion_matrix": [
+            [
+              130,
+              41
+            ],
+            [
+              0,
+              171
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.7670454545454546,
+          "macro_f1": 0.7574535309737488,
+          "confusion_matrix": [
+            [
+              100,
+              76
+            ],
+            [
+              6,
+              170
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.851029601029601,
+          "macro_f1": 0.847648591176877,
+          "confusion_matrix": [
+            [
+              1091,
+              463
+            ],
+            [
+              0,
+              1554
+            ]
+          ]
+        }
+      },
+      "model_path": "ordering-str/by-coverage-asymmetry/results/models/bipartite_coverage_ordered.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.43616384186043716
+        ],
+        [
+          1,
+          0.0474692097300324
+        ],
+        [
+          2,
+          0.021678639135447163
+        ],
+        [
+          6,
+          0.019693702121505955
+        ],
+        [
+          7,
+          0.01949476451435766
+        ],
+        [
+          5,
+          0.018606888639893952
+        ],
+        [
+          10,
+          0.018577593592489443
+        ],
+        [
+          8,
+          0.018500038336530068
+        ],
+        [
+          9,
+          0.018265329270975426
+        ],
+        [
+          11,
+          0.018251112932001514
+        ]
+      ],
+      "delta_vs_unordered_baseline": -0.11075454545454544,
+      "delta_vs_unordered_bipartite": -0.13065454545454547
+    }
+  }
+}

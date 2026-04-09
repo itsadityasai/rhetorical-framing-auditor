@@ -1,0 +1,362 @@
+{
+  "setup": {
+    "goal": "Test if organizing features by RST depth bins enables universal structure learning",
+    "approach": "Each feature index represents a structural depth, not a fact ID",
+    "hypothesis": "Model can learn 'facts at depth X have characteristic delta patterns'",
+    "max_depth_bin": 20,
+    "num_normalized_bins": 10,
+    "facts": "data/valid_facts_results_recluster_gpu.json",
+    "split_dir": "data/valid_dfi_splits_recluster_gpu",
+    "rf": {
+      "n_estimators": 200,
+      "max_depth": 15,
+      "min_samples_split": 2,
+      "min_samples_leaf": 1,
+      "seed": 42
+    },
+    "created": "2026-04-08T17:26:45.683053"
+  },
+  "reference_baselines": {
+    "unordered_padded_dfi_rf": {
+      "test_acc": 0.8778
+    },
+    "unordered_bipartite_coverage": {
+      "test_acc": 0.8977
+    }
+  },
+  "experiments": {
+    "depth_bins_absolute": {
+      "description": "Absolute depth bins (0-19)",
+      "input_dim": 21,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.853940708604483,
+          "macro_f1": 0.851308764536284,
+          "confusion_matrix": [
+            [
+              997,
+              386
+            ],
+            [
+              18,
+              1365
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.868421052631579,
+          "macro_f1": 0.8665024331427877,
+          "confusion_matrix": [
+            [
+              128,
+              43
+            ],
+            [
+              2,
+              169
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.6306818181818182,
+          "macro_f1": 0.6203749792599966,
+          "confusion_matrix": [
+            [
+              82,
+              94
+            ],
+            [
+              36,
+              140
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.8555341055341056,
+          "macro_f1": 0.8529882327756897,
+          "confusion_matrix": [
+            [
+              1125,
+              429
+            ],
+            [
+              20,
+              1534
+            ]
+          ]
+        }
+      },
+      "model_path": "universal-str/by-depth-bins/results/models/depth_bins_absolute.pkl",
+      "feature_importances_top10": [
+        [
+          11,
+          0.08841882002227557
+        ],
+        [
+          12,
+          0.08797094701831744
+        ],
+        [
+          8,
+          0.08765224986822379
+        ],
+        [
+          9,
+          0.08718840076460388
+        ],
+        [
+          7,
+          0.08697046206376421
+        ],
+        [
+          13,
+          0.07733099523176687
+        ],
+        [
+          10,
+          0.07719319598150111
+        ],
+        [
+          6,
+          0.07671532592306615
+        ],
+        [
+          20,
+          0.07586260281428445
+        ],
+        [
+          5,
+          0.06838768821647967
+        ]
+      ],
+      "delta_vs_unordered_baseline": -0.2471181818181818,
+      "delta_vs_unordered_bipartite": -0.2670181818181818
+    },
+    "depth_bins_normalized": {
+      "description": "Normalized depth bins (10 bins)",
+      "input_dim": 11,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.903470715835141,
+          "macro_f1": 0.903260299327427,
+          "confusion_matrix": [
+            [
+              1185,
+              198
+            ],
+            [
+              69,
+              1314
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9064327485380117,
+          "macro_f1": 0.9063815226689478,
+          "confusion_matrix": [
+            [
+              151,
+              20
+            ],
+            [
+              12,
+              159
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5994318181818182,
+          "macro_f1": 0.5982613341103907,
+          "confusion_matrix": [
+            [
+              96,
+              80
+            ],
+            [
+              61,
+              115
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.9037966537966537,
+          "macro_f1": 0.9036093640683776,
+          "confusion_matrix": [
+            [
+              1336,
+              218
+            ],
+            [
+              81,
+              1473
+            ]
+          ]
+        }
+      },
+      "model_path": "universal-str/by-depth-bins/results/models/depth_bins_normalized.pkl",
+      "feature_importances_top10": [
+        [
+          9,
+          0.21439813995450846
+        ],
+        [
+          7,
+          0.14511149634270293
+        ],
+        [
+          6,
+          0.14151045947575214
+        ],
+        [
+          8,
+          0.13775298074354353
+        ],
+        [
+          5,
+          0.11388857811969312
+        ],
+        [
+          10,
+          0.09281209947799912
+        ],
+        [
+          4,
+          0.06751113808969354
+        ],
+        [
+          3,
+          0.0501017876515888
+        ],
+        [
+          2,
+          0.029403585743624616
+        ],
+        [
+          1,
+          0.006924094550356077
+        ]
+      ],
+      "delta_vs_unordered_baseline": -0.2783681818181818,
+      "delta_vs_unordered_bipartite": -0.2982681818181818
+    },
+    "depth_bins_with_counts": {
+      "description": "Depth bins with counts",
+      "input_dim": 41,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8644251626898047,
+          "macro_f1": 0.8623078100443815,
+          "confusion_matrix": [
+            [
+              1024,
+              359
+            ],
+            [
+              16,
+              1367
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.8801169590643275,
+          "macro_f1": 0.8786971754833687,
+          "confusion_matrix": [
+            [
+              132,
+              39
+            ],
+            [
+              2,
+              169
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.6193181818181818,
+          "macro_f1": 0.6079265859821785,
+          "confusion_matrix": [
+            [
+              79,
+              97
+            ],
+            [
+              37,
+              139
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.8661518661518661,
+          "macro_f1": 0.8641206381662139,
+          "confusion_matrix": [
+            [
+              1156,
+              398
+            ],
+            [
+              18,
+              1536
+            ]
+          ]
+        }
+      },
+      "model_path": "universal-str/by-depth-bins/results/models/depth_bins_with_counts.pkl",
+      "feature_importances_top10": [
+        [
+          18,
+          0.061658206307379136
+        ],
+        [
+          16,
+          0.06153623268050417
+        ],
+        [
+          14,
+          0.06006145006991276
+        ],
+        [
+          40,
+          0.05754949765104899
+        ],
+        [
+          24,
+          0.05291573076824879
+        ],
+        [
+          22,
+          0.05191019559453122
+        ],
+        [
+          20,
+          0.04899692460396689
+        ],
+        [
+          12,
+          0.04843711281549015
+        ],
+        [
+          10,
+          0.04372883781724688
+        ],
+        [
+          26,
+          0.038953763001992416
+        ]
+      ],
+      "delta_vs_unordered_baseline": -0.25848181818181826,
+      "delta_vs_unordered_bipartite": -0.2783818181818183
+    }
+  }
+}

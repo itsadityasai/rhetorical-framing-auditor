@@ -1,0 +1,510 @@
+{
+  "setup": {
+    "goal": "Explore strengthened structural features (Option B)",
+    "facts": "data/valid_facts_results_recluster_gpu.json",
+    "split_dir": "data/valid_dfi_splits_recluster_gpu",
+    "svm": {
+      "kernel": "rbf",
+      "C": 10.0,
+      "gamma": 0.1,
+      "degree": 3
+    },
+    "created": "2026-04-06T14:13:00.050506"
+  },
+  "reference_baselines": {
+    "coverage_only": {
+      "test_acc": 0.7528,
+      "test_f1": 0.7504
+    },
+    "structural_baseline": {
+      "test_acc": 0.6705,
+      "test_f1": 0.6702
+    },
+    "size3_baseline": {
+      "test_acc": 0.5347,
+      "test_f1": 0.5309
+    }
+  },
+  "experiments": {
+    "agg_with_coverage": {
+      "description": "Aggregate features WITH coverage signal",
+      "input_dim": 345,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.9750542299349241,
+          "macro_f1": 0.9750536788876462,
+          "confusion_matrix": [
+            [
+              1342,
+              41
+            ],
+            [
+              28,
+              1355
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.6754385964912281,
+          "macro_f1": 0.6624849966659258,
+          "confusion_matrix": [
+            [
+              149,
+              22
+            ],
+            [
+              89,
+              82
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.6846590909090909,
+          "macro_f1": 0.6679329950791668,
+          "confusion_matrix": [
+            [
+              160,
+              16
+            ],
+            [
+              95,
+              81
+            ]
+          ]
+        }
+      },
+      "model_path": "strengthen-str/results/models/agg_with_coverage.pkl",
+      "delta_vs_coverage": {
+        "test_acc": -0.06814090909090909,
+        "test_f1": -0.08246700492083314
+      },
+      "delta_vs_structural": {
+        "test_acc": 0.014159090909090954,
+        "test_f1": -0.0022670049208332044
+      }
+    },
+    "agg_no_coverage": {
+      "description": "Aggregate features WITHOUT coverage (size-3 only)",
+      "input_dim": 76,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.7111352133044107,
+          "macro_f1": 0.7028819336845367,
+          "confusion_matrix": [
+            [
+              753,
+              630
+            ],
+            [
+              169,
+              1214
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.5175438596491229,
+          "macro_f1": 0.5160501873879746,
+          "confusion_matrix": [
+            [
+              79,
+              92
+            ],
+            [
+              73,
+              98
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.53125,
+          "macro_f1": 0.5288735307716643,
+          "confusion_matrix": [
+            [
+              81,
+              95
+            ],
+            [
+              70,
+              106
+            ]
+          ]
+        }
+      },
+      "model_path": "strengthen-str/results/models/agg_no_coverage.pkl",
+      "delta_vs_coverage": {
+        "test_acc": -0.22155000000000002,
+        "test_f1": -0.22152646922833563
+      },
+      "delta_vs_structural": {
+        "test_acc": -0.13924999999999998,
+        "test_f1": -0.1413264692283357
+      }
+    },
+    "nuclearity_dist": {
+      "description": "Nuclearity distribution features",
+      "input_dim": 138,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.9081706435285611,
+          "macro_f1": 0.9081048699328214,
+          "confusion_matrix": [
+            [
+              1293,
+              90
+            ],
+            [
+              164,
+              1219
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.7368421052631579,
+          "macro_f1": 0.7366169222343921,
+          "confusion_matrix": [
+            [
+              121,
+              50
+            ],
+            [
+              40,
+              131
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.75,
+          "macro_f1": 0.7498708010335917,
+          "confusion_matrix": [
+            [
+              128,
+              48
+            ],
+            [
+              40,
+              136
+            ]
+          ]
+        }
+      },
+      "model_path": "strengthen-str/results/models/nuclearity_dist.pkl",
+      "delta_vs_coverage": {
+        "test_acc": -0.0028000000000000247,
+        "test_f1": -0.0005291989664082397
+      },
+      "delta_vs_structural": {
+        "test_acc": 0.07950000000000002,
+        "test_f1": 0.0796708010335917
+      }
+    },
+    "W_exponential": {
+      "description": "Exponential decay: W = exp(-0.3 * depth)",
+      "input_dim": 69,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8521330441070137,
+          "macro_f1": 0.8521093646133338,
+          "confusion_matrix": [
+            [
+              1196,
+              187
+            ],
+            [
+              222,
+              1161
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.6578947368421053,
+          "macro_f1": 0.6568355874205638,
+          "confusion_matrix": [
+            [
+              103,
+              68
+            ],
+            [
+              49,
+              122
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.6704545454545454,
+          "macro_f1": 0.6693872263246534,
+          "confusion_matrix": [
+            [
+              108,
+              68
+            ],
+            [
+              48,
+              128
+            ]
+          ]
+        }
+      },
+      "model_path": "strengthen-str/results/models/W_exponential.pkl",
+      "delta_vs_coverage": {
+        "test_acc": -0.08234545454545461,
+        "test_f1": -0.08101277367534654
+      },
+      "delta_vs_structural": {
+        "test_acc": -4.545454545457073e-05,
+        "test_f1": -0.0008127736753466008
+      }
+    },
+    "W_inverse_sat": {
+      "description": "Inverse satellite: W = 1 / (1 + 0.5 * s)",
+      "input_dim": 69,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8669558929862617,
+          "macro_f1": 0.8669402404437416,
+          "confusion_matrix": [
+            [
+              1214,
+              169
+            ],
+            [
+              199,
+              1184
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.7748538011695907,
+          "macro_f1": 0.7745280191789032,
+          "confusion_matrix": [
+            [
+              139,
+              32
+            ],
+            [
+              45,
+              126
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.75,
+          "macro_f1": 0.749967712772827,
+          "confusion_matrix": [
+            [
+              130,
+              46
+            ],
+            [
+              42,
+              134
+            ]
+          ]
+        }
+      },
+      "model_path": "strengthen-str/results/models/W_inverse_sat.pkl",
+      "delta_vs_coverage": {
+        "test_acc": -0.0028000000000000247,
+        "test_f1": -0.0004322872271729228
+      },
+      "delta_vs_structural": {
+        "test_acc": 0.07950000000000002,
+        "test_f1": 0.07976771277282702
+      }
+    },
+    "W_combined": {
+      "description": "Combined: exp(-0.3*d) / (1 + 0.5*s)",
+      "input_dim": 69,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8344179320318149,
+          "macro_f1": 0.8343957670673954,
+          "confusion_matrix": [
+            [
+              1170,
+              213
+            ],
+            [
+              245,
+              1138
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.6900584795321637,
+          "macro_f1": 0.6895382296519594,
+          "confusion_matrix": [
+            [
+              111,
+              60
+            ],
+            [
+              46,
+              125
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.6505681818181818,
+          "macro_f1": 0.6490699088145897,
+          "confusion_matrix": [
+            [
+              103,
+              73
+            ],
+            [
+              50,
+              126
+            ]
+          ]
+        }
+      },
+      "model_path": "strengthen-str/results/models/W_combined.pkl",
+      "delta_vs_coverage": {
+        "test_acc": -0.10223181818181826,
+        "test_f1": -0.10133009118541025
+      },
+      "delta_vs_structural": {
+        "test_acc": -0.019931818181818217,
+        "test_f1": -0.021130091185410316
+      }
+    },
+    "W_log_depth": {
+      "description": "Log depth: W = 1 / (1 + log(1+d))",
+      "input_dim": 69,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8496023138105567,
+          "macro_f1": 0.8493464052287582,
+          "confusion_matrix": [
+            [
+              1232,
+              151
+            ],
+            [
+              265,
+              1118
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.7748538011695907,
+          "macro_f1": 0.7736442637464651,
+          "confusion_matrix": [
+            [
+              145,
+              26
+            ],
+            [
+              51,
+              120
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.7642045454545454,
+          "macro_f1": 0.7641112591336644,
+          "confusion_matrix": [
+            [
+              138,
+              38
+            ],
+            [
+              45,
+              131
+            ]
+          ]
+        }
+      },
+      "model_path": "strengthen-str/results/models/W_log_depth.pkl",
+      "delta_vs_coverage": {
+        "test_acc": 0.01140454545454539,
+        "test_f1": 0.013711259133664444
+      },
+      "delta_vs_structural": {
+        "test_acc": 0.09370454545454543,
+        "test_f1": 0.09391125913366438
+      }
+    },
+    "W_original": {
+      "description": "Original formula (baseline): \u03b1^(d+1) * \u03b3^s",
+      "input_dim": 69,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8159797541576284,
+          "macro_f1": 0.8158370359460063,
+          "confusion_matrix": [
+            [
+              1167,
+              216
+            ],
+            [
+              293,
+              1090
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.6988304093567251,
+          "macro_f1": 0.6987041868023778,
+          "confusion_matrix": [
+            [
+              116,
+              55
+            ],
+            [
+              48,
+              123
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.6704545454545454,
+          "macro_f1": 0.6701883622500081,
+          "confusion_matrix": [
+            [
+              113,
+              63
+            ],
+            [
+              53,
+              123
+            ]
+          ]
+        }
+      },
+      "model_path": "strengthen-str/results/models/W_original.pkl",
+      "delta_vs_coverage": {
+        "test_acc": -0.08234545454545461,
+        "test_f1": -0.08021163774999185
+      },
+      "delta_vs_structural": {
+        "test_acc": -4.545454545457073e-05,
+        "test_f1": -1.1637749991910695e-05
+      }
+    }
+  }
+}

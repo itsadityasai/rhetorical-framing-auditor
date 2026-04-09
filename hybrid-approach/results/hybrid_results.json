@@ -1,0 +1,434 @@
+{
+  "setup": {
+    "goal": "Hybrid approach to separate coverage and structural signals (Option C)",
+    "facts": "data/valid_facts_results_recluster_gpu.json",
+    "split_dir": "data/valid_dfi_splits_recluster_gpu",
+    "svm": {
+      "kernel": "rbf",
+      "C": 10.0,
+      "gamma": 0.1,
+      "degree": 3
+    },
+    "created": "2026-04-06T17:22:32.336883"
+  },
+  "reference_baselines": {
+    "coverage_only_original": {
+      "test_acc": 0.7528,
+      "test_f1": 0.7504
+    },
+    "structural_log_depth": {
+      "test_acc": 0.7642,
+      "test_f1": 0.7626
+    },
+    "structural_baseline": {
+      "test_acc": 0.6705,
+      "test_f1": 0.6702
+    }
+  },
+  "experiments": {
+    "feature_ablation": {
+      "coverage_only": {
+        "description": "Binary coverage features",
+        "input_dim": 69,
+        "metrics": {
+          "train": {
+            "samples": 2766,
+            "accuracy": 0.8253796095444685,
+            "macro_f1": 0.8247859789752827,
+            "confusion_matrix": [
+              [
+                1222,
+                161
+              ],
+              [
+                322,
+                1061
+              ]
+            ]
+          },
+          "val": {
+            "samples": 342,
+            "accuracy": 0.7865497076023392,
+            "macro_f1": 0.7845436893203883,
+            "confusion_matrix": [
+              [
+                151,
+                20
+              ],
+              [
+                53,
+                118
+              ]
+            ]
+          },
+          "test": {
+            "samples": 352,
+            "accuracy": 0.7528409090909091,
+            "macro_f1": 0.7503729244613992,
+            "confusion_matrix": [
+              [
+                150,
+                26
+              ],
+              [
+                61,
+                115
+              ]
+            ]
+          }
+        }
+      },
+      "structural_all": {
+        "description": "Structural log-depth (all clusters)",
+        "input_dim": 69,
+        "metrics": {
+          "train": {
+            "samples": 2766,
+            "accuracy": 0.8496023138105567,
+            "macro_f1": 0.8493464052287582,
+            "confusion_matrix": [
+              [
+                1232,
+                151
+              ],
+              [
+                265,
+                1118
+              ]
+            ]
+          },
+          "val": {
+            "samples": 342,
+            "accuracy": 0.7748538011695907,
+            "macro_f1": 0.7736442637464651,
+            "confusion_matrix": [
+              [
+                145,
+                26
+              ],
+              [
+                51,
+                120
+              ]
+            ]
+          },
+          "test": {
+            "samples": 352,
+            "accuracy": 0.7642045454545454,
+            "macro_f1": 0.7641112591336644,
+            "confusion_matrix": [
+              [
+                138,
+                38
+              ],
+              [
+                45,
+                131
+              ]
+            ]
+          }
+        }
+      },
+      "structural_size3": {
+        "description": "Structural log-depth (size-3 only, no coverage)",
+        "input_dim": 19,
+        "metrics": {
+          "train": {
+            "samples": 2766,
+            "accuracy": 0.5911062906724512,
+            "macro_f1": 0.5817823805741755,
+            "confusion_matrix": [
+              [
+                1024,
+                359
+              ],
+              [
+                772,
+                611
+              ]
+            ]
+          },
+          "val": {
+            "samples": 342,
+            "accuracy": 0.5116959064327485,
+            "macro_f1": 0.49565094531229303,
+            "confusion_matrix": [
+              [
+                118,
+                53
+              ],
+              [
+                114,
+                57
+              ]
+            ]
+          },
+          "test": {
+            "samples": 352,
+            "accuracy": 0.5142045454545454,
+            "macro_f1": 0.4870422607228382,
+            "confusion_matrix": [
+              [
+                131,
+                45
+              ],
+              [
+                126,
+                50
+              ]
+            ]
+          }
+        }
+      },
+      "combined": {
+        "description": "Coverage + Structural combined",
+        "input_dim": 138,
+        "metrics": {
+          "train": {
+            "samples": 2766,
+            "accuracy": 0.8571945046999276,
+            "macro_f1": 0.8569022587824623,
+            "confusion_matrix": [
+              [
+                1248,
+                135
+              ],
+              [
+                260,
+                1123
+              ]
+            ]
+          },
+          "val": {
+            "samples": 342,
+            "accuracy": 0.783625730994152,
+            "macro_f1": 0.7828832229504821,
+            "confusion_matrix": [
+              [
+                144,
+                27
+              ],
+              [
+                47,
+                124
+              ]
+            ]
+          },
+          "test": {
+            "samples": 352,
+            "accuracy": 0.7727272727272727,
+            "macro_f1": 0.772661220008396,
+            "confusion_matrix": [
+              [
+                139,
+                37
+              ],
+              [
+                43,
+                133
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "two_stage": {
+      "coverage_model": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8253796095444685,
+          "macro_f1": 0.8247859789752827,
+          "confusion_matrix": [
+            [
+              1222,
+              161
+            ],
+            [
+              322,
+              1061
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.7865497076023392,
+          "macro_f1": 0.7845436893203883,
+          "confusion_matrix": [
+            [
+              151,
+              20
+            ],
+            [
+              53,
+              118
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.7528409090909091,
+          "macro_f1": 0.7503729244613992,
+          "confusion_matrix": [
+            [
+              150,
+              26
+            ],
+            [
+              61,
+              115
+            ]
+          ]
+        }
+      },
+      "structural_model": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8496023138105567,
+          "macro_f1": 0.8493464052287582,
+          "confusion_matrix": [
+            [
+              1232,
+              151
+            ],
+            [
+              265,
+              1118
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.7748538011695907,
+          "macro_f1": 0.7736442637464651,
+          "confusion_matrix": [
+            [
+              145,
+              26
+            ],
+            [
+              51,
+              120
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.7642045454545454,
+          "macro_f1": 0.7641112591336644,
+          "confusion_matrix": [
+            [
+              138,
+              38
+            ],
+            [
+              45,
+              131
+            ]
+          ]
+        }
+      },
+      "error_analysis": {
+        "train_errors": 483,
+        "test_errors": 87,
+        "structure_corrects_test_errors": 21,
+        "structure_wrong_on_test_errors": 66,
+        "pct_errors_structure_corrects": 24.137931034482758
+      },
+      "combination_strategies": {
+        "threshold_0.55": {
+          "threshold": 0.55,
+          "num_uncertain": 25,
+          "pct_uncertain": 7.1022727272727275,
+          "accuracy": 0.7585227272727273,
+          "improvement_vs_coverage": 0.005681818181818232
+        },
+        "threshold_0.6": {
+          "threshold": 0.6,
+          "num_uncertain": 34,
+          "pct_uncertain": 9.659090909090908,
+          "accuracy": 0.7585227272727273,
+          "improvement_vs_coverage": 0.005681818181818232
+        },
+        "threshold_0.65": {
+          "threshold": 0.65,
+          "num_uncertain": 37,
+          "pct_uncertain": 10.511363636363637,
+          "accuracy": 0.7556818181818182,
+          "improvement_vs_coverage": 0.0028409090909091717
+        },
+        "threshold_0.7": {
+          "threshold": 0.7,
+          "num_uncertain": 47,
+          "pct_uncertain": 13.352272727272727,
+          "accuracy": 0.7528409090909091,
+          "improvement_vs_coverage": 0.0
+        },
+        "threshold_0.75": {
+          "threshold": 0.75,
+          "num_uncertain": 51,
+          "pct_uncertain": 14.488636363636363,
+          "accuracy": 0.75,
+          "improvement_vs_coverage": -0.0028409090909090606
+        },
+        "weighted_str_0.1": {
+          "weight_structural": 0.1,
+          "weight_coverage": 0.9,
+          "accuracy": 0.7613636363636364,
+          "improvement_vs_coverage": 0.008522727272727293
+        },
+        "weighted_str_0.2": {
+          "weight_structural": 0.2,
+          "weight_coverage": 0.8,
+          "accuracy": 0.7642045454545454,
+          "improvement_vs_coverage": 0.011363636363636354
+        },
+        "weighted_str_0.3": {
+          "weight_structural": 0.3,
+          "weight_coverage": 0.7,
+          "accuracy": 0.7642045454545454,
+          "improvement_vs_coverage": 0.011363636363636354
+        },
+        "weighted_str_0.4": {
+          "weight_structural": 0.4,
+          "weight_coverage": 0.6,
+          "accuracy": 0.7613636363636364,
+          "improvement_vs_coverage": 0.008522727272727293
+        },
+        "weighted_str_0.5": {
+          "weight_structural": 0.5,
+          "weight_coverage": 0.5,
+          "accuracy": 0.7585227272727273,
+          "improvement_vs_coverage": 0.005681818181818232
+        }
+      }
+    },
+    "stacking": {
+      "base_models": {
+        "coverage": {
+          "test_accuracy": 0.7528409090909091,
+          "test_f1": 0.7503729244613992
+        },
+        "structural": {
+          "test_accuracy": 0.7642045454545454,
+          "test_f1": 0.7641112591336644
+        }
+      },
+      "stacked_model": {
+        "test_accuracy": 0.7698863636363636,
+        "test_f1": 0.7697953251786362,
+        "improvement_vs_coverage": 0.017045454545454586,
+        "improvement_vs_structural": 0.005681818181818232
+      },
+      "meta_coefficients": {
+        "coverage_prob_0": -1.2070386214399818,
+        "coverage_prob_1": 1.2479044035728832,
+        "structural_prob_0": -1.4103266670595995,
+        "structural_prob_1": 1.4511924491924997
+      },
+      "interpretation": {
+        "note": "If stacked > max(coverage, structural), models provide complementary info",
+        "coverage_dominant": false
+      }
+    }
+  }
+}

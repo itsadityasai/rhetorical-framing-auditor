@@ -1,0 +1,1117 @@
+{
+  "setup": {
+    "facts_path": "data/valid_facts_results_recluster_gpu.json",
+    "split_dir": "data/valid_dfi_splits_recluster_gpu",
+    "model_path": "dfi-alternatives/results/models/alt3_bipartite_cov.pkl",
+    "experiment": "alt3_bipartite_cov",
+    "input_dim": 157,
+    "seed": 42,
+    "num_samples": 10,
+    "top_k": 5,
+    "num_test_vectors_total": 352,
+    "method": {
+      "feature_builder": "alt3_bipartite_coverage",
+      "local_explanation": "tree-path (Saabas-style) contributions",
+      "evidence_mapping": "feature index -> matched/unmatched EDU event"
+    }
+  },
+  "summary": {
+    "total": 10,
+    "correct": 9,
+    "accuracy": 0.9
+  },
+  "samples": [
+    {
+      "sample_id": "triplet_1527_right",
+      "triplet_idx": 1527,
+      "sample_side": "right",
+      "triplet": {
+        "left": "raw/jsons/JdmeUAQbjMhx06V1.json",
+        "center": "raw/jsons/8l41u2MtPe6yyACw.json",
+        "right": "raw/jsons/FwGHYcWhKZFpKuwf.json"
+      },
+      "true_label": 1,
+      "true_label_name": "right-vs-center",
+      "pred_label": 1,
+      "pred_label_name": "right-vs-center",
+      "is_correct": true,
+      "proba_left_vs_center": 0.18280375451291994,
+      "proba_right_vs_center": 0.81719624548708,
+      "active_feature_count": 9,
+      "raw_feature_length": 9,
+      "top_evidence": [
+        {
+          "feature_index": 0,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.24856527467714554,
+          "global_feature_importance": 0.3322973617273565,
+          "event": {
+            "cluster_id": "10",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "8l41u2MtPe6yyACw_27",
+              "bias": "center",
+              "depth": 6,
+              "text": "Earlier this month , Speaker John Boehner , R-Ohio , announced"
+            }
+          },
+          "event_text": "Center mentions this fact but right side does not: 8l41u2MtPe6yyACw_27 :: Earlier this month , Speaker John Boehner , R-Ohio , announced"
+        },
+        {
+          "feature_index": 1,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.04991516526469906,
+          "global_feature_importance": 0.07029811747479855,
+          "event": {
+            "cluster_id": "50",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "8l41u2MtPe6yyACw_15",
+              "bias": "center",
+              "depth": 6,
+              "text": "The Bush-era tax cuts expire along with the payroll tax break ;"
+            }
+          },
+          "event_text": "Center mentions this fact but right side does not: 8l41u2MtPe6yyACw_15 :: The Bush-era tax cuts expire along with the payroll tax break ;"
+        },
+        {
+          "feature_index": 8,
+          "feature_value": 1.0,
+          "support_for_predicted_class": 0.03798721041317804,
+          "global_feature_importance": 0.02257739078719143,
+          "event": {
+            "cluster_id": "16",
+            "event_type": "right_only_mention",
+            "feature_value": 1.0,
+            "right_edu": {
+              "edu_id": "FwGHYcWhKZFpKuwf_89",
+              "bias": "right",
+              "depth": 5,
+              "text": "are the automatic cuts to Pentagon spending ."
+            }
+          },
+          "event_text": "Right-only mention: FwGHYcWhKZFpKuwf_89 :: are the automatic cuts to Pentagon spending ."
+        },
+        {
+          "feature_index": 6,
+          "feature_value": 1.0,
+          "support_for_predicted_class": 0.015894811349498817,
+          "global_feature_importance": 0.027463971974167306,
+          "event": {
+            "cluster_id": "34",
+            "event_type": "right_only_mention",
+            "feature_value": 1.0,
+            "right_edu": {
+              "edu_id": "FwGHYcWhKZFpKuwf_77",
+              "bias": "right",
+              "depth": 7,
+              "text": "of raising taxes"
+            }
+          },
+          "event_text": "Right-only mention: FwGHYcWhKZFpKuwf_77 :: of raising taxes"
+        },
+        {
+          "feature_index": 5,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.009107254695751136,
+          "global_feature_importance": 0.027605980683703974,
+          "event": {
+            "cluster_id": "34",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "8l41u2MtPe6yyACw_37",
+              "bias": "center",
+              "depth": 8,
+              "text": "of wanting to raise everyone 's taxes ."
+            }
+          },
+          "event_text": "Center mentions this fact but right side does not: 8l41u2MtPe6yyACw_37 :: of wanting to raise everyone 's taxes ."
+        }
+      ]
+    },
+    {
+      "sample_id": "triplet_1631_right",
+      "triplet_idx": 1631,
+      "sample_side": "right",
+      "triplet": {
+        "left": "raw/jsons/O4ovtsDhchCS67lG.json",
+        "center": "raw/jsons/itEuDd5E0EubxXuN.json",
+        "right": "raw/jsons/TRQA2QLV9kFTwXZQ.json"
+      },
+      "true_label": 1,
+      "true_label_name": "right-vs-center",
+      "pred_label": 1,
+      "pred_label_name": "right-vs-center",
+      "is_correct": true,
+      "proba_left_vs_center": 0.15187456639838712,
+      "proba_right_vs_center": 0.848125433601613,
+      "active_feature_count": 11,
+      "raw_feature_length": 11,
+      "top_evidence": [
+        {
+          "feature_index": 0,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.151666159113205,
+          "global_feature_importance": 0.3322973617273565,
+          "event": {
+            "cluster_id": "116",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "itEuDd5E0EubxXuN_17",
+              "bias": "center",
+              "depth": 13,
+              "text": "( $ 15.2 million ) ,"
+            }
+          },
+          "event_text": "Center mentions this fact but right side does not: itEuDd5E0EubxXuN_17 :: ( $ 15.2 million ) ,"
+        },
+        {
+          "feature_index": 10,
+          "feature_value": 1.0,
+          "support_for_predicted_class": 0.06241461620605768,
+          "global_feature_importance": 0.021840824528641715,
+          "event": {
+            "cluster_id": "84",
+            "event_type": "right_only_mention",
+            "feature_value": 1.0,
+            "right_edu": {
+              "edu_id": "TRQA2QLV9kFTwXZQ_10",
+              "bias": "right",
+              "depth": 3,
+              "text": "Over the course of the primary and general elections , Clinton 's campaign has hauled in $ 513 million , roughly double what Trump 's has ."
+            }
+          },
+          "event_text": "Right-only mention: TRQA2QLV9kFTwXZQ_10 :: Over the course of the primary and general elections , Clinton 's campaign has hauled in $ 513 million , roughly double what Trump 's has ."
+        },
+        {
+          "feature_index": 2,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.04148870774100259,
+          "global_feature_importance": 0.05571661911089,
+          "event": {
+            "cluster_id": "116",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "itEuDd5E0EubxXuN_19",
+              "bias": "center",
+              "depth": 13,
+              "text": "( $ 14.3 million ) ."
+            }
+          },
+          "event_text": "Center mentions this fact but right side does not: itEuDd5E0EubxXuN_19 :: ( $ 14.3 million ) ."
+        },
+        {
+          "feature_index": 1,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.037958942797140995,
+          "global_feature_importance": 0.07029811747479855,
+          "event": {
+            "cluster_id": "116",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "itEuDd5E0EubxXuN_13",
+              "bias": "center",
+              "depth": 10,
+              "text": "$ 47.5 million ."
+            }
+          },
+          "event_text": "Center mentions this fact but right side does not: itEuDd5E0EubxXuN_13 :: $ 47.5 million ."
+        },
+        {
+          "feature_index": 4,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.024117572686959018,
+          "global_feature_importance": 0.03261202760777123,
+          "event": {
+            "cluster_id": "6",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "itEuDd5E0EubxXuN_81",
+              "bias": "center",
+              "depth": 9,
+              "text": "who have taken in the largest share of their individual donation totals from these small donors"
+            }
+          },
+          "event_text": "Center mentions this fact but right side does not: itEuDd5E0EubxXuN_81 :: who have taken in the largest share of their individual donation totals from these small donors"
+        }
+      ]
+    },
+    {
+      "sample_id": "triplet_1704_left",
+      "triplet_idx": 1704,
+      "sample_side": "left",
+      "triplet": {
+        "left": "raw/jsons/ubn62fKOcPlCE0Mq.json",
+        "center": "raw/jsons/p0eZ8Zc3wymZ4LhK.json",
+        "right": "raw/jsons/oFs7FcGATQTI6olJ.json"
+      },
+      "true_label": 0,
+      "true_label_name": "left-vs-center",
+      "pred_label": 1,
+      "pred_label_name": "right-vs-center",
+      "is_correct": false,
+      "proba_left_vs_center": 0.44820209563864954,
+      "proba_right_vs_center": 0.5517979043613503,
+      "active_feature_count": 13,
+      "raw_feature_length": 13,
+      "top_evidence": [
+        {
+          "feature_index": 0,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.2949347430557819,
+          "global_feature_importance": 0.3322973617273565,
+          "event": {
+            "cluster_id": "2",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "p0eZ8Zc3wymZ4LhK_43",
+              "bias": "center",
+              "depth": 15,
+              "text": "but to cut the deficit ."
+            }
+          },
+          "event_text": "Center mentions this fact but left side does not: p0eZ8Zc3wymZ4LhK_43 :: but to cut the deficit ."
+        },
+        {
+          "feature_index": 1,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.048707620357782436,
+          "global_feature_importance": 0.07029811747479855,
+          "event": {
+            "cluster_id": "2",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "p0eZ8Zc3wymZ4LhK_32",
+              "bias": "center",
+              "depth": 11,
+              "text": "and reduce the deficit in a balanced way . ''"
+            }
+          },
+          "event_text": "Center mentions this fact but left side does not: p0eZ8Zc3wymZ4LhK_32 :: and reduce the deficit in a balanced way . ''"
+        },
+        {
+          "feature_index": 5,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.022749467308839658,
+          "global_feature_importance": 0.027605980683703974,
+          "event": {
+            "cluster_id": "0",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "p0eZ8Zc3wymZ4LhK_31",
+              "bias": "center",
+              "depth": 11,
+              "text": "to avoid the sequester"
+            }
+          },
+          "event_text": "Center mentions this fact but left side does not: p0eZ8Zc3wymZ4LhK_31 :: to avoid the sequester"
+        },
+        {
+          "feature_index": 6,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.005209878449457388,
+          "global_feature_importance": 0.027463971974167306,
+          "event": {
+            "cluster_id": "0",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "p0eZ8Zc3wymZ4LhK_36",
+              "bias": "center",
+              "depth": 13,
+              "text": "to avoid the economically harmful consequences of the sequester for a few months . ''"
+            }
+          },
+          "event_text": "Center mentions this fact but left side does not: p0eZ8Zc3wymZ4LhK_36 :: to avoid the economically harmful consequences of the sequester for a few months . ''"
+        },
+        {
+          "feature_index": 4,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.0036797103217962412,
+          "global_feature_importance": 0.03261202760777123,
+          "event": {
+            "cluster_id": "11",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "p0eZ8Zc3wymZ4LhK_14",
+              "bias": "center",
+              "depth": 10,
+              "text": "that would bring sharp reductions in spending on defense and other programs ,"
+            }
+          },
+          "event_text": "Center mentions this fact but left side does not: p0eZ8Zc3wymZ4LhK_14 :: that would bring sharp reductions in spending on defense and other programs ,"
+        }
+      ]
+    },
+    {
+      "sample_id": "triplet_236_left",
+      "triplet_idx": 236,
+      "sample_side": "left",
+      "triplet": {
+        "left": "raw/jsons/MPf3Dpm5Hm7x4OfR.json",
+        "center": "raw/jsons/bhmeayIEmmRPLXPq.json",
+        "right": "raw/jsons/HGcqn6N0ICgvRlQ5.json"
+      },
+      "true_label": 0,
+      "true_label_name": "left-vs-center",
+      "pred_label": 0,
+      "pred_label_name": "left-vs-center",
+      "is_correct": true,
+      "proba_left_vs_center": 0.8309832670872334,
+      "proba_right_vs_center": 0.1690167329127667,
+      "active_feature_count": 10,
+      "raw_feature_length": 11,
+      "top_evidence": [
+        {
+          "feature_index": 0,
+          "feature_value": 1.0,
+          "support_for_predicted_class": 0.37976891892116377,
+          "global_feature_importance": 0.3322973617273565,
+          "event": {
+            "cluster_id": "22",
+            "event_type": "left_only_mention",
+            "feature_value": 1.0,
+            "left_edu": {
+              "edu_id": "MPf3Dpm5Hm7x4OfR_12",
+              "bias": "left",
+              "depth": 9,
+              "text": "The hackers had gained access to the state ' s voter database ,"
+            }
+          },
+          "event_text": "Left-only mention: MPf3Dpm5Hm7x4OfR_12 :: The hackers had gained access to the state ' s voter database ,"
+        },
+        {
+          "feature_index": 8,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.0037235165461617812,
+          "global_feature_importance": 0.02257739078719143,
+          "event": {
+            "cluster_id": "2",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "bhmeayIEmmRPLXPq_11",
+              "bias": "center",
+              "depth": 8,
+              "text": "targeted by Russian hackers ahead of the election ."
+            }
+          },
+          "event_text": "Center mentions this fact but left side does not: bhmeayIEmmRPLXPq_11 :: targeted by Russian hackers ahead of the election ."
+        },
+        {
+          "feature_index": 10,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.0018415566991432798,
+          "global_feature_importance": 0.021840824528641715,
+          "event": {
+            "cluster_id": "1",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "bhmeayIEmmRPLXPq_19",
+              "bias": "center",
+              "depth": 7,
+              "text": "Homeland Security formally notified election officials in the states"
+            }
+          },
+          "event_text": "Center mentions this fact but left side does not: bhmeayIEmmRPLXPq_19 :: Homeland Security formally notified election officials in the states"
+        },
+        {
+          "feature_index": 9,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.0014267780079199363,
+          "global_feature_importance": 0.019534226333501225,
+          "event": {
+            "cluster_id": "1",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "bhmeayIEmmRPLXPq_59",
+              "bias": "center",
+              "depth": 4,
+              "text": "Homeland Security is also working with state election officials"
+            }
+          },
+          "event_text": "Center mentions this fact but left side does not: bhmeayIEmmRPLXPq_59 :: Homeland Security is also working with state election officials"
+        }
+      ]
+    },
+    {
+      "sample_id": "triplet_286_right",
+      "triplet_idx": 286,
+      "sample_side": "right",
+      "triplet": {
+        "left": "raw/jsons/Tg5rCqWx2yJUqJS6.json",
+        "center": "raw/jsons/8TTHspd76NylUCLN.json",
+        "right": "raw/jsons/ERTfhQWePSmrJGqy.json"
+      },
+      "true_label": 1,
+      "true_label_name": "right-vs-center",
+      "pred_label": 1,
+      "pred_label_name": "right-vs-center",
+      "is_correct": true,
+      "proba_left_vs_center": 0.1006039189214243,
+      "proba_right_vs_center": 0.8993960810785759,
+      "active_feature_count": 16,
+      "raw_feature_length": 16,
+      "top_evidence": [
+        {
+          "feature_index": 0,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.14132739355620008,
+          "global_feature_importance": 0.3322973617273565,
+          "event": {
+            "cluster_id": "18",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "8TTHspd76NylUCLN_0",
+              "bias": "center",
+              "depth": 10,
+              "text": "House of Representatives investigators are looking into"
+            }
+          },
+          "event_text": "Center mentions this fact but right side does not: 8TTHspd76NylUCLN_0 :: House of Representatives investigators are looking into"
+        },
+        {
+          "feature_index": 15,
+          "feature_value": 1.0,
+          "support_for_predicted_class": 0.062442873277732736,
+          "global_feature_importance": 0.018162343304396346,
+          "event": {
+            "cluster_id": "31",
+            "event_type": "right_only_mention",
+            "feature_value": 1.0,
+            "right_edu": {
+              "edu_id": "ERTfhQWePSmrJGqy_45",
+              "bias": "right",
+              "depth": 5,
+              "text": "The Justice Department appealed that decision ,"
+            }
+          },
+          "event_text": "Right-only mention: ERTfhQWePSmrJGqy_45 :: The Justice Department appealed that decision ,"
+        },
+        {
+          "feature_index": 2,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.043332092061627234,
+          "global_feature_importance": 0.05571661911089,
+          "event": {
+            "cluster_id": "7",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "8TTHspd76NylUCLN_26",
+              "bias": "center",
+              "depth": 7,
+              "text": "Mr Trump did not testify in the Mueller investigation ,"
+            }
+          },
+          "event_text": "Center mentions this fact but right side does not: 8TTHspd76NylUCLN_26 :: Mr Trump did not testify in the Mueller investigation ,"
+        },
+        {
+          "feature_index": 1,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.037347664333649805,
+          "global_feature_importance": 0.07029811747479855,
+          "event": {
+            "cluster_id": "18",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "8TTHspd76NylUCLN_22",
+              "bias": "center",
+              "depth": 10,
+              "text": "lawmakers were also investigating"
+            }
+          },
+          "event_text": "Center mentions this fact but right side does not: 8TTHspd76NylUCLN_22 :: lawmakers were also investigating"
+        },
+        {
+          "feature_index": 4,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.02537590791733648,
+          "global_feature_importance": 0.03261202760777123,
+          "event": {
+            "cluster_id": "7",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "8TTHspd76NylUCLN_23",
+              "bias": "center",
+              "depth": 10,
+              "text": "whether Mr Trump lied to Mr Mueller during the course of the probe into Russian meddling in the 2016 election ."
+            }
+          },
+          "event_text": "Center mentions this fact but right side does not: 8TTHspd76NylUCLN_23 :: whether Mr Trump lied to Mr Mueller during the course of the probe into Russian meddling in the 2016 election ."
+        }
+      ]
+    },
+    {
+      "sample_id": "triplet_335_right",
+      "triplet_idx": 335,
+      "sample_side": "right",
+      "triplet": {
+        "left": "raw/jsons/S16P2OTOkGWMiiWS.json",
+        "center": "raw/jsons/XbmTJTNa1xKzxT9w.json",
+        "right": "raw/jsons/UEt9k7QXjbFUwo97.json"
+      },
+      "true_label": 1,
+      "true_label_name": "right-vs-center",
+      "pred_label": 1,
+      "pred_label_name": "right-vs-center",
+      "is_correct": true,
+      "proba_left_vs_center": 0.21269707922768277,
+      "proba_right_vs_center": 0.7873029207723172,
+      "active_feature_count": 41,
+      "raw_feature_length": 55,
+      "top_evidence": [
+        {
+          "feature_index": 0,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.14042225074777762,
+          "global_feature_importance": 0.3322973617273565,
+          "event": {
+            "cluster_id": "18",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "XbmTJTNa1xKzxT9w_121",
+              "bias": "center",
+              "depth": 9,
+              "text": "but also to communicate to you a decision of great importance for the life of the Church ."
+            }
+          },
+          "event_text": "Center mentions this fact but right side does not: XbmTJTNa1xKzxT9w_121 :: but also to communicate to you a decision of great importance for the life of the Church ."
+        },
+        {
+          "feature_index": 2,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.04200840571310942,
+          "global_feature_importance": 0.05571661911089,
+          "event": {
+            "cluster_id": "1",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "XbmTJTNa1xKzxT9w_159",
+              "bias": "center",
+              "depth": 2,
+              "text": "Some History On Papal Resignations ."
+            }
+          },
+          "event_text": "Center mentions this fact but right side does not: XbmTJTNa1xKzxT9w_159 :: Some History On Papal Resignations ."
+        },
+        {
+          "feature_index": 1,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.03892728155158887,
+          "global_feature_importance": 0.07029811747479855,
+          "event": {
+            "cluster_id": "1",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "XbmTJTNa1xKzxT9w_0",
+              "bias": "center",
+              "depth": 8,
+              "text": "For the first time in nearly 600 years , a pope is resigning from his post as leader of the Roman Catholic Church ."
+            }
+          },
+          "event_text": "Center mentions this fact but right side does not: XbmTJTNa1xKzxT9w_0 :: For the first time in nearly 600 years , a pope is resigning from his post as leader of the Roman Catholic Church ."
+        },
+        {
+          "feature_index": 42,
+          "feature_value": 1.0,
+          "support_for_predicted_class": 0.02757617004706562,
+          "global_feature_importance": 0.0024233835630152237,
+          "event": {
+            "cluster_id": "25",
+            "event_type": "right_only_mention",
+            "feature_value": 1.0,
+            "right_edu": {
+              "edu_id": "UEt9k7QXjbFUwo97_9",
+              "bias": "right",
+              "depth": 8,
+              "text": "to carry out his papal duties ."
+            }
+          },
+          "event_text": "Right-only mention: UEt9k7QXjbFUwo97_9 :: to carry out his papal duties ."
+        },
+        {
+          "feature_index": 12,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.018736901958964776,
+          "global_feature_importance": 0.02166766099988298,
+          "event": {
+            "cluster_id": "53",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "XbmTJTNa1xKzxT9w_54",
+              "bias": "center",
+              "depth": 12,
+              "text": "that in today 's world `` strength of mind and body are necessary ''"
+            }
+          },
+          "event_text": "Center mentions this fact but right side does not: XbmTJTNa1xKzxT9w_54 :: that in today 's world `` strength of mind and body are necessary ''"
+        }
+      ]
+    },
+    {
+      "sample_id": "triplet_524_left",
+      "triplet_idx": 524,
+      "sample_side": "left",
+      "triplet": {
+        "left": "raw/jsons/OhY0tNOhCXGKWRVA.json",
+        "center": "raw/jsons/XBDnYN2QW0LOm8wl.json",
+        "right": "raw/jsons/cDUjpL7QeJnhnGS4.json"
+      },
+      "true_label": 0,
+      "true_label_name": "left-vs-center",
+      "pred_label": 0,
+      "pred_label_name": "left-vs-center",
+      "is_correct": true,
+      "proba_left_vs_center": 0.56625,
+      "proba_right_vs_center": 0.43375,
+      "active_feature_count": 55,
+      "raw_feature_length": 67,
+      "top_evidence": [
+        {
+          "feature_index": 5,
+          "feature_value": 1.0,
+          "support_for_predicted_class": 0.03310014260786854,
+          "global_feature_importance": 0.027605980683703974,
+          "event": {
+            "cluster_id": "29",
+            "event_type": "left_only_mention",
+            "feature_value": 1.0,
+            "left_edu": {
+              "edu_id": "OhY0tNOhCXGKWRVA_8",
+              "bias": "left",
+              "depth": 8,
+              "text": "they plan to vote in favor"
+            }
+          },
+          "event_text": "Left-only mention: OhY0tNOhCXGKWRVA_8 :: they plan to vote in favor"
+        },
+        {
+          "feature_index": 8,
+          "feature_value": 1.0,
+          "support_for_predicted_class": 0.030021435955254906,
+          "global_feature_importance": 0.02257739078719143,
+          "event": {
+            "cluster_id": "10",
+            "event_type": "left_only_mention",
+            "feature_value": 1.0,
+            "left_edu": {
+              "edu_id": "OhY0tNOhCXGKWRVA_78",
+              "bias": "left",
+              "depth": 12,
+              "text": "declaring a national emergency"
+            }
+          },
+          "event_text": "Left-only mention: OhY0tNOhCXGKWRVA_78 :: declaring a national emergency"
+        },
+        {
+          "feature_index": 22,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.023837371043988944,
+          "global_feature_importance": 0.01116780793134526,
+          "event": {
+            "cluster_id": "0",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "XBDnYN2QW0LOm8wl_1",
+              "bias": "center",
+              "depth": 6,
+              "text": "Senate Majority Leader Mitch McConnell has made it clear to President Donald Trump"
+            }
+          },
+          "event_text": "Center mentions this fact but left side does not: XBDnYN2QW0LOm8wl_1 :: Senate Majority Leader Mitch McConnell has made it clear to President Donald Trump"
+        },
+        {
+          "feature_index": 12,
+          "feature_value": 1.0,
+          "support_for_predicted_class": 0.021282597452314277,
+          "global_feature_importance": 0.02166766099988298,
+          "event": {
+            "cluster_id": "10",
+            "event_type": "left_only_mention",
+            "feature_value": 1.0,
+            "left_edu": {
+              "edu_id": "OhY0tNOhCXGKWRVA_81",
+              "bias": "left",
+              "depth": 13,
+              "text": "declaring a national emergency"
+            }
+          },
+          "event_text": "Left-only mention: OhY0tNOhCXGKWRVA_81 :: declaring a national emergency"
+        },
+        {
+          "feature_index": 37,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.01976216284812388,
+          "global_feature_importance": 0.003561792759318972,
+          "event": {
+            "cluster_id": "85",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "XBDnYN2QW0LOm8wl_187",
+              "bias": "center",
+              "depth": 16,
+              "text": "she will support the resolution"
+            }
+          },
+          "event_text": "Center mentions this fact but left side does not: XBDnYN2QW0LOm8wl_187 :: she will support the resolution"
+        }
+      ]
+    },
+    {
+      "sample_id": "triplet_574_right",
+      "triplet_idx": 574,
+      "sample_side": "right",
+      "triplet": {
+        "left": "raw/jsons/y6Np9LAYp480v03b.json",
+        "center": "raw/jsons/5TXN7Muegqo8lYvf.json",
+        "right": "raw/jsons/w2cHDiRjDjmSl6o4.json"
+      },
+      "true_label": 1,
+      "true_label_name": "right-vs-center",
+      "pred_label": 1,
+      "pred_label_name": "right-vs-center",
+      "is_correct": true,
+      "proba_left_vs_center": 0.21645526501993076,
+      "proba_right_vs_center": 0.7835447349800693,
+      "active_feature_count": 12,
+      "raw_feature_length": 12,
+      "top_evidence": [
+        {
+          "feature_index": 0,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.26155952884623823,
+          "global_feature_importance": 0.3322973617273565,
+          "event": {
+            "cluster_id": "53",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "5TXN7Muegqo8lYvf_26",
+              "bias": "center",
+              "depth": 8,
+              "text": "( \u00a3153bn )"
+            }
+          },
+          "event_text": "Center mentions this fact but right side does not: 5TXN7Muegqo8lYvf_26 :: ( \u00a3153bn )"
+        },
+        {
+          "feature_index": 1,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.04463901298677959,
+          "global_feature_importance": 0.07029811747479855,
+          "event": {
+            "cluster_id": "23",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "5TXN7Muegqo8lYvf_16",
+              "bias": "center",
+              "depth": 8,
+              "text": "the US is now planning a summit with Chinese Premier Xi Jinping at the US President 's Mar-a-Lago resort in Florida ."
+            }
+          },
+          "event_text": "Center mentions this fact but right side does not: 5TXN7Muegqo8lYvf_16 :: the US is now planning a summit with Chinese Premier Xi Jinping at the US President 's Mar-a-Lago resort in Florida ."
+        },
+        {
+          "feature_index": 10,
+          "feature_value": 1.0,
+          "support_for_predicted_class": 0.03103370537272012,
+          "global_feature_importance": 0.021840824528641715,
+          "event": {
+            "cluster_id": "25",
+            "event_type": "right_only_mention",
+            "feature_value": 1.0,
+            "right_edu": {
+              "edu_id": "w2cHDiRjDjmSl6o4_58",
+              "bias": "right",
+              "depth": 12,
+              "text": "he is content to dig in with even more tariffs on nearly all Chinese imports ."
+            }
+          },
+          "event_text": "Right-only mention: w2cHDiRjDjmSl6o4_58 :: he is content to dig in with even more tariffs on nearly all Chinese imports ."
+        },
+        {
+          "feature_index": 11,
+          "feature_value": 1.0,
+          "support_for_predicted_class": 0.029947144471579847,
+          "global_feature_importance": 0.019587463818756867,
+          "event": {
+            "cluster_id": "25",
+            "event_type": "right_only_mention",
+            "feature_value": 1.0,
+            "right_edu": {
+              "edu_id": "w2cHDiRjDjmSl6o4_52",
+              "bias": "right",
+              "depth": 8,
+              "text": "Mr. Trump then slapped 25 % tariffs on more than $ 200 billion worth of Chinese goods ."
+            }
+          },
+          "event_text": "Right-only mention: w2cHDiRjDjmSl6o4_52 :: Mr. Trump then slapped 25 % tariffs on more than $ 200 billion worth of Chinese goods ."
+        },
+        {
+          "feature_index": 7,
+          "feature_value": 1.0,
+          "support_for_predicted_class": 0.025106200863959174,
+          "global_feature_importance": 0.02392018743156308,
+          "event": {
+            "cluster_id": "36",
+            "event_type": "right_only_mention",
+            "feature_value": 1.0,
+            "right_edu": {
+              "edu_id": "w2cHDiRjDjmSl6o4_29",
+              "bias": "right",
+              "depth": 8,
+              "text": "Mr. Trump tweeted ."
+            }
+          },
+          "event_text": "Right-only mention: w2cHDiRjDjmSl6o4_29 :: Mr. Trump tweeted ."
+        }
+      ]
+    },
+    {
+      "sample_id": "triplet_658_left",
+      "triplet_idx": 658,
+      "sample_side": "left",
+      "triplet": {
+        "left": "raw/jsons/gXOJL2999HhQt6Y8.json",
+        "center": "raw/jsons/fXcgufrmzz88GRx3.json",
+        "right": "raw/jsons/ZIKvg3MmRxUrvqhh.json"
+      },
+      "true_label": 0,
+      "true_label_name": "left-vs-center",
+      "pred_label": 0,
+      "pred_label_name": "left-vs-center",
+      "is_correct": true,
+      "proba_left_vs_center": 0.6585548931729102,
+      "proba_right_vs_center": 0.34144510682709006,
+      "active_feature_count": 12,
+      "raw_feature_length": 17,
+      "top_evidence": [
+        {
+          "feature_index": 1,
+          "feature_value": 1.0,
+          "support_for_predicted_class": 0.18291059396301143,
+          "global_feature_importance": 0.07029811747479855,
+          "event": {
+            "cluster_id": "10",
+            "event_type": "left_only_mention",
+            "feature_value": 1.0,
+            "left_edu": {
+              "edu_id": "gXOJL2999HhQt6Y8_1",
+              "bias": "left",
+              "depth": 6,
+              "text": "beating out Republican candidate Rick Saccone in a deeply conservative district"
+            }
+          },
+          "event_text": "Left-only mention: gXOJL2999HhQt6Y8_1 :: beating out Republican candidate Rick Saccone in a deeply conservative district"
+        },
+        {
+          "feature_index": 14,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.02969620044477812,
+          "global_feature_importance": 0.020101131719014512,
+          "event": {
+            "cluster_id": "30",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "fXcgufrmzz88GRx3_12",
+              "bias": "center",
+              "depth": 8,
+              "text": "Lamb told supporters at his election night party shortly before 1 a.m. ,"
+            }
+          },
+          "event_text": "Center mentions this fact but left side does not: fXcgufrmzz88GRx3_12 :: Lamb told supporters at his election night party shortly before 1 a.m. ,"
+        },
+        {
+          "feature_index": 13,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.02746489737521174,
+          "global_feature_importance": 0.019051719724964205,
+          "event": {
+            "cluster_id": "16",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "fXcgufrmzz88GRx3_9",
+              "bias": "center",
+              "depth": 9,
+              "text": "than we thought ,"
+            }
+          },
+          "event_text": "Center mentions this fact but left side does not: fXcgufrmzz88GRx3_9 :: than we thought ,"
+        },
+        {
+          "feature_index": 16,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.025053949127528678,
+          "global_feature_importance": 0.01606696149758288,
+          "event": {
+            "cluster_id": "12",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "fXcgufrmzz88GRx3_148",
+              "bias": "center",
+              "depth": 8,
+              "text": "ice President Pence also traveled to the district ."
+            }
+          },
+          "event_text": "Center mentions this fact but left side does not: fXcgufrmzz88GRx3_148 :: ice President Pence also traveled to the district ."
+        },
+        {
+          "feature_index": 11,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.01681416763815782,
+          "global_feature_importance": 0.019587463818756867,
+          "event": {
+            "cluster_id": "54",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "fXcgufrmzz88GRx3_1",
+              "bias": "center",
+              "depth": 4,
+              "text": "The special election House race in Pennsylvania was too close to call Wednesday morning ,"
+            }
+          },
+          "event_text": "Center mentions this fact but left side does not: fXcgufrmzz88GRx3_1 :: The special election House race in Pennsylvania was too close to call Wednesday morning ,"
+        }
+      ]
+    },
+    {
+      "sample_id": "triplet_89_left",
+      "triplet_idx": 89,
+      "sample_side": "left",
+      "triplet": {
+        "left": "raw/jsons/XaFU9Cm27eVIlkga.json",
+        "center": "raw/jsons/Hihn4viRSbxOqtqW.json",
+        "right": "raw/jsons/FyMRi13ii8qyNQaH.json"
+      },
+      "true_label": 0,
+      "true_label_name": "left-vs-center",
+      "pred_label": 0,
+      "pred_label_name": "left-vs-center",
+      "is_correct": true,
+      "proba_left_vs_center": 0.6478828563774738,
+      "proba_right_vs_center": 0.35211714362252633,
+      "active_feature_count": 13,
+      "raw_feature_length": 15,
+      "top_evidence": [
+        {
+          "feature_index": 4,
+          "feature_value": 1.0,
+          "support_for_predicted_class": 0.06453752472886194,
+          "global_feature_importance": 0.03261202760777123,
+          "event": {
+            "cluster_id": "60",
+            "event_type": "left_only_mention",
+            "feature_value": 1.0,
+            "left_edu": {
+              "edu_id": "XaFU9Cm27eVIlkga_9",
+              "bias": "left",
+              "depth": 8,
+              "text": "were approved by the committee on party-line votes ,"
+            }
+          },
+          "event_text": "Left-only mention: XaFU9Cm27eVIlkga_9 :: were approved by the committee on party-line votes ,"
+        },
+        {
+          "feature_index": 12,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.043192128746227,
+          "global_feature_importance": 0.02166766099988298,
+          "event": {
+            "cluster_id": "37",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "Hihn4viRSbxOqtqW_39",
+              "bias": "center",
+              "depth": 6,
+              "text": "Nadler 's decision led to vocal objection from Republicans on the committee ,"
+            }
+          },
+          "event_text": "Center mentions this fact but left side does not: Hihn4viRSbxOqtqW_39 :: Nadler 's decision led to vocal objection from Republicans on the committee ,"
+        },
+        {
+          "feature_index": 10,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.0399594762750046,
+          "global_feature_importance": 0.021840824528641715,
+          "event": {
+            "cluster_id": "28",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "Hihn4viRSbxOqtqW_8",
+              "bias": "center",
+              "depth": 7,
+              "text": "In brief remarks after the votes , Nadler said ,"
+            }
+          },
+          "event_text": "Center mentions this fact but left side does not: Hihn4viRSbxOqtqW_8 :: In brief remarks after the votes , Nadler said ,"
+        },
+        {
+          "feature_index": 14,
+          "feature_value": -1.0,
+          "support_for_predicted_class": 0.03809551639798268,
+          "global_feature_importance": 0.020101131719014512,
+          "event": {
+            "cluster_id": "55",
+            "event_type": "center_only_mention",
+            "feature_value": -1.0,
+            "center_edu": {
+              "edu_id": "Hihn4viRSbxOqtqW_55",
+              "bias": "center",
+              "depth": 7,
+              "text": "If the full House votes to impeach the president ,"
+            }
+          },
+          "event_text": "Center mentions this fact but left side does not: Hihn4viRSbxOqtqW_55 :: If the full House votes to impeach the president ,"
+        },
+        {
+          "feature_index": 6,
+          "feature_value": 1.0,
+          "support_for_predicted_class": 0.03309624455111428,
+          "global_feature_importance": 0.027463971974167306,
+          "event": {
+            "cluster_id": "41",
+            "event_type": "left_only_mention",
+            "feature_value": 1.0,
+            "left_edu": {
+              "edu_id": "XaFU9Cm27eVIlkga_42",
+              "bias": "left",
+              "depth": 8,
+              "text": "- and a trial in the Senate will follow , this January ,"
+            }
+          },
+          "event_text": "Left-only mention: XaFU9Cm27eVIlkga_42 :: - and a trial in the Senate will follow , this January ,"
+        }
+      ]
+    }
+  ]
+}

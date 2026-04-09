@@ -1,0 +1,421 @@
+{
+  "setup": {
+    "goal": "Test aggregate feature extraction to fix dimension mismatch problem",
+    "problem": "Different triplets have different cluster counts, making raw DFI concatenation mix unrelated dimensions",
+    "solution": "Extract fixed-length aggregate statistics from each DFI",
+    "facts": "data/valid_facts_results_recluster_gpu.json",
+    "split_dir": "data/valid_dfi_splits_recluster_gpu",
+    "svm": {
+      "kernel": "rbf",
+      "C": 10.0,
+      "gamma": 0.1,
+      "degree": 3
+    },
+    "created": "2026-04-06T15:42:42.752433"
+  },
+  "aggregate_features": {
+    "basic_9": [
+      "mean",
+      "std",
+      "min",
+      "max",
+      "skewness",
+      "pct_positive",
+      "pct_zero",
+      "pct_negative",
+      "log_num_clusters"
+    ],
+    "extended_14": [
+      "mean",
+      "std",
+      "min",
+      "max",
+      "skewness",
+      "pct_positive",
+      "pct_zero",
+      "pct_negative",
+      "log_num_clusters",
+      "kurtosis",
+      "range",
+      "iqr",
+      "median",
+      "sum_abs"
+    ]
+  },
+  "reference_baselines": {
+    "coverage_only_padded": {
+      "test_acc": 0.7528,
+      "test_f1": 0.7504
+    },
+    "log_depth_padded": {
+      "test_acc": 0.7642,
+      "test_f1": 0.762
+    },
+    "structural_baseline": {
+      "test_acc": 0.6705,
+      "test_f1": 0.6702
+    }
+  },
+  "experiments": {
+    "agg_coverage": {
+      "description": "Aggregate features from coverage-only DFI (9 features)",
+      "input_dim": 9,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.5531453362255966,
+          "macro_f1": 0.5519309254759489,
+          "confusion_matrix": [
+            [
+              693,
+              690
+            ],
+            [
+              546,
+              837
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.5935672514619883,
+          "macro_f1": 0.5935637765789181,
+          "confusion_matrix": [
+            [
+              101,
+              70
+            ],
+            [
+              69,
+              102
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5568181818181818,
+          "macro_f1": 0.5561160151324085,
+          "confusion_matrix": [
+            [
+              91,
+              85
+            ],
+            [
+              71,
+              105
+            ]
+          ]
+        }
+      },
+      "model_path": "aggregate-vector/results/models/agg_coverage.pkl",
+      "delta_vs_coverage_padded": {
+        "test_acc": -0.19598181818181826,
+        "test_f1": -0.19428398486759146
+      },
+      "delta_vs_log_depth_padded": {
+        "test_acc": -0.20738181818181822,
+        "test_f1": -0.20588398486759152
+      }
+    },
+    "agg_coverage_norm": {
+      "description": "Aggregate features from NORMALIZED coverage DFI (9 features)",
+      "input_dim": 9,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.5777295733911786,
+          "macro_f1": 0.5770848158393693,
+          "confusion_matrix": [
+            [
+              853,
+              530
+            ],
+            [
+              638,
+              745
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.5584795321637427,
+          "macro_f1": 0.5557104142469996,
+          "confusion_matrix": [
+            [
+              109,
+              62
+            ],
+            [
+              89,
+              82
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5738636363636364,
+          "macro_f1": 0.5727463990937045,
+          "confusion_matrix": [
+            [
+              110,
+              66
+            ],
+            [
+              84,
+              92
+            ]
+          ]
+        }
+      },
+      "model_path": "aggregate-vector/results/models/agg_coverage_norm.pkl",
+      "delta_vs_coverage_padded": {
+        "test_acc": -0.17893636363636367,
+        "test_f1": -0.17765360090629545
+      },
+      "delta_vs_log_depth_padded": {
+        "test_acc": -0.19033636363636364,
+        "test_f1": -0.1892536009062955
+      }
+    },
+    "agg_log_depth": {
+      "description": "Aggregate features from log-depth DFI (9 features)",
+      "input_dim": 9,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.6200289226319595,
+          "macro_f1": 0.6192261914039808,
+          "confusion_matrix": [
+            [
+              794,
+              589
+            ],
+            [
+              462,
+              921
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.5409356725146199,
+          "macro_f1": 0.5404602757546451,
+          "confusion_matrix": [
+            [
+              98,
+              73
+            ],
+            [
+              84,
+              87
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.6136363636363636,
+          "macro_f1": 0.6131868131868132,
+          "confusion_matrix": [
+            [
+              114,
+              62
+            ],
+            [
+              74,
+              102
+            ]
+          ]
+        }
+      },
+      "model_path": "aggregate-vector/results/models/agg_log_depth.pkl",
+      "delta_vs_coverage_padded": {
+        "test_acc": -0.13916363636363638,
+        "test_f1": -0.13721318681318673
+      },
+      "delta_vs_log_depth_padded": {
+        "test_acc": -0.15056363636363634,
+        "test_f1": -0.14881318681318678
+      }
+    },
+    "agg_log_depth_norm": {
+      "description": "Aggregate features from NORMALIZED log-depth DFI (9 features)",
+      "input_dim": 9,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.5802603036876356,
+          "macro_f1": 0.5801175577639313,
+          "confusion_matrix": [
+            [
+              777,
+              606
+            ],
+            [
+              555,
+              828
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.5263157894736842,
+          "macro_f1": 0.5259104600219058,
+          "confusion_matrix": [
+            [
+              95,
+              76
+            ],
+            [
+              86,
+              85
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5681818181818182,
+          "macro_f1": 0.5681260493348831,
+          "confusion_matrix": [
+            [
+              98,
+              78
+            ],
+            [
+              74,
+              102
+            ]
+          ]
+        }
+      },
+      "model_path": "aggregate-vector/results/models/agg_log_depth_norm.pkl",
+      "delta_vs_coverage_padded": {
+        "test_acc": -0.1846181818181818,
+        "test_f1": -0.18227395066511687
+      },
+      "delta_vs_log_depth_padded": {
+        "test_acc": -0.19601818181818176,
+        "test_f1": -0.19387395066511692
+      }
+    },
+    "agg_combined": {
+      "description": "Combined coverage + structural aggregate (18 features)",
+      "input_dim": 18,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.64352856109906,
+          "macro_f1": 0.6421448039750317,
+          "confusion_matrix": [
+            [
+              804,
+              579
+            ],
+            [
+              407,
+              976
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.543859649122807,
+          "macro_f1": 0.5437192118226601,
+          "confusion_matrix": [
+            [
+              96,
+              75
+            ],
+            [
+              81,
+              90
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.6079545454545454,
+          "macro_f1": 0.6077519379844961,
+          "confusion_matrix": [
+            [
+              111,
+              65
+            ],
+            [
+              73,
+              103
+            ]
+          ]
+        }
+      },
+      "model_path": "aggregate-vector/results/models/agg_combined.pkl",
+      "delta_vs_coverage_padded": {
+        "test_acc": -0.1448454545454546,
+        "test_f1": -0.14264806201550384
+      },
+      "delta_vs_log_depth_padded": {
+        "test_acc": -0.15624545454545458,
+        "test_f1": -0.1542480620155039
+      }
+    },
+    "agg_extended": {
+      "description": "Extended aggregate features from log-depth DFI (14 features)",
+      "input_dim": 14,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.6630513376717281,
+          "macro_f1": 0.6628593848085373,
+          "confusion_matrix": [
+            [
+              884,
+              499
+            ],
+            [
+              433,
+              950
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.5321637426900585,
+          "macro_f1": 0.5321477428180574,
+          "confusion_matrix": [
+            [
+              92,
+              79
+            ],
+            [
+              81,
+              90
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5767045454545454,
+          "macro_f1": 0.5762907669066026,
+          "confusion_matrix": [
+            [
+              107,
+              69
+            ],
+            [
+              80,
+              96
+            ]
+          ]
+        }
+      },
+      "model_path": "aggregate-vector/results/models/agg_extended.pkl",
+      "delta_vs_coverage_padded": {
+        "test_acc": -0.1760954545454546,
+        "test_f1": -0.17410923309339732
+      },
+      "delta_vs_log_depth_padded": {
+        "test_acc": -0.18749545454545458,
+        "test_f1": -0.18570923309339737
+      }
+    }
+  }
+}

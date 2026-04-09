@@ -1,0 +1,1347 @@
+{
+  "setup": {
+    "goal": "Test 3 alternative DFI construction methods",
+    "alternatives": {
+      "alt1": "Cumulative Prominence: sum() instead of max()",
+      "alt2": "Distributional DFI: 3D [max, sum, count] per cluster",
+      "alt3": "Bipartite Decomposition: 1-to-1-to-1 EDU matching"
+    },
+    "facts": "data/valid_facts_results_recluster_gpu.json",
+    "split_dir": "data/valid_dfi_splits_recluster_gpu",
+    "rf": {
+      "n_estimators": 200,
+      "max_depth": 15,
+      "min_samples_split": 2,
+      "min_samples_leaf": 1,
+      "seed": 42
+    },
+    "created": "2026-04-08T13:45:45.478799"
+  },
+  "reference_baseline": {
+    "padded_dfi_rf_tuned": {
+      "test_acc": 0.8778
+    }
+  },
+  "experiments": {
+    "baseline_max": {
+      "description": "BASELINE: max(prominence) per cluster",
+      "input_dim": 69,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.9078091106290672,
+          "macro_f1": 0.9076549881532923,
+          "confusion_matrix": [
+            [
+              1312,
+              71
+            ],
+            [
+              184,
+              1199
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9473684210526315,
+          "macro_f1": 0.9473233844468785,
+          "confusion_matrix": [
+            [
+              167,
+              4
+            ],
+            [
+              14,
+              157
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.875,
+          "macro_f1": 0.8749636710046178,
+          "confusion_matrix": [
+            [
+              157,
+              19
+            ],
+            [
+              25,
+              151
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.9121621621621622,
+          "macro_f1": 0.9120243744255166,
+          "confusion_matrix": [
+            [
+              1479,
+              75
+            ],
+            [
+              198,
+              1356
+            ]
+          ]
+        }
+      },
+      "model_path": "dfi-alternatives/results/models/baseline_max.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.2913924152511245
+        ],
+        [
+          1,
+          0.1215854674500975
+        ],
+        [
+          2,
+          0.07771804620921498
+        ],
+        [
+          3,
+          0.06209653472771836
+        ],
+        [
+          5,
+          0.05511896998152103
+        ],
+        [
+          4,
+          0.050784747128261726
+        ],
+        [
+          7,
+          0.04570642909314474
+        ],
+        [
+          6,
+          0.04547444604821987
+        ],
+        [
+          9,
+          0.0372654383210618
+        ],
+        [
+          8,
+          0.03594361352957325
+        ]
+      ],
+      "delta_vs_baseline_rf": -0.0028000000000000247
+    },
+    "baseline_coverage": {
+      "description": "BASELINE: coverage-only",
+      "input_dim": 69,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8253796095444685,
+          "macro_f1": 0.82480068454752,
+          "confusion_matrix": [
+            [
+              1221,
+              162
+            ],
+            [
+              321,
+              1062
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.8538011695906432,
+          "macro_f1": 0.8533950617283951,
+          "confusion_matrix": [
+            [
+              155,
+              16
+            ],
+            [
+              34,
+              137
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.8039772727272727,
+          "macro_f1": 0.8031367781155014,
+          "confusion_matrix": [
+            [
+              153,
+              23
+            ],
+            [
+              46,
+              130
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.8285070785070785,
+          "macro_f1": 0.827949069075806,
+          "confusion_matrix": [
+            [
+              1376,
+              178
+            ],
+            [
+              355,
+              1199
+            ]
+          ]
+        }
+      },
+      "model_path": "dfi-alternatives/results/models/baseline_coverage.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.37753322608596535
+        ],
+        [
+          1,
+          0.14477151931475
+        ],
+        [
+          2,
+          0.07843804189554264
+        ],
+        [
+          3,
+          0.053035375980092635
+        ],
+        [
+          4,
+          0.043108555514622574
+        ],
+        [
+          6,
+          0.04008776204595556
+        ],
+        [
+          5,
+          0.03771075775370842
+        ],
+        [
+          7,
+          0.031029903013662617
+        ],
+        [
+          8,
+          0.02653595765412069
+        ],
+        [
+          9,
+          0.025230347180826673
+        ]
+      ],
+      "delta_vs_baseline_rf": -0.07382272727272732
+    },
+    "baseline_combined": {
+      "description": "BASELINE: coverage + max(prominence)",
+      "input_dim": 138,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.89587852494577,
+          "macro_f1": 0.8955462720385188,
+          "confusion_matrix": [
+            [
+              1317,
+              66
+            ],
+            [
+              222,
+              1161
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9269005847953217,
+          "macro_f1": 0.9267195200342833,
+          "confusion_matrix": [
+            [
+              167,
+              4
+            ],
+            [
+              21,
+              150
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.8721590909090909,
+          "macro_f1": 0.8719844829676324,
+          "confusion_matrix": [
+            [
+              160,
+              16
+            ],
+            [
+              29,
+              147
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.8992921492921493,
+          "macro_f1": 0.8989791515550531,
+          "confusion_matrix": [
+            [
+              1484,
+              70
+            ],
+            [
+              243,
+              1311
+            ]
+          ]
+        }
+      },
+      "model_path": "dfi-alternatives/results/models/baseline_combined.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.159277765410566
+        ],
+        [
+          1,
+          0.1539066929038078
+        ],
+        [
+          3,
+          0.07368560560102615
+        ],
+        [
+          5,
+          0.059792675499183774
+        ],
+        [
+          2,
+          0.04793315540749165
+        ],
+        [
+          11,
+          0.04290259715887289
+        ],
+        [
+          7,
+          0.042217981732740925
+        ],
+        [
+          9,
+          0.039304970631115585
+        ],
+        [
+          15,
+          0.03786917981610058
+        ],
+        [
+          13,
+          0.035254386232041704
+        ]
+      ],
+      "delta_vs_baseline_rf": -0.005640909090909085
+    },
+    "alt1_cumulative": {
+      "description": "ALT1: sum(prominence) per cluster",
+      "input_dim": 69,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.9031091829356471,
+          "macro_f1": 0.9030908923573779,
+          "confusion_matrix": [
+            [
+              1268,
+              115
+            ],
+            [
+              153,
+              1230
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9152046783625731,
+          "macro_f1": 0.915169139973485,
+          "confusion_matrix": [
+            [
+              160,
+              11
+            ],
+            [
+              18,
+              153
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.8267045454545454,
+          "macro_f1": 0.8266359856283557,
+          "confusion_matrix": [
+            [
+              149,
+              27
+            ],
+            [
+              34,
+              142
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.9044401544401545,
+          "macro_f1": 0.9044201175877459,
+          "confusion_matrix": [
+            [
+              1428,
+              126
+            ],
+            [
+              171,
+              1383
+            ]
+          ]
+        }
+      },
+      "model_path": "dfi-alternatives/results/models/alt1_cumulative.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.24042016390596913
+        ],
+        [
+          1,
+          0.12290898509257983
+        ],
+        [
+          2,
+          0.07830974182635371
+        ],
+        [
+          3,
+          0.06481289613234398
+        ],
+        [
+          4,
+          0.05465551320190269
+        ],
+        [
+          5,
+          0.05407750861560903
+        ],
+        [
+          7,
+          0.05037781879088463
+        ],
+        [
+          6,
+          0.04811730702053121
+        ],
+        [
+          9,
+          0.038549070224483166
+        ],
+        [
+          8,
+          0.03751767030715968
+        ]
+      ],
+      "delta_vs_baseline_rf": -0.05109545454545461
+    },
+    "alt1_cumulative_norm": {
+      "description": "ALT1: avg(prominence) per cluster",
+      "input_dim": 69,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.908532176428055,
+          "macro_f1": 0.9083625621104694,
+          "confusion_matrix": [
+            [
+              1316,
+              67
+            ],
+            [
+              186,
+              1197
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9415204678362573,
+          "macro_f1": 0.9414483821263482,
+          "confusion_matrix": [
+            [
+              167,
+              4
+            ],
+            [
+              16,
+              155
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.8806818181818182,
+          "macro_f1": 0.8806471405044078,
+          "confusion_matrix": [
+            [
+              158,
+              18
+            ],
+            [
+              24,
+              152
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.9121621621621622,
+          "macro_f1": 0.912005834999481,
+          "confusion_matrix": [
+            [
+              1483,
+              71
+            ],
+            [
+              202,
+              1352
+            ]
+          ]
+        }
+      },
+      "model_path": "dfi-alternatives/results/models/alt1_cumulative_norm.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.2826419599691043
+        ],
+        [
+          1,
+          0.1209928797007379
+        ],
+        [
+          2,
+          0.08011086594724544
+        ],
+        [
+          3,
+          0.06577232787621644
+        ],
+        [
+          4,
+          0.05333207418850877
+        ],
+        [
+          5,
+          0.05297975984605297
+        ],
+        [
+          6,
+          0.04748464772655545
+        ],
+        [
+          7,
+          0.04638074051073206
+        ],
+        [
+          9,
+          0.037394185026931905
+        ],
+        [
+          8,
+          0.03487383303491712
+        ]
+      ],
+      "delta_vs_baseline_rf": 0.0028818181818182076
+    },
+    "alt1_combined": {
+      "description": "ALT1: coverage + sum(prominence)",
+      "input_dim": 138,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.9121475054229935,
+          "macro_f1": 0.9120302124649322,
+          "confusion_matrix": [
+            [
+              1312,
+              71
+            ],
+            [
+              172,
+              1211
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9298245614035088,
+          "macro_f1": 0.9297067689778021,
+          "confusion_matrix": [
+            [
+              166,
+              5
+            ],
+            [
+              19,
+              152
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.8778409090909091,
+          "macro_f1": 0.8777609975529587,
+          "confusion_matrix": [
+            [
+              159,
+              17
+            ],
+            [
+              26,
+              150
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.9140926640926641,
+          "macro_f1": 0.9139748875206695,
+          "confusion_matrix": [
+            [
+              1478,
+              76
+            ],
+            [
+              191,
+              1363
+            ]
+          ]
+        }
+      },
+      "model_path": "dfi-alternatives/results/models/alt1_combined.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.17306321711774197
+        ],
+        [
+          1,
+          0.11628585448651939
+        ],
+        [
+          3,
+          0.07185362717333925
+        ],
+        [
+          2,
+          0.0610197757459104
+        ],
+        [
+          5,
+          0.0541442875467656
+        ],
+        [
+          7,
+          0.042393751372846754
+        ],
+        [
+          11,
+          0.041095616089601626
+        ],
+        [
+          9,
+          0.04006176837804249
+        ],
+        [
+          15,
+          0.035964163528415895
+        ],
+        [
+          13,
+          0.03511881213658871
+        ]
+      ],
+      "delta_vs_baseline_rf": 4.090909090903594e-05
+    },
+    "alt2_distributional": {
+      "description": "ALT2: 3D [max, sum, count] per cluster",
+      "input_dim": 207,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.920824295010846,
+          "macro_f1": 0.9207628897292247,
+          "confusion_matrix": [
+            [
+              1312,
+              71
+            ],
+            [
+              148,
+              1235
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9502923976608187,
+          "macro_f1": 0.9502579502579502,
+          "confusion_matrix": [
+            [
+              167,
+              4
+            ],
+            [
+              13,
+              158
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.8607954545454546,
+          "macro_f1": 0.8607403818981874,
+          "confusion_matrix": [
+            [
+              155,
+              21
+            ],
+            [
+              28,
+              148
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.924066924066924,
+          "macro_f1": 0.9240087407436263,
+          "confusion_matrix": [
+            [
+              1479,
+              75
+            ],
+            [
+              161,
+              1393
+            ]
+          ]
+        }
+      },
+      "model_path": "dfi-alternatives/results/models/alt2_distributional.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.1519669099712121
+        ],
+        [
+          1,
+          0.0823595863691194
+        ],
+        [
+          2,
+          0.0677351554150627
+        ],
+        [
+          3,
+          0.06136660417806143
+        ],
+        [
+          4,
+          0.03625014482021878
+        ],
+        [
+          6,
+          0.03585542008744982
+        ],
+        [
+          9,
+          0.03005672821942125
+        ],
+        [
+          5,
+          0.030051281214145607
+        ],
+        [
+          7,
+          0.0284529677985315
+        ],
+        [
+          10,
+          0.025817047300324858
+        ]
+      ],
+      "delta_vs_baseline_rf": -0.01700454545454544
+    },
+    "alt2_dist_coverage": {
+      "description": "ALT2: 4D [cov, max, sum, count] per cluster",
+      "input_dim": 276,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.9219088937093276,
+          "macro_f1": 0.921810742673356,
+          "confusion_matrix": [
+            [
+              1324,
+              59
+            ],
+            [
+              157,
+              1226
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9444444444444444,
+          "macro_f1": 0.9443869123524731,
+          "confusion_matrix": [
+            [
+              167,
+              4
+            ],
+            [
+              15,
+              156
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.8636363636363636,
+          "macro_f1": 0.863618752421542,
+          "confusion_matrix": [
+            [
+              154,
+              22
+            ],
+            [
+              26,
+              150
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.9243886743886743,
+          "macro_f1": 0.9242955609594453,
+          "confusion_matrix": [
+            [
+              1491,
+              63
+            ],
+            [
+              172,
+              1382
+            ]
+          ]
+        }
+      },
+      "model_path": "dfi-alternatives/results/models/alt2_dist_coverage.pkl",
+      "feature_importances_top10": [
+        [
+          1,
+          0.10867274416681989
+        ],
+        [
+          0,
+          0.08062195838775008
+        ],
+        [
+          2,
+          0.06911518995179639
+        ],
+        [
+          3,
+          0.062135299441630744
+        ],
+        [
+          5,
+          0.04392664870881973
+        ],
+        [
+          6,
+          0.034640360093320104
+        ],
+        [
+          9,
+          0.030855481681740418
+        ],
+        [
+          4,
+          0.025408780251205947
+        ],
+        [
+          13,
+          0.02417046045086764
+        ],
+        [
+          21,
+          0.023435587700738354
+        ]
+      ],
+      "delta_vs_baseline_rf": -0.014163636363636378
+    },
+    "alt2_dist_normalized": {
+      "description": "ALT2: 3D [max, avg, log_count] per cluster",
+      "input_dim": 207,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.9164859002169198,
+          "macro_f1": 0.9163560079200144,
+          "confusion_matrix": [
+            [
+              1322,
+              61
+            ],
+            [
+              170,
+              1213
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9473684210526315,
+          "macro_f1": 0.9472800767333516,
+          "confusion_matrix": [
+            [
+              169,
+              2
+            ],
+            [
+              16,
+              155
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.8664772727272727,
+          "macro_f1": 0.866389927557885,
+          "confusion_matrix": [
+            [
+              157,
+              19
+            ],
+            [
+              28,
+              148
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.9198841698841699,
+          "macro_f1": 0.9197584953551415,
+          "confusion_matrix": [
+            [
+              1491,
+              63
+            ],
+            [
+              186,
+              1368
+            ]
+          ]
+        }
+      },
+      "model_path": "dfi-alternatives/results/models/alt2_dist_normalized.pkl",
+      "feature_importances_top10": [
+        [
+          1,
+          0.12256960678530897
+        ],
+        [
+          0,
+          0.10648671643670087
+        ],
+        [
+          2,
+          0.08395677438987971
+        ],
+        [
+          3,
+          0.055178625627681326
+        ],
+        [
+          4,
+          0.04237773596497356
+        ],
+        [
+          5,
+          0.035531913620286903
+        ],
+        [
+          7,
+          0.03108163362255501
+        ],
+        [
+          6,
+          0.028674329859561164
+        ],
+        [
+          10,
+          0.027307118948324646
+        ],
+        [
+          9,
+          0.024683753391390294
+        ]
+      ],
+      "delta_vs_baseline_rf": -0.011322727272727318
+    },
+    "alt3_bipartite": {
+      "description": "ALT3: 1-to-1-to-1 matching (prominence)",
+      "input_dim": 157,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.9446854663774403,
+          "macro_f1": 0.9445611143897469,
+          "confusion_matrix": [
+            [
+              1241,
+              142
+            ],
+            [
+              11,
+              1372
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9619883040935673,
+          "macro_f1": 0.9619619619619619,
+          "confusion_matrix": [
+            [
+              160,
+              11
+            ],
+            [
+              2,
+              169
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.8806818181818182,
+          "macro_f1": 0.8803689917462373,
+          "confusion_matrix": [
+            [
+              146,
+              30
+            ],
+            [
+              12,
+              164
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.9465894465894465,
+          "macro_f1": 0.9464808532391487,
+          "confusion_matrix": [
+            [
+              1401,
+              153
+            ],
+            [
+              13,
+              1541
+            ]
+          ]
+        }
+      },
+      "model_path": "dfi-alternatives/results/models/alt3_bipartite.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.3366350776082457
+        ],
+        [
+          1,
+          0.0834145799317958
+        ],
+        [
+          2,
+          0.0623148667833691
+        ],
+        [
+          4,
+          0.03527379030942458
+        ],
+        [
+          3,
+          0.034621607829592706
+        ],
+        [
+          5,
+          0.028322226595977003
+        ],
+        [
+          6,
+          0.02784010273650046
+        ],
+        [
+          7,
+          0.0257070877690003
+        ],
+        [
+          8,
+          0.02371124561679751
+        ],
+        [
+          10,
+          0.021570967690360838
+        ]
+      ],
+      "delta_vs_baseline_rf": 0.0028818181818182076
+    },
+    "alt3_bipartite_cov": {
+      "description": "ALT3: 1-to-1-to-1 matching (coverage)",
+      "input_dim": 157,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.943239334779465,
+          "macro_f1": 0.9431077966432104,
+          "confusion_matrix": [
+            [
+              1238,
+              145
+            ],
+            [
+              12,
+              1371
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9590643274853801,
+          "macro_f1": 0.9590419161676647,
+          "confusion_matrix": [
+            [
+              160,
+              11
+            ],
+            [
+              3,
+              168
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.8977272727272727,
+          "macro_f1": 0.8976446641465543,
+          "confusion_matrix": [
+            [
+              153,
+              23
+            ],
+            [
+              13,
+              163
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.944980694980695,
+          "macro_f1": 0.9448672236709063,
+          "confusion_matrix": [
+            [
+              1398,
+              156
+            ],
+            [
+              15,
+              1539
+            ]
+          ]
+        }
+      },
+      "model_path": "dfi-alternatives/results/models/alt3_bipartite_cov.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.3322973617273565
+        ],
+        [
+          1,
+          0.07029811747479855
+        ],
+        [
+          2,
+          0.05571661911089
+        ],
+        [
+          4,
+          0.03261202760777123
+        ],
+        [
+          3,
+          0.02927862512940268
+        ],
+        [
+          5,
+          0.027605980683703974
+        ],
+        [
+          6,
+          0.027463971974167306
+        ],
+        [
+          7,
+          0.02392018743156308
+        ],
+        [
+          8,
+          0.02257739078719143
+        ],
+        [
+          10,
+          0.021840824528641715
+        ]
+      ],
+      "delta_vs_baseline_rf": 0.019927272727272682
+    },
+    "alt3_bipartite_combined": {
+      "description": "ALT3: 1-to-1-to-1 matching (cov + prominence)",
+      "input_dim": 314,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.9472161966738973,
+          "macro_f1": 0.9471133093902045,
+          "confusion_matrix": [
+            [
+              1249,
+              134
+            ],
+            [
+              12,
+              1371
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9649122807017544,
+          "macro_f1": 0.9648930710008554,
+          "confusion_matrix": [
+            [
+              161,
+              10
+            ],
+            [
+              2,
+              169
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.8806818181818182,
+          "macro_f1": 0.8804347826086957,
+          "confusion_matrix": [
+            [
+              147,
+              29
+            ],
+            [
+              13,
+              163
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.9491634491634492,
+          "macro_f1": 0.9490743525404127,
+          "confusion_matrix": [
+            [
+              1410,
+              144
+            ],
+            [
+              14,
+              1540
+            ]
+          ]
+        }
+      },
+      "model_path": "dfi-alternatives/results/models/alt3_bipartite_combined.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.205358294761796
+        ],
+        [
+          1,
+          0.18202381355363617
+        ],
+        [
+          3,
+          0.04563115633757222
+        ],
+        [
+          2,
+          0.0339817872809733
+        ],
+        [
+          5,
+          0.033920425586437535
+        ],
+        [
+          4,
+          0.02647430618531527
+        ],
+        [
+          9,
+          0.022347938736169606
+        ],
+        [
+          7,
+          0.020728380793554654
+        ],
+        [
+          11,
+          0.019613739333300198
+        ],
+        [
+          13,
+          0.018880102940719238
+        ]
+      ],
+      "delta_vs_baseline_rf": 0.0028818181818182076
+    }
+  }
+}

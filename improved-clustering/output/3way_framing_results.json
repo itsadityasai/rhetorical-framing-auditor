@@ -1,0 +1,591 @@
+{
+  "setup": {
+    "goal": "Test pure RST framing on 3-way clusters (no omission signal)",
+    "description": "All clusters have exactly 1 EDU from each bias (left, center, right). Coverage features are always 0. Tests if structural framing alone predicts bias.",
+    "clusters_file": "/home/yash-more/Downloads/22/inlp/project/tuning-rst/rhetorical-framing-auditor/improved-clustering/output/3way_clusters.json",
+    "split_dir": "/home/yash-more/Downloads/22/inlp/project/tuning-rst/rhetorical-framing-auditor/data/valid_dfi_splits_recluster_gpu",
+    "rf": {
+      "n_estimators": 200,
+      "max_depth": 15,
+      "min_samples_split": 2,
+      "min_samples_leaf": 1,
+      "seed": 42
+    },
+    "created": "2026-04-08T20:04:10.243435"
+  },
+  "data_stats": {
+    "triplets_with_clusters": 1321,
+    "total_3way_clusters": 5216,
+    "avg_clusters_per_triplet": 3.95,
+    "train_triplets": 1042,
+    "val_triplets": 134,
+    "test_triplets": 144
+  },
+  "reference_baselines": {
+    "full_dataset_bipartite_coverage": {
+      "test_acc": 0.8977,
+      "note": "Has omission signal (~72% contribution)"
+    },
+    "rst_only_full_coverage": {
+      "test_acc": 0.6116,
+      "note": "RST features only, still has some coverage variance"
+    }
+  },
+  "experiments": {
+    "bipartite_structural_min_ordered": {
+      "description": "Bipartite structural (min-depth ordered)",
+      "input_dim": 39,
+      "metrics": {
+        "train": {
+          "samples": 2084,
+          "accuracy": 0.7682341650671785,
+          "macro_f1": 0.7675262614175935,
+          "confusion_matrix": [
+            [
+              743,
+              299
+            ],
+            [
+              184,
+              858
+            ]
+          ]
+        },
+        "val": {
+          "samples": 268,
+          "accuracy": 0.7611940298507462,
+          "macro_f1": 0.7611807296017823,
+          "confusion_matrix": [
+            [
+              103,
+              31
+            ],
+            [
+              33,
+              101
+            ]
+          ]
+        },
+        "test": {
+          "samples": 288,
+          "accuracy": 0.5729166666666666,
+          "macro_f1": 0.5724991854024112,
+          "confusion_matrix": [
+            [
+              78,
+              66
+            ],
+            [
+              57,
+              87
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2352,
+          "accuracy": 0.7674319727891157,
+          "macro_f1": 0.7668939063820689,
+          "confusion_matrix": [
+            [
+              846,
+              330
+            ],
+            [
+              217,
+              959
+            ]
+          ]
+        }
+      },
+      "model_path": "/home/yash-more/Downloads/22/inlp/project/tuning-rst/rhetorical-framing-auditor/improved-clustering/output/models/bipartite_structural_min_ordered.pkl",
+      "feature_importances_top10": [
+        [
+          1,
+          0.1654969248856921
+        ],
+        [
+          0,
+          0.15027455076515187
+        ],
+        [
+          2,
+          0.14298434025491202
+        ],
+        [
+          3,
+          0.12333997677546332
+        ],
+        [
+          4,
+          0.09634329938153416
+        ],
+        [
+          5,
+          0.07896710273349841
+        ],
+        [
+          6,
+          0.05993178678012646
+        ],
+        [
+          7,
+          0.04817882589569532
+        ],
+        [
+          8,
+          0.033971500909441565
+        ],
+        [
+          9,
+          0.0245038043578245
+        ]
+      ],
+      "delta_vs_full_coverage": -0.3247833333333334,
+      "delta_vs_rst_only": -0.0386833333333334
+    },
+    "bipartite_combined_min_ordered": {
+      "description": "Bipartite combined cov+struct (min-depth ordered)",
+      "input_dim": 78,
+      "metrics": {
+        "train": {
+          "samples": 2084,
+          "accuracy": 0.7423224568138196,
+          "macro_f1": 0.7416914736637286,
+          "confusion_matrix": [
+            [
+              722,
+              320
+            ],
+            [
+              217,
+              825
+            ]
+          ]
+        },
+        "val": {
+          "samples": 268,
+          "accuracy": 0.7164179104477612,
+          "macro_f1": 0.7162757006742073,
+          "confusion_matrix": [
+            [
+              99,
+              35
+            ],
+            [
+              41,
+              93
+            ]
+          ]
+        },
+        "test": {
+          "samples": 288,
+          "accuracy": 0.5833333333333334,
+          "macro_f1": 0.5831524099001303,
+          "confusion_matrix": [
+            [
+              81,
+              63
+            ],
+            [
+              57,
+              87
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2352,
+          "accuracy": 0.7393707482993197,
+          "macro_f1": 0.738926698892439,
+          "confusion_matrix": [
+            [
+              821,
+              355
+            ],
+            [
+              258,
+              918
+            ]
+          ]
+        }
+      },
+      "model_path": "/home/yash-more/Downloads/22/inlp/project/tuning-rst/rhetorical-framing-auditor/improved-clustering/output/models/bipartite_combined_min_ordered.pkl",
+      "feature_importances_top10": [
+        [
+          3,
+          0.15324088835140823
+        ],
+        [
+          1,
+          0.13949513438276595
+        ],
+        [
+          5,
+          0.13066158166460604
+        ],
+        [
+          7,
+          0.11302135525210015
+        ],
+        [
+          9,
+          0.09187919086133459
+        ],
+        [
+          11,
+          0.08338111856604438
+        ],
+        [
+          13,
+          0.06544396193209386
+        ],
+        [
+          15,
+          0.049470818081638564
+        ],
+        [
+          17,
+          0.039606435183965116
+        ],
+        [
+          19,
+          0.03144945233090946
+        ]
+      ],
+      "delta_vs_full_coverage": -0.3143666666666667,
+      "delta_vs_rst_only": -0.028266666666666662
+    },
+    "bipartite_structural_original": {
+      "description": "Bipartite structural (original order)",
+      "input_dim": 39,
+      "metrics": {
+        "train": {
+          "samples": 2084,
+          "accuracy": 0.772552783109405,
+          "macro_f1": 0.7725318330533204,
+          "confusion_matrix": [
+            [
+              795,
+              247
+            ],
+            [
+              227,
+              815
+            ]
+          ]
+        },
+        "val": {
+          "samples": 268,
+          "accuracy": 0.75,
+          "macro_f1": 0.7487371087136001,
+          "confusion_matrix": [
+            [
+              110,
+              24
+            ],
+            [
+              43,
+              91
+            ]
+          ]
+        },
+        "test": {
+          "samples": 288,
+          "accuracy": 0.6145833333333334,
+          "macro_f1": 0.6132357389147662,
+          "confusion_matrix": [
+            [
+              97,
+              47
+            ],
+            [
+              64,
+              80
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2352,
+          "accuracy": 0.7699829931972789,
+          "macro_f1": 0.7699829516171921,
+          "confusion_matrix": [
+            [
+              905,
+              271
+            ],
+            [
+              270,
+              906
+            ]
+          ]
+        }
+      },
+      "model_path": "/home/yash-more/Downloads/22/inlp/project/tuning-rst/rhetorical-framing-auditor/improved-clustering/output/models/bipartite_structural_original.pkl",
+      "feature_importances_top10": [
+        [
+          1,
+          0.17115541098623555
+        ],
+        [
+          0,
+          0.16489752692495335
+        ],
+        [
+          2,
+          0.13119403062154733
+        ],
+        [
+          3,
+          0.10859108032314353
+        ],
+        [
+          4,
+          0.09942966408974976
+        ],
+        [
+          5,
+          0.07503018607097665
+        ],
+        [
+          6,
+          0.06259937019627199
+        ],
+        [
+          7,
+          0.04725092003031405
+        ],
+        [
+          8,
+          0.03346471186152087
+        ],
+        [
+          9,
+          0.027009391960335364
+        ]
+      ],
+      "delta_vs_full_coverage": -0.2831166666666667,
+      "delta_vs_rst_only": 0.002983333333333338
+    },
+    "bipartite_combined_original": {
+      "description": "Bipartite combined cov+struct (original order)",
+      "input_dim": 78,
+      "metrics": {
+        "train": {
+          "samples": 2084,
+          "accuracy": 0.7437619961612284,
+          "macro_f1": 0.7437598721626887,
+          "confusion_matrix": [
+            [
+              778,
+              264
+            ],
+            [
+              270,
+              772
+            ]
+          ]
+        },
+        "val": {
+          "samples": 268,
+          "accuracy": 0.7238805970149254,
+          "macro_f1": 0.7216483269705816,
+          "confusion_matrix": [
+            [
+              109,
+              25
+            ],
+            [
+              49,
+              85
+            ]
+          ]
+        },
+        "test": {
+          "samples": 288,
+          "accuracy": 0.6145833333333334,
+          "macro_f1": 0.614355509982508,
+          "confusion_matrix": [
+            [
+              92,
+              52
+            ],
+            [
+              59,
+              85
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2352,
+          "accuracy": 0.7414965986394558,
+          "macro_f1": 0.7414545351983112,
+          "confusion_matrix": [
+            [
+              887,
+              289
+            ],
+            [
+              319,
+              857
+            ]
+          ]
+        }
+      },
+      "model_path": "/home/yash-more/Downloads/22/inlp/project/tuning-rst/rhetorical-framing-auditor/improved-clustering/output/models/bipartite_combined_original.pkl",
+      "feature_importances_top10": [
+        [
+          3,
+          0.14760750893856014
+        ],
+        [
+          1,
+          0.14230682280217452
+        ],
+        [
+          5,
+          0.1206101294324476
+        ],
+        [
+          7,
+          0.10548376846019347
+        ],
+        [
+          9,
+          0.09968217083820327
+        ],
+        [
+          11,
+          0.08138325843135001
+        ],
+        [
+          13,
+          0.06666199858131254
+        ],
+        [
+          15,
+          0.049260910280618554
+        ],
+        [
+          17,
+          0.038899929554635046
+        ],
+        [
+          19,
+          0.0357348838870695
+        ]
+      ],
+      "delta_vs_full_coverage": -0.2831166666666667,
+      "delta_vs_rst_only": 0.002983333333333338
+    },
+    "bipartite_coverage_min_ordered": {
+      "description": "Bipartite coverage only (min-depth ordered)",
+      "input_dim": 39,
+      "metrics": {
+        "train": {
+          "samples": 2084,
+          "accuracy": 0.5,
+          "macro_f1": 0.3333333333333333,
+          "confusion_matrix": [
+            [
+              0,
+              1042
+            ],
+            [
+              0,
+              1042
+            ]
+          ]
+        },
+        "val": {
+          "samples": 268,
+          "accuracy": 0.5,
+          "macro_f1": 0.3333333333333333,
+          "confusion_matrix": [
+            [
+              0,
+              134
+            ],
+            [
+              0,
+              134
+            ]
+          ]
+        },
+        "test": {
+          "samples": 288,
+          "accuracy": 0.5,
+          "macro_f1": 0.3333333333333333,
+          "confusion_matrix": [
+            [
+              0,
+              144
+            ],
+            [
+              0,
+              144
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2352,
+          "accuracy": 0.5,
+          "macro_f1": 0.3333333333333333,
+          "confusion_matrix": [
+            [
+              0,
+              1176
+            ],
+            [
+              0,
+              1176
+            ]
+          ]
+        }
+      },
+      "model_path": "/home/yash-more/Downloads/22/inlp/project/tuning-rst/rhetorical-framing-auditor/improved-clustering/output/models/bipartite_coverage_min_ordered.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.0
+        ],
+        [
+          1,
+          0.0
+        ],
+        [
+          2,
+          0.0
+        ],
+        [
+          3,
+          0.0
+        ],
+        [
+          4,
+          0.0
+        ],
+        [
+          5,
+          0.0
+        ],
+        [
+          6,
+          0.0
+        ],
+        [
+          7,
+          0.0
+        ],
+        [
+          8,
+          0.0
+        ],
+        [
+          9,
+          0.0
+        ]
+      ],
+      "delta_vs_full_coverage": -0.39770000000000005,
+      "delta_vs_rst_only": -0.11160000000000003
+    }
+  }
+}
