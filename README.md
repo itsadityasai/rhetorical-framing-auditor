@@ -1,109 +1,95 @@
-# Rhetorical Framing Auditor (RFA)
+# Rhetorical Framing Auditor
 
-**Team Bedrock** — Aditya Sai, Aayush Batra, Yash More
+[![ACL 2024](https://img.shields.io/badge/Paper-ACL_2024-blue.svg)](docs/acl_latex3.tex)
 
-RFA is a framework to detect and explain structural bias in news articles using discourse structure. Rather than looking at word choice, it analyzes *how* facts are positioned in an article's rhetorical structure (RST tree) — specifically, how deeply buried or how nucleus-prominent a shared fact is — to predict the ideological lean (Left / Center / Right) of a news outlet.
+This repository contains the complete experimental pipeline and analysis code for the paper: **"Fact Omission vs. Rhetorical Framing: Disentangling the Predictors of Media Bias."**
 
-### Pipeline Overview
+We investigate whether media bias is better predicted by *fact omission* (selection bias) or by the rhetorical positioning of shared facts (*framing bias*) using Rhetorical Structure Theory (RST). Our key finding is that fact omission accounts for approximately 72% of the predictive power for media bias, while RST structural framing accounts for only 28%. Left and right sources share remarkably few facts (average 3.95 per triplet).
 
-```
-data/raw/jsons/         →  sort_data.py      →  bias_triplets.json
-bias_triplets.json      →  parse_rst.py      →  data/rst_output/*.json
-bias_triplets.json
-  + rst_output/         →  main.py           →  data/cluster_results.json
+---
+
+## 📁 Repository Structure
+
+The codebase has been meticulously reorganized to perfectly map to the experiments and methodology detailed in our paper. 
+
+```text
+rhetorical-framing-auditor/
+├── pipeline/                     # 1. DATA & PIPELINE (Appendices A-C)
+│   ├── split_triplets.py         # Constructs the left/center/right triplets, ensures non-leakage (80/10/10 splits)
+│   ├── parse_rst.py              # Generates RST constituency trees via isanlp_rst_v3
+│   ├── build_facts.py            # Helper module for SBERT embeddings & cross-encoder extraction
+│   ├── build_clusters.py         # Helper module for agglomerative clustering
+│   ├── run_fact_clustering.py    # Main script: Clusters EDUs across triplets, prunes with cross-encoder
+│   ├── build_dfi.py              # Legacy helper for bipartite extraction
+│   ├── build_dfi_from_splits.py  # Main script: Extracts bipartite Coverage & Structural (DFI) features
+│   └── modules/                  # Internal project utility classes (caching, clustering utils)
+│
+├── experiments/                  # 2. EXPERIMENTS (Appendices D-E)
+│   ├── 01_full_classification/   # → Exp 1 (Full Dataset), Exp 2 (DFI Alts), Exp 3 (Cluster Order), Exp 7 (Models)
+│   │   └── train_dfi_alternatives.py # Trains RF, SVM, LR, MLP models on bipartite features
+│   ├── 02_pure_3way_analysis/    # → Exp 4 (RST-only Features), Exp 6 (Pure 3-Way Cluster Analysis)
+│   │   └── train_rst_only.py     # Isolates 3-way clusters to eliminate omission signals entirely
+│   ├── 03_explainability_demo/   # → Exp 8 (Explainable Prediction Demo)
+│   │   └── explain_predictions.py    # Uses Saabas treeinterpreter to map predictions back to exact EDUs
+│   ├── bert_baseline.py          # Legacy/Baseline: Semantic baseline modeling
+│   ├── run_svm.py                # Legacy/Baseline: Early SVM-only experiments
+│   └── train_svm_from_dfi_splits.py  # Legacy/Baseline: Padded DFI vector training
+│
+├── presentation/                 # 3. PRESENTATION ARTIFACTS
+│   ├── slides.tex                # Comprehensive Beamer presentation slides for the paper
+│   ├── generate_slide_diagrams.py# Python script generating the pie/bar charts used in the slides
+│   └── diagrams/                 # Generated PNG visual assets
+│
+├── docs/                         # 4. DOCUMENTATION
+│   ├── acl_latex3.tex            # Finalized ACL-style paper (The central document)
+│   └── custom.bib                # Bibliography references
+│
+├── data/                         # 5. GENERATED ARTIFACTS
+│   ├── valid_facts_results_recluster_gpu.json # Final cached clusters & EDU lookups
+│   └── valid_dfi_splits_recluster_gpu/        # Train/val/test feature matrices
+│
+├── archive/                      # 6. ARCHIVED EXPERIMENTS
+│   └── ...                       # Older exploratory methodologies and abandoned pathways
+│
+├── params.yaml                   # Global project configuration parameters
+└── GPU_FRESH_CLUSTERING_TRAINING_INSTRUCTIONS.txt # Instructions for running the clusterer from scratch
 ```
 
 ---
 
-## Setup
+## 🧪 Mapping to the Paper
 
-### Requirements
+To reproduce specific sections of the paper, navigate to the corresponding directory:
 
-Python 3.10 recommended.
+### Methodology (Sections 3 & 4)
+- **Dataset Construction & RST Parsing (App. A)**: `pipeline/split_triplets.py` and `pipeline/parse_rst.py`
+- **Fact Clustering (App. B)**: `pipeline/run_fact_clustering.py`
+- **Bipartite Feature Extraction (App. C)**: `pipeline/build_dfi_from_splits.py`
 
-```bash
-pip install torch orjson sentence-transformers scikit-learn numpy
-pip install git+https://github.com/IINemo/isanlp_rst
-```
-
----
-
-## Files
-
-### Scripts
-
-#### `data/sort_data.py`
-Scans all raw articles in `data/raw/jsons/`, embeds the first 1000 characters of each article's content using `all-MiniLM-L6-v2`, and uses k-Nearest Neighbors (cosine similarity, threshold 0.8) to find articles that cover the same event. From those neighbors, it selects triplets where one article is left-leaning, one is center, and one is right-leaning.
-
-**Run from the `data/` directory:**
-```bash
-cd data
-python sort_data.py
-```
-**Output:** `data/bias_triplets.json`
+### Experiments (Section 5)
+- **Experiments 1, 2, 3, & 7 (App. D)**: Go to `experiments/01_full_classification/train_dfi_alternatives.py`. This script dynamically trains the Random Forest classifier that achieved our state-of-the-art 89.77% accuracy using the bipartite coverage features.
+- **Experiments 4 & 6 (App. D)**: Go to `experiments/02_pure_3way_analysis/train_rst_only.py`. This evaluates the baseline model on only facts covered by all three political orientations (where accuracy drops significantly to ~61%).
+- **Experiment 8 (App. E)**: Go to `experiments/03_explainability_demo/explain_predictions.py`. This script outputs human-readable reports mapping Random Forest feature activations (using `treeinterpreter`) to explicit textual EDUs (e.g., specific omitted facts).
 
 ---
 
-#### `parse_rst.py`
-Loads each article referenced in `bias_triplets.json`, normalizes its text (Unicode cleanup, whitespace), and runs it through the ISANLP RST parser (`isanlp_rst`, model `tchewik/isanlp_rst_v3`). Each article is parsed into Elementary Discourse Units (EDUs) and the rhetorical relations between them (with nuclearity and depth). A 5-second timeout per article guards against parser hangs. Already-parsed articles are skipped on re-runs.
+## 🚀 Quick Start
 
-**Run from the project root:**
-```bash
-python parse_rst.py
-```
-**Output:** One JSON per article in `data/rst_output/<article_id>.json`, each containing:
-- `edus`: list of `{id, text, depth}`
-- `relations`: list of `{parent, left, right, relation, nuclearity}`
+Ensure you have your environment configured (see `params.yaml` for paths and thresholds).
 
----
+1. **Re-run Feature Extraction**:
+   ```bash
+   python pipeline/build_dfi_from_splits.py
+   ```
+2. **Train the Primary Model (Exp 1)**:
+   ```bash
+   cd experiments/01_full_classification
+   python train_dfi_alternatives.py
+   ```
+3. **Generate Explainability Reports (Exp 8)**:
+   ```bash
+   cd experiments/03_explainability_demo
+   python explain_predictions.py
+   ```
 
-#### `main.py`
-Orchestrates cross-document fact alignment for every triplet. For each triplet, it loads the three articles' EDUs from `data/rst_output/`, instantiates a `FactCluster`, runs agglomerative clustering followed by cross-encoder refinement, and collects the resulting clusters. Prints a progress line with ETA.
-
-**Run from the project root:**
-```bash
-python main.py
-```
-**Output:** `data/cluster_results.json` — a list of per-triplet results, each containing:
-- `triplet_idx`, `triplet` (the original file paths)
-- `clusters`: `{cluster_id: [edu_ids]}`
-- `edu_lookup`: `{edu_id: {text, bias}}`
-
----
-
-### Modules
-
-#### `modules/FactCluster.py`
-Core fact-alignment module. Contains all the logic for embedding and clustering EDUs across the three articles of a triplet.
-
-- Loads `all-mpnet-base-v2` (SBERT) and `cross-encoder/ms-marco-MiniLM-L-6-v2` at module import time (shared across all instances).
-- `FactCluster(articles)` — encodes all EDUs and runs agglomerative clustering (cosine distance, average linkage, threshold 0.35).
-- `refine_clusters()` — re-scores every within-cluster pair using the cross-encoder (threshold 0.7) and drops clusters that have no center-article EDU (required for later DFI computation).
-- `get_clusters()` — returns the refined cluster dict.
-
-Not intended to be run directly; imported by `main.py`.
-
----
-
-### Data
-
-#### `data/raw/`
-Raw article dataset from the [Article-Bias-Prediction](https://github.com/ramybaly/Article-Bias-Prediction) corpus (AllSides.com). Contains ~37k articles.
-
-- `data/raw/jsons/<article_id>.json` — one JSON per article with fields: `ID`, `topic`, `source`, `url`, `date`, `authors`, `title`, `content`, `content_original`, `bias_text` (left/center/right), `bias` (0/1/2).
-- `data/raw/splits/` — train/val/test split files.
-- `data/raw/README.md` — original dataset documentation.
-
-#### `data/bias_triplets.json`
-Generated by `sort_data.py`. A JSON array of triplets, each mapping bias labels to relative file paths:
-```json
-{ "left": "raw/jsons/<id>.json", "center": "raw/jsons/<id>.json", "right": "raw/jsons/<id>.json" }
-```
-Note: a small fraction (~1%) may not be true same-event triplets due to the unsupervised retrieval approach.
-
-#### `data/rst_output/`
-Generated by `parse_rst.py`. One JSON per article (keyed by `article_id`) with its EDUs and RST relations tree.
-
-#### `data/cluster_results.json`
-Generated by `main.py`. Contains per-triplet fact clusters — groups of EDUs from different articles that refer to the same fact. This is the main input for the (upcoming) prominence scoring and Document Framing Index (DFI) computation.
-
+*Note: For complete details on the theoretical framing, findings, and methodology, please compile and read `docs/acl_latex3.tex`.*

@@ -1,6 +1,8 @@
 % ACL 2024 Style Paper: Rhetorical Framing Auditor
 % Final experimental results and comprehensive analysis
-
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{array}
 \documentclass[11pt]{article}
 \usepackage{acl}
 \usepackage{times}
@@ -20,17 +22,23 @@
 Disentangling the Predictors of Media Bias}
 
 \author{
-Aditya Sai \\
+\begin{tabular}[t]{c}
+\textbf{Aditya Sai} \\
 IIIT Hyderabad \\
-\texttt{heyadityawork@gmail.com}
-\And
-Aayush Batra \\
+{\small\texttt{heyadityawork@gmail.com}}
+\end{tabular}
+\hspace{1.5cm}
+\begin{tabular}[t]{c}
+\textbf{Aayush Batra} \\
 IIIT Hyderabad \\
-\texttt{aayushbat06@gmail.com}
-\And
-Yash More \\
+{\small\texttt{aayushbat06@gmail.com}}
+\end{tabular}
+\hspace{1.5cm}
+\begin{tabular}[t]{c}
+\textbf{Yash More} \\
 IIIT Hyderabad \\
-\texttt{yashsmore7499@gmail.com}
+{\small\texttt{yashsmore7499@gmail.com}}
+\end{tabular}
 }
 
 \begin{document}
@@ -86,6 +94,9 @@ However, these methods operate at the level of individual sentences and rely on 
 RST represents a document as a constituency tree over Elementary Discourse Units (EDUs). Internal nodes encode a rhetorical relation (e.g., \textsc{Elaboration}, \textsc{Evidence}, \textsc{Contrast}) and a nuclearity assignment: one child is the \emph{nucleus} (the more essential content) and the other the \emph{satellite} (supporting material). Nucleus EDUs closer to the root are structurally prominent; satellite EDUs deep in the tree are structurally marginal.
 
 \section{Dataset}
+\label{sec:dataset}
+
+Full technical details on the construction of the dataset and implementation of the discourse parser are provided in Appendix \ref{app:dataset}.
 
 \subsection{Source Corpus}
 
@@ -126,8 +137,9 @@ The split yields:
 \section{Methodology}
 
 \subsection{Fact Clustering}
+\label{sec:clustering-meth}
 
-To identify shared facts across articles, we cluster semantically similar EDUs using a two-stage pipeline:
+To identify shared facts across articles, we cluster semantically similar EDUs using a two-stage pipeline (for detailed implementation, see Appendix \ref{app:clustering}):
 
 \paragraph{Stage 1: SBERT Embedding and Clustering}
 Each EDU is embedded using SBERT (\texttt{all-mpnet-base-v2}). All EDUs from a triplet are pooled and clustered using agglomerative clustering with:
@@ -214,15 +226,16 @@ This design means that \textbf{coverage features directly encode the omission si
 
 \subsubsection{Vector Assembly}
 
-The final DFI vector for each triplet concatenates features from all clusters:
-\begin{equation}
-\mathbf{v} = [\delta^{(1)}_{cov,L}, \delta^{(1)}_{str,L}, \delta^{(1)}_{cov,R}, \delta^{(1)}_{str,R}, \ldots, \delta^{(K)}_{cov,R}, \delta^{(K)}_{str,R}]
-\end{equation}
-where $K$ is the number of clusters. Vectors are zero-padded to a fixed length (69 dimensions for coverage-only, 138 for combined).
+Each triplet yields two distinct DFI vectors—one representing the left source's divergence from the center, and one for the right source's divergence:
+\begin{align}
+\mathbf{v}_{left} &= [\delta^{(1)}_{cov,L}, \delta^{(1)}_{str,L}, \ldots, \delta^{(K)}_{cov,L}, \delta^{(K)}_{str,L}] \\
+\mathbf{v}_{right} &= [\delta^{(1)}_{cov,R}, \delta^{(1)}_{str,R}, \ldots, \delta^{(K)}_{cov,R}, \delta^{(K)}_{str,R}]
+\end{align}
+where $K$ is the number of clusters. Vectors are zero-padded to a fixed length (69 dimensions for coverage-only, 138 for combined). Each vector serves as an independent sample for the classification task.
 
 \subsection{Cluster Ordering Strategies}
 
-The DFI vector concatenates features from all clusters. The ordering of clusters affects the feature vector structure. We experimented with multiple ordering strategies:
+The DFI vectors concatenate features from all clusters. The ordering of clusters affects the feature vector structure. We experimented with multiple ordering strategies:
 
 \begin{enumerate}
     \item \textbf{Deterministic (by cluster ID)}: Clusters ordered by their integer ID from the clustering algorithm
@@ -353,8 +366,9 @@ Cluster size & 87.56\% & -2.21\% \\
 
 To isolate the RST structural contribution, we trained models using only structural features on clusters where all 3 bias sides are present (no coverage variation):
 
-\begin{table}[h]
+\begin{table}[t]
 \centering
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lccc}
 \toprule
 \textbf{Feature Set} & \textbf{Classifier} & \textbf{Test Acc} & \textbf{F1} \\
@@ -367,7 +381,8 @@ Depth features only & Random Forest & 52.07\% & 0.510 \\
 Role features only & Random Forest & 50.41\% & 0.486 \\
 Repetition count & Random Forest & 51.65\% & 0.510 \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \caption{RST-only classification on size-3 clusters (no coverage signal). Best accuracy is 61.16\%, barely above chance.}
 \label{tab:rst-only}
 \end{table}
@@ -389,8 +404,9 @@ We quantify the relative contributions using the formula:
 This calculation uses 50\% as the random baseline for binary classification (left-vs-center or right-vs-center) and 89.77\% as the ceiling (full model with coverage signals).
 
 \subsection{Experiment 6: Pure 3-Way Cluster Analysis}
+\label{sec:3way}
 
-To definitively test whether RST framing alone can predict bias \textit{without any omission signal}, we created a dataset containing \textbf{only clusters where all 3 bias sides are present}.
+To definitively test whether RST framing alone can predict bias \textit{without any omission signal}, we created a dataset containing \textbf{only clusters where all 3 bias sides are present} (see Appendix \ref{app:training} for isolated dataset construction details).
 
 \subsubsection{3-Way Clustering Methodology}
 
@@ -404,8 +420,9 @@ We implemented an anchor-based approach:
 
 \subsubsection{3-Way Dataset Statistics}
 
-\begin{table}[h]
+\begin{table}[t]
 \centering
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lr}
 \toprule
 \textbf{Metric} & \textbf{Value} \\
@@ -416,7 +433,8 @@ Triplets with $\geq 1$ 3-way cluster & 1,321 (75.6\%) \\
 Total 3-way clusters & 5,216 \\
 \textbf{Average 3-way clusters per triplet} & \textbf{3.95} \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \caption{3-way clustering statistics. Left and right sources share remarkably few facts.}
 \label{tab:3way-stats}
 \end{table}
@@ -455,8 +473,9 @@ Bipartite combined & 58.33\% & -31.44\% \\
 
 \subsection{Experiment 7: Model Comparison}
 
-\begin{table}[h]
+\begin{table}[t]
 \centering
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lccc}
 \toprule
 \textbf{Model} & \textbf{Coverage} & \textbf{Structural} & \textbf{Combined} \\
@@ -466,7 +485,8 @@ Logistic (L2) & 74.43\% & 73.58\% & 75.28\% \\
 MLP & 79.26\% & 78.12\% & 76.70\% \\
 \textbf{Random Forest} & \textbf{89.77\%} & 86.08\% & 86.36\% \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \caption{Model comparison with bipartite features. Random Forest dramatically outperforms other models.}
 \label{tab:models}
 \end{table}
@@ -479,8 +499,9 @@ Random Forest achieves 89.77\% on coverage features---more than 10 percentage po
 \end{itemize}
 
 \subsection{Experiment 8: Explainable Prediction Demo}
+\label{sec:explainability}
 
-To demonstrate explainability in practice, we implemented a post-hoc analysis script that runs trained \texttt{alt3\_bipartite\_cov} Random Forest predictions on sampled test vectors and maps top-contributing features back to exact EDU events.
+To demonstrate explainability in practice, we implemented a post-hoc analysis script (detailed in Appendix \ref{app:explainability}) that runs trained \texttt{alt3\_bipartite\_cov} Random Forest predictions on sampled test vectors and maps top-contributing features back to exact EDU events.
 
 \paragraph{Protocol}
 \begin{enumerate}
@@ -493,10 +514,34 @@ To demonstrate explainability in practice, we implemented a post-hoc analysis sc
 \paragraph{Result}
 The sampled explainability run achieves \textbf{9/10 correct predictions (90\%)} and returns concrete EDU-level evidence for each decision.
 
-\begin{table}[h]
+\begin{figure}[h]
 \centering
-\small
-\begin{tabular}{p{0.12\linewidth}p{0.18\linewidth}p{0.60\linewidth}}
+\begin{tikzpicture}[
+  level 1/.style={sibling distance=4cm, level distance=1.5cm},
+  level 2/.style={sibling distance=3cm, level distance=1.5cm},
+  every node/.style={shape=rectangle, rounded corners, draw, align=center, fill=blue!5, font=\scriptsize, inner sep=4pt},
+  highlight/.style={fill=red!20, draw=red, thick},
+  edge from parent/.style={draw,-latex}
+]
+  \node {Root: \textsc{Contrast} \\ (Depth 0)}
+    child { node {Nucleus \\ \textit{``The Bush-era tax cuts} \\ \textit{expire in January...''} \\ (Depth 1)} }
+    child { node {Satellite: \textsc{Elaboration} \\ (Depth 1)}
+      child { node[highlight] {Nucleus \\ \textbf{``Earlier this month,} \\ \textbf{Speaker John Boehner...''} \\ \textbf{(Depth 2)}} }
+      child { node {Satellite \\ \textit{``...offered a counter-proposal.''} \\ (Depth 2)} }
+    };
+\end{tikzpicture}
+\caption{Cropped RST sub-tree from the Center article for sample \texttt{triplet\_1527}. The highlighted EDU (Depth 2, Nucleus) was completely omitted by the Right-leaning source. This missing structure explicitly triggered the categorical coverage feature $f_0 = -1$, directly resulting in a massive $+0.2486$ prediction contribution toward the \textit{right-vs-center} class.}
+\label{fig:rst_tree}
+\end{figure}
+
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.14\columnwidth}
+                >{\raggedright\arraybackslash}p{0.16\columnwidth}
+                >{\raggedright\arraybackslash}p{0.58\columnwidth}}
 \toprule
 \textbf{Feature} & \textbf{Contribution} & \textbf{Mapped EDU evidence} \\
 \midrule
@@ -605,19 +650,41 @@ In addition, our approach offers a practical interpretability advantage over dee
 
 All code and experimental configurations are available at: \url{https://github.com/itsadityasai/rhetorical-framing-auditor}
 
-Explainable prediction artifacts for this study are provided in \texttt{explanable-prediction/}, including code and generated EDU-level explanation reports.
-
-Key parameters:
-\begin{itemize}
-    \item SBERT model: \texttt{all-mpnet-base-v2}
-    \item Cross-encoder: \texttt{ms-marco-MiniLM-L-6-v2}
-    \item Clustering threshold: 0.35 (cosine distance)
-    \item 3-way clustering: cosine 0.65, cross-encoder 0.5
-    \item Random Forest: 200 trees, max depth 15
-    \item Train/val/test split: 80\%/10\%/10\%
-\end{itemize}
+Comprehensive details regarding the technical implementation of our experimental pipeline---including dataset construction, RST parsing, fact clustering, DFI feature extraction, and explainable prediction---are provided in the appendices (see Appendices \ref{app:dataset}--\ref{app:explainability}).
 
 \bibliographystyle{acl_natbib}
 \bibliography{custom}
+
+\appendix
+
+\section{Dataset Construction and RST Parsing}
+\label{app:dataset}
+The raw dataset comprised articles from AllSides.com. Triplet construction was executed by first embedding the initial 1,000 characters of each article using the \texttt{all-MiniLM-L6-v2} sentence transformer. Cosine similarity was used to retrieve the 10 nearest neighbors, saving combinations of mutually similar articles (similarity $> 0.8$) representing \{left, center, right\} orientations. This process included quality filters to remove boilerplate text and a participation cap (maximum of 5 triplets per article) to prevent over-representation of heavily covered events.
+
+For discourse analysis, we processed the articles using the \texttt{isanlp\_rst\_v3} neural discourse parser to generate constituency trees over Elementary Discourse Units (EDUs). We parallelized the parsing and applied error-handling heuristics to discard articles that failed to parse or resulted in malformed trees. Finally, dataset splitting (80/10/10 train/validation/test) was governed by a strict non-leakage constraint: articles were grouped by their unique URLs, ensuring that no article from the training set could appear in the validation or test splits, thereby preventing structural information leakage.
+
+\section{Fact Clustering Implementation}
+\label{app:clustering}
+Fact clustering identifies shared information across the triplet (see Section \ref{sec:clustering-meth}). First, every valid EDU from a given triplet is pooled together and encoded into a dense vector space using the SBERT \texttt{all-mpnet-base-v2} model. We applied Agglomerative Clustering using a cosine distance metric, average linkage, and a strict stopping threshold of 0.35 to form initial groups of semantically related facts. 
+
+To mitigate the risk of ``hallucinated'' shared facts---where the clustering algorithm over-groups distinct events---we implemented a critical secondary validation phase utilizing the \texttt{ms-marco-MiniLM-L-6-v2} cross-encoder. Every pairwise EDU association within a preliminary cluster was re-scored, and pairs scoring below 0.7 on the cross-encoder were pruned. Clusters were only retained if they contained at least one center EDU, which served as the required comparative baseline.
+
+\section{Bipartite Feature Extraction}
+\label{app:bipartite}
+The creation of Discourse Framing Index (DFI) vectors via the bipartite method (see Section \ref{sec:bipartite}) operates by isolating each cluster and applying a greedy, heuristic matching algorithm. The algorithm sorts the EDUs of each orientation by their rhetorical depth (prominence) and attempts a 1-to-1-to-1 match that minimizes the depth difference across the triplet.
+
+For each cluster, successfully matched EDUs yield structural difference features ($\delta_{str}$), reflecting the relative rhetorical elevation of the fact compared to the center baseline. Remaining unmatched EDUs generate explicit categorical coverage features ($\delta_{cov} \in \{-1, 0, +1\}$), explicitly flagging omissions. Both left-vs-center and right-vs-center DFI vectors are simultaneously computed for each triplet. These feature vectors are zero-padded to a maximum dimensionality of 138 (or 69 for coverage-only experiments) to maintain uniform shape for the downstream classifiers.
+
+\section{Model Training and 3-Way Cluster Analysis}
+\label{app:training}
+To evaluate the predictive power of our extracted features, we trained a suite of classifiers, dynamically comparing Random Forest, Support Vector Machines (SVM), Logistic Regression, and Multi-Layer Perceptrons (MLP). The best-performing model, Random Forest, was parameterized with 200 estimators, a maximum depth of 15, and the Gini impurity criterion for splits. 
+
+For the isolated 3-way cluster analysis (Section \ref{sec:3way}), we reconstructed a strict, distinct subset of the dataset retaining \textit{only} clusters where all three political orientations independently contributed an EDU. We implemented an anchor-based approach (using center EDUs as semantic anchors) with significantly heightened thresholds (cosine similarity $\geq$ 0.65, cross-encoder score $\geq$ 0.5). This guaranteed that the resulting structural comparisons were entirely devoid of omission-based signals, strictly isolating the framing bias.
+
+\section{Explainable Prediction Implementation}
+\label{app:explainability}
+The explainability procedure (see Section \ref{sec:explainability}) leverages the \texttt{treeinterpreter} library to decompose the Random Forest's decision-making process (using the Saabas method). By calculating the local feature contributions along the decision paths of the trees, we quantify the exact impact of every active feature in a test sample's vector.
+
+For any given prediction, the system isolates the features with the highest positive contribution towards the predicted class. It then maps these integer feature indices back to their originating cluster and specific bipartite event (e.g., ``Left-only omission'' or ``Center-only mention''). Finally, it performs a reverse-lookup to retrieve the exact string text of the corresponding EDU, outputting a human-readable report that justifies the classification based on concrete textual evidence rather than opaque latent activations.
 
 \end{document}
