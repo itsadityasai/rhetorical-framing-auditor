@@ -1,8 +1,5 @@
 % ACL 2024 Style Paper: Rhetorical Framing Auditor
 % Final experimental results and comprehensive analysis
-\usepackage{booktabs}
-\usepackage{graphicx}
-\usepackage{array}
 \documentclass[11pt]{article}
 \usepackage{acl}
 \usepackage{times}
@@ -17,6 +14,12 @@
 \usepackage{hyperref}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{trees,arrows.meta,positioning}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{graphicx}
 
 \title{Fact Omission vs. Rhetorical Framing: \\
 Disentangling the Predictors of Media Bias}
@@ -280,9 +283,9 @@ We transitioned to Random Forest (200 trees, max depth 15) because:
 
 \section{Experiments and Results}
 
-\subsection{Experiment 1: Full Dataset Classification}
+\subsection{Experiment 1: Classification with All Fact Clusters}
 
-Using the complete dataset with all cluster configurations and the bipartite coverage approach:
+Evaluating the test split using the complete set of extracted clusters (which includes all coverage and omission signals):
 
 \begin{table}[h]
 \centering
@@ -296,7 +299,7 @@ Padded DFI + RF & 87.78\% & 0.877 \\
 Padded DFI + SVM & 85.23\% & 0.852 \\
 \bottomrule
 \end{tabular}
-\caption{Full dataset classification results. Bipartite coverage with Random Forest achieves best performance.}
+\caption{Classification results on the test split using all extracted fact clusters. Bipartite coverage with Random Forest achieves best performance.}
 \label{tab:full-results}
 \end{table}
 
@@ -447,7 +450,7 @@ Total 3-way clusters & 5,216 \\
 \centering
 \begin{tabular}{lcc}
 \toprule
-\textbf{Method} & \textbf{Test Acc} & \textbf{vs Full Dataset} \\
+\textbf{Method} & \textbf{Test Acc} & \textbf{vs All Clusters} \\
 \midrule
 \multicolumn{3}{l}{\textit{Deterministic ordering:}} \\
 Bipartite structural & \textbf{61.46\%} & -28.31\% \\
@@ -467,7 +470,7 @@ Bipartite combined & 58.33\% & -31.44\% \\
 \textbf{Critical Observations:}
 \begin{enumerate}
     \item \textbf{Coverage-only achieves exactly 50\%} (random chance) because all coverage deltas are zero---every cluster has exactly one EDU from each bias side.
-    \item \textbf{Best structural accuracy is 61.46\%}---a massive 28.31 percentage point drop from the full dataset.
+    \item \textbf{Best structural accuracy is 61.46\%}---a massive 28.31 percentage point drop compared to models utilizing all fact clusters.
     \item \textbf{Min-depth ordering (57.29\%) performs worse than deterministic ordering (61.46\%)}, confirming that the implicit clustering order captures useful structure.
 \end{enumerate}
 
@@ -514,43 +517,58 @@ To demonstrate explainability in practice, we implemented a post-hoc analysis sc
 \paragraph{Result}
 The sampled explainability run achieves \textbf{9/10 correct predictions (90\%)} and returns concrete EDU-level evidence for each decision.
 
-\begin{figure}[h]
+\begin{figure}[t]
 \centering
+\scriptsize
 \begin{tikzpicture}[
-  level 1/.style={sibling distance=4cm, level distance=1.5cm},
-  level 2/.style={sibling distance=3cm, level distance=1.5cm},
-  every node/.style={shape=rectangle, rounded corners, draw, align=center, fill=blue!5, font=\scriptsize, inner sep=4pt},
+  level 1/.style={sibling distance=36mm, level distance=14mm},
+  level 2/.style={sibling distance=28mm, level distance=14mm},
+  every node/.style={
+    rectangle,
+    rounded corners,
+    draw,
+    align=center,
+    fill=blue!5,
+    inner sep=3pt,
+    text width=30mm
+  },
   highlight/.style={fill=red!20, draw=red, thick},
-  edge from parent/.style={draw,-latex}
+  edge from parent/.style={draw, -{Latex[length=2mm]}}
 ]
-  \node {Root: \textsc{Contrast} \\ (Depth 0)}
-    child { node {Nucleus \\ \textit{``The Bush-era tax cuts} \\ \textit{expire in January...''} \\ (Depth 1)} }
-    child { node {Satellite: \textsc{Elaboration} \\ (Depth 1)}
-      child { node[highlight] {Nucleus \\ \textbf{``Earlier this month,} \\ \textbf{Speaker John Boehner...''} \\ \textbf{(Depth 2)}} }
-      child { node {Satellite \\ \textit{``...offered a counter-proposal.''} \\ (Depth 2)} }
-    };
+\node {Root: \textsc{Contrast}\\(Depth 0)}
+  child {node {Nucleus\\ \textit{``The Bush-era tax cuts}\\ \textit{expire in January...''}\\ (Depth 1)}}
+  child {node {Satellite: \textsc{Elaboration}\\ (Depth 1)}
+    child {node[highlight] {Nucleus\\ \textbf{``Earlier this month,}\\ \textbf{Speaker John Boehner...''}\\ \textbf{(Depth 2)}}}
+    child {node {Satellite\\ \textit{``...offered a counter-proposal.''}\\ (Depth 2)}}
+  };
 \end{tikzpicture}
-\caption{Cropped RST sub-tree from the Center article for sample \texttt{triplet\_1527}. The highlighted EDU (Depth 2, Nucleus) was completely omitted by the Right-leaning source. This missing structure explicitly triggered the categorical coverage feature $f_0 = -1$, directly resulting in a massive $+0.2486$ prediction contribution toward the \textit{right-vs-center} class.}
+\caption{Cropped RST sub-tree from the Center article for sample \texttt{triplet\_1527}. The highlighted EDU (Depth 2, Nucleus) was completely omitted by the Right-leaning source. This missing structure explicitly triggered the categorical coverage feature $f_0=-1$, directly resulting in a large $+0.2486$ prediction contribution toward the \textit{right-vs-center} class.}
 \label{fig:rst_tree}
 \end{figure}
-
 
 \begin{table}[t]
 \centering
 \footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{>{\raggedright\arraybackslash}p{0.14\columnwidth}
-                >{\raggedright\arraybackslash}p{0.16\columnwidth}
-                >{\raggedright\arraybackslash}p{0.58\columnwidth}}
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\columnwidth}{
+    >{\raggedright\arraybackslash}p{0.18\columnwidth}
+    >{\raggedright\arraybackslash}p{0.20\columnwidth}
+    >{\raggedright\arraybackslash}X
+}
 \toprule
 \textbf{Feature} & \textbf{Contribution} & \textbf{Mapped EDU evidence} \\
 \midrule
-f0 = -1 & +0.2486 & Center-only mention: \texttt{8l41u2MtPe6yyACw\_27} (``Earlier this month, Speaker John Boehner ...'') \\
-f1 = -1 & +0.0499 & Center-only mention: \texttt{8l41u2MtPe6yyACw\_15} (``The Bush-era tax cuts expire ...'') \\
-f8 = +1 & +0.0380 & Right-only mention: \texttt{FwGHYcWhKZFpKuwf\_89} (``... automatic cuts to Pentagon spending.'') \\
+$f_0=-1$ & $+0.2486$ & Center-only mention: \texttt{8l41u2MtPe6yyACw\_27}\\
+& & (``Earlier this month, Speaker John Boehner ...'') \\[2pt]
+
+$f_1=-1$ & $+0.0499$ & Center-only mention: \texttt{8l41u2MtPe6yyACw\_15}\\
+& & (``The Bush-era tax cuts expire ...'') \\[2pt]
+
+$f_8=+1$ & $+0.0380$ & Right-only mention: \texttt{FwGHYcWhKZFpKuwf\_89}\\
+& & (``... automatic cuts to Pentagon spending.'') \\
 \bottomrule
-\end{tabular}
-\caption{Illustrative explanation for sample \texttt{triplet\_1527\_right}. Positive contribution values support the predicted class (right-vs-center).}
+\end{tabularx}
+\caption{Illustrative explanation for sample \texttt{triplet\_1527\_right}. Positive contribution values support the predicted class (\textit{right-vs-center}).}
 \label{tab:explainable-example}
 \end{table}
 

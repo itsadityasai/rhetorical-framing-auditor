@@ -15,7 +15,7 @@ The codebase has been meticulously reorganized to perfectly map to the experimen
 ```text
 rhetorical-framing-auditor/
 ├── pipeline/                     # 1. DATA & PIPELINE (Appendices A-C)
-│   ├── split_triplets.py         # Constructs the left/center/right triplets, ensures non-leakage (80/10/10 splits)
+│   ├── split_triplets.py         # Constructs the left/center/right triplets & splits into 80/10/10
 │   ├── parse_rst.py              # Generates RST constituency trees via isanlp_rst_v3
 │   ├── build_facts.py            # Helper module for SBERT embeddings & cross-encoder extraction
 │   ├── build_clusters.py         # Helper module for agglomerative clustering
@@ -25,15 +25,15 @@ rhetorical-framing-auditor/
 │   └── modules/                  # Internal project utility classes (caching, clustering utils)
 │
 ├── experiments/                  # 2. EXPERIMENTS (Appendices D-E)
-│   ├── 01_full_classification/   # → Exp 1 (Full Dataset), Exp 2 (DFI Alts), Exp 3 (Cluster Order), Exp 7 (Models)
-│   │   └── train_dfi_alternatives.py # Trains RF, SVM, LR, MLP models on bipartite features
-│   ├── 02_pure_3way_analysis/    # → Exp 4 (RST-only Features), Exp 6 (Pure 3-Way Cluster Analysis)
-│   │   └── train_rst_only.py     # Isolates 3-way clusters to eliminate omission signals entirely
-│   ├── 03_explainability_demo/   # → Exp 8 (Explainable Prediction Demo)
-│   │   └── explain_predictions.py    # Uses Saabas treeinterpreter to map predictions back to exact EDUs
-│   ├── bert_baseline.py          # Legacy/Baseline: Semantic baseline modeling
-│   ├── run_svm.py                # Legacy/Baseline: Early SVM-only experiments
-│   └── train_svm_from_dfi_splits.py  # Legacy/Baseline: Padded DFI vector training
+│   ├── 01_full_classification/   # → Exp 1, 2, 3, 7: Train RF, SVM, LR, MLP on bipartite features
+│   │   └── train_dfi_alternatives.py 
+│   ├── 02_pure_3way_analysis/    # → Exp 4, 6: Isolates 3-way clusters to eliminate omission signals
+│   │   └── train_rst_only.py     
+│   ├── 03_explainability_demo/   # → Exp 8: Saabas treeinterpreter mapping predictions to explicit EDUs
+│   │   └── explain_predictions.py    
+│   ├── bert_baseline.py          # Baseline: Semantic baseline modeling
+│   ├── run_svm.py                # Baseline: Early SVM-only experiments
+│   └── train_svm_from_dfi_splits.py  # Baseline: Padded DFI vector training
 │
 ├── presentation/                 # 3. PRESENTATION ARTIFACTS
 │   ├── slides.tex                # Comprehensive Beamer presentation slides for the paper
@@ -49,47 +49,69 @@ rhetorical-framing-auditor/
 │   └── valid_dfi_splits_recluster_gpu/        # Train/val/test feature matrices
 │
 ├── archive/                      # 6. ARCHIVED EXPERIMENTS
-│   └── ...                       # Older exploratory methodologies and abandoned pathways
+│   └── ...                       # Exploratory methodologies and abandoned pathways
 │
-├── params.yaml                   # Global project configuration parameters
-└── GPU_FRESH_CLUSTERING_TRAINING_INSTRUCTIONS.txt # Instructions for running the clusterer from scratch
+└── params.yaml                   # Global project configuration parameters
 ```
 
 ---
 
-## 🧪 Mapping to the Paper
+## 🚀 Step-by-Step Execution Guide
 
-To reproduce specific sections of the paper, navigate to the corresponding directory:
+To reproduce the findings from the paper, follow these steps in chronological order. All scripts should be run from the root directory of the project. Make sure your environment is configured and dependencies are installed.
 
-### Methodology (Sections 3 & 4)
-- **Dataset Construction & RST Parsing (App. A)**: `pipeline/split_triplets.py` and `pipeline/parse_rst.py`
-- **Fact Clustering (App. B)**: `pipeline/run_fact_clustering.py`
-- **Bipartite Feature Extraction (App. C)**: `pipeline/build_dfi_from_splits.py`
+### Phase 1: Data Processing & Pipeline
 
-### Experiments (Section 5)
-- **Experiments 1, 2, 3, & 7 (App. D)**: Go to `experiments/01_full_classification/train_dfi_alternatives.py`. This script dynamically trains the Random Forest classifier that achieved our state-of-the-art 89.77% accuracy using the bipartite coverage features.
-- **Experiments 4 & 6 (App. D)**: Go to `experiments/02_pure_3way_analysis/train_rst_only.py`. This evaluates the baseline model on only facts covered by all three political orientations (where accuracy drops significantly to ~61%).
-- **Experiment 8 (App. E)**: Go to `experiments/03_explainability_demo/explain_predictions.py`. This script outputs human-readable reports mapping Random Forest feature activations (using `treeinterpreter`) to explicit textual EDUs (e.g., specific omitted facts).
+**Step 1: Triplet Construction & Dataset Splitting (Appendix A)**  
+This script pairs articles into (Left, Center, Right) triplets covering the exact same event using cosine similarity, and splits them securely into 80/10/10 train/validation/test sets without data leakage.
+```bash
+python pipeline/split_triplets.py
+```
+
+**Step 2: Discourse Parsing (Appendix A)**  
+Generates RST constituency trees over Elementary Discourse Units (EDUs) for all articles in the valid triplets using `isanlp_rst_v3`.
+```bash
+python pipeline/parse_rst.py
+```
+
+**Step 3: Fact Clustering (Appendix B)**  
+Embeds the EDUs using SBERT, clusters them to identify shared facts across the triplet, and rigidly prunes hallucinated matches using a cross-encoder threshold.
+```bash
+python pipeline/run_fact_clustering.py
+```
+
+**Step 4: Bipartite Feature Extraction (Appendix C)**  
+Extracts the explicit Coverage ($\delta_{cov}$) and Structural ($\delta_{str}$) features via our 1-to-1-to-1 matching heuristic, saving the zero-padded DFI vectors to the `data/` directory.
+```bash
+python pipeline/build_dfi_from_splits.py
+```
 
 ---
 
-## 🚀 Quick Start
+### Phase 2: Running the Experiments
 
-Ensure you have your environment configured (see `params.yaml` for paths and thresholds).
+Once the pipeline artifacts are generated, you can run the isolated experiments detailed in **Section 5** of the paper.
 
-1. **Re-run Feature Extraction**:
-   ```bash
-   python pipeline/build_dfi_from_splits.py
-   ```
-2. **Train the Primary Model (Exp 1)**:
-   ```bash
-   cd experiments/01_full_classification
-   python train_dfi_alternatives.py
-   ```
-3. **Generate Explainability Reports (Exp 8)**:
-   ```bash
-   cd experiments/03_explainability_demo
-   python explain_predictions.py
-   ```
+**Experiments 1, 2, 3, & 7: Full Dataset Classification (Appendix D)**  
+Trains the main Random Forest model (alongside SVM, LR, and MLP baselines) on the full bipartite vectors. This reproduces our primary finding of **89.77% accuracy**.
+```bash
+python experiments/01_full_classification/train_dfi_alternatives.py
+```
 
-*Note: For complete details on the theoretical framing, findings, and methodology, please compile and read `docs/acl_latex3.tex`.*
+**Experiments 4 & 6: Pure 3-Way Cluster Analysis (Appendix D)**  
+Isolates ONLY the facts that were reported by all three political orientations (eliminating the selection/omission bias signal). This proves that structural framing alone is a weak predictor, dropping accuracy to **~61.46%**.
+```bash
+python experiments/02_pure_3way_analysis/train_rst_only.py
+```
+
+**Experiment 8: Explainable Prediction Demo (Appendix E)**  
+Leverages the `treeinterpreter` library (Saabas method) on our trained Random Forest model. It outputs concrete, human-readable reports mapping prediction logits directly to explicit EDUs (e.g., "Center mentioned X, but Right omitted it").
+```bash
+python experiments/03_explainability_demo/explain_predictions.py
+```
+
+---
+
+## 📖 Citation
+
+If you use this codebase or methodology in your research, please refer to the primary manuscript located at `docs/acl_latex3.tex`.
