@@ -1,117 +1,88 @@
 # Rhetorical Framing Auditor
 
-[![ACL 2024](https://img.shields.io/badge/Paper-ACL_2024-blue.svg)](docs/acl_latex3.tex)
+This repository contains the data pipeline and experiments for analyzing media bias through:
 
-This repository contains the complete experimental pipeline and analysis code for the paper: **"Fact Omission vs. Rhetorical Framing: Disentangling the Predictors of Media Bias."**
+- fact omission (coverage asymmetry), and
+- rhetorical framing (RST structural positioning).
 
-We investigate whether media bias is better predicted by *fact omission* (selection bias) or by the rhetorical positioning of shared facts (*framing bias*) using Rhetorical Structure Theory (RST). Our key finding is that fact omission accounts for approximately 72% of the predictive power for media bias, while RST structural framing accounts for only 28%. Left and right sources share remarkably few facts (average 3.95 per triplet).
+## What this repository contains
 
----
+### Core directories
 
-## 📁 Repository Structure
+- [pipeline](pipeline): dataset construction and feature generation pipeline.
+	- [pipeline/split_triplets.py](pipeline/split_triplets.py): builds left/center/right triplets and splits.
+	- [pipeline/parse_rst.py](pipeline/parse_rst.py): parses documents into RST outputs.
+	- [pipeline/run_fact_clustering.py](pipeline/run_fact_clustering.py): clusters semantically aligned EDUs.
+	- [pipeline/build_dfi_from_splits.py](pipeline/build_dfi_from_splits.py): builds DFI rows using predefined split files.
+	- [pipeline/modules](pipeline/modules): canonical implementations (`FactCluster`, `DFIGenerator`, run logger).
 
-The codebase has been meticulously reorganized to perfectly map to the experiments and methodology detailed in our paper. 
+- [experiments](experiments): active experimental scripts.
+	- [experiments/01_full_classification](experiments/01_full_classification): full classification experiments.
+	- [experiments/02_pure_3way_analysis](experiments/02_pure_3way_analysis): omission-controlled structural analysis.
+	- [experiments/03_explainability_demo](experiments/03_explainability_demo): explainability artifacts.
+	- Additional tracks now under `experiments/`: `omission-based`, `strengthen-str`, `aggregate-vector`, `aggregate-rf`, `hybrid-approach`, `experimental-design`, `alternative-models`, `ordering-str`, `universal-str`, and `improved-clustering`.
 
-```text
-rhetorical-framing-auditor/
-├── pipeline/                     # 1. DATA & PIPELINE (Appendices A-C)
-│   ├── split_triplets.py         # Constructs the left/center/right triplets & splits into 80/10/10
-│   ├── parse_rst.py              # Generates RST constituency trees via isanlp_rst_v3
-│   ├── build_facts.py            # Helper module for SBERT embeddings & cross-encoder extraction
-│   ├── build_clusters.py         # Helper module for agglomerative clustering
-│   ├── run_fact_clustering.py    # Main script: Clusters EDUs across triplets, prunes with cross-encoder
-│   ├── build_dfi.py              # Legacy helper for bipartite extraction
-│   ├── build_dfi_from_splits.py  # Main script: Extracts bipartite Coverage & Structural (DFI) features
-│   └── modules/                  # Internal project utility classes (caching, clustering utils)
-│
-├── experiments/                  # 2. EXPERIMENTS (Appendices D-E)
-│   ├── 01_full_classification/   # → Exp 1, 2, 3, 7: Train RF, SVM, LR, MLP on bipartite features
-│   │   └── train_dfi_alternatives.py 
-│   ├── 02_pure_3way_analysis/    # → Exp 4, 6: Isolates 3-way clusters to eliminate omission signals
-│   │   └── train_rst_only.py     
-│   ├── 03_explainability_demo/   # → Exp 8: Saabas treeinterpreter mapping predictions to explicit EDUs
-│   │   └── explain_predictions.py    
-│   ├── bert_baseline.py          # Baseline: Semantic baseline modeling
-│   ├── run_svm.py                # Baseline: Early SVM-only experiments
-│   └── train_svm_from_dfi_splits.py  # Baseline: Padded DFI vector training
-│
-├── presentation/                 # 3. PRESENTATION ARTIFACTS
-│   ├── slides.tex                # Comprehensive Beamer presentation slides for the paper
-│   ├── generate_slide_diagrams.py# Python script generating the pie/bar charts used in the slides
-│   └── diagrams/                 # Generated PNG visual assets
-│
-├── docs/                         # 4. DOCUMENTATION
-│   ├── acl_latex3.tex            # Finalized ACL-style paper (The central document)
-│   └── custom.bib                # Bibliography references
-│
-├── data/                         # 5. GENERATED ARTIFACTS
-│   ├── valid_facts_results_recluster_gpu.json # Final cached clusters & EDU lookups
-│   └── valid_dfi_splits_recluster_gpu/        # Train/val/test feature matrices
-│
-├── archive/                      # 6. ARCHIVED EXPERIMENTS
-│   └── ...                       # Exploratory methodologies and abandoned pathways
-│
-└── params.yaml                   # Global project configuration parameters
+- [data](data): generated artifacts and cached intermediate files.
+	- `valid_*` files/dirs are active reclustered artifacts used by current workflows.
+	- [data/ablation](data/ablation): ablation results and model checkpoints.
+
+- [docs](docs): manuscript and paper assets.
+- [presentation](presentation): slides and generated figures.
+
+### Root-level files
+
+- [params.yaml](params.yaml): central configuration.
+- [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md): operational project context and artifact lineage.
+- [GPU_FRESH_CLUSTERING_TRAINING_INSTRUCTIONS.txt](GPU_FRESH_CLUSTERING_TRAINING_INSTRUCTIONS.txt): runbook for fresh clustering/training.
+
+## Environment and execution
+
+Run all commands from repository root.
+
+Example environment setup:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
----
+If a requirements file is not present, install dependencies used by the scripts you run (e.g., `numpy`, `scikit-learn`, `pyyaml`, `sentence-transformers`, `transformers`).
 
-## 🚀 Step-by-Step Execution Guide
+## Recommended run order
 
-To reproduce the findings from the paper, follow these steps in chronological order. All scripts should be run from the root directory of the project. Make sure your environment is configured and dependencies are installed.
+### 1) Build/refresh pipeline artifacts
 
-### Phase 1: Data Processing & Pipeline
-
-**Step 1: Triplet Construction & Dataset Splitting (Appendix A)**  
-This script pairs articles into (Left, Center, Right) triplets covering the exact same event using cosine similarity, and splits them securely into 80/10/10 train/validation/test sets without data leakage.
 ```bash
 python pipeline/split_triplets.py
-```
-
-**Step 2: Discourse Parsing (Appendix A)**  
-Generates RST constituency trees over Elementary Discourse Units (EDUs) for all articles in the valid triplets using `isanlp_rst_v3`.
-```bash
 python pipeline/parse_rst.py
-```
-
-**Step 3: Fact Clustering (Appendix B)**  
-Embeds the EDUs using SBERT, clusters them to identify shared facts across the triplet, and rigidly prunes hallucinated matches using a cross-encoder threshold.
-```bash
 python pipeline/run_fact_clustering.py
+python data/build_facts_from_clusters.py \
+	--clusters data/valid_cluster_results_recluster_gpu.json \
+	--out data/valid_facts_results_recluster_gpu.json \
+	--meta data/valid_facts_results_recluster_gpu_meta.json
+python pipeline/build_dfi_from_splits.py \
+	--facts data/valid_facts_results_recluster_gpu.json \
+	--split-dir data/valid_triplet_splits \
+	--out-dir data/valid_dfi_splits_recluster_gpu
 ```
 
-**Step 4: Bipartite Feature Extraction (Appendix C)**  
-Extracts the explicit Coverage ($\delta_{cov}$) and Structural ($\delta_{str}$) features via our 1-to-1-to-1 matching heuristic, saving the zero-padded DFI vectors to the `data/` directory.
-```bash
-python pipeline/build_dfi_from_splits.py
-```
+### 2) Run active experiments
 
----
-
-### Phase 2: Running the Experiments
-
-Once the pipeline artifacts are generated, you can run the isolated experiments detailed in **Section 5** of the paper.
-
-**Experiments 1, 2, 3, & 7: Full Dataset Classification (Appendix D)**  
-Trains the main Random Forest model (alongside SVM, LR, and MLP baselines) on the full bipartite vectors. This reproduces our primary finding of **89.77% accuracy**.
 ```bash
 python experiments/01_full_classification/train_dfi_alternatives.py
-```
-
-**Experiments 4 & 6: Pure 3-Way Cluster Analysis (Appendix D)**  
-Isolates ONLY the facts that were reported by all three political orientations (eliminating the selection/omission bias signal). This proves that structural framing alone is a weak predictor, dropping accuracy to **~61.46%**.
-```bash
 python experiments/02_pure_3way_analysis/train_rst_only.py
-```
-
-**Experiment 8: Explainable Prediction Demo (Appendix E)**  
-Leverages the `treeinterpreter` library (Saabas method) on our trained Random Forest model. It outputs concrete, human-readable reports mapping prediction logits directly to explicit EDUs (e.g., "Center mentioned X, but Right omitted it").
-```bash
 python experiments/03_explainability_demo/explain_predictions.py
+python experiments/run_structural_ablation.py
+python experiments/run_structural_ablation_size3.py
 ```
 
----
+## Notes on path conventions
 
-## 📖 Citation
+- Active scripts write outputs under `experiments/.../results` or `data/...`.
+- Formerly archived scripts now live under `experiments/...` and write outputs under `experiments/.../results`.
+- Compatibility imports via `modules.*` are provided by wrappers in [modules](modules) that re-export implementations from [pipeline/modules](pipeline/modules).
 
-If you use this codebase or methodology in your research, please refer to the primary manuscript located at `docs/acl_latex3.tex`.
+## Citation
+
+For manuscript details, see [docs/acl_latex3.tex](docs/acl_latex3.tex).

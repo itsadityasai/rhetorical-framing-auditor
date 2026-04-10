@@ -15,6 +15,13 @@ from transformers import (
     set_seed,
 )
 
+if "--help" in sys.argv[1:] or "-h" in sys.argv[1:]:
+	print(
+		"usage: bert_baseline.py [--help]\n\n"
+		"Train/evaluate the BERT baseline using split and path settings from params.yaml."
+	)
+	raise SystemExit(0)
+
 PROJECT_ROOT = next(
 	(p for p in Path(__file__).resolve().parents if (p / "params.yaml").exists()),
 	Path(__file__).resolve().parent,

@@ -11,6 +11,14 @@ from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.model_selection import GridSearchCV, PredefinedSplit, ParameterGrid
 
+if "--help" in sys.argv[1:] or "-h" in sys.argv[1:]:
+    print(
+        "usage: run_svm.py [--help] [--train-path PATH] [--val-path PATH]\n\n"
+        "Config-driven SVM runner (reads params.yaml by default).\n"
+        "This script currently runs from configuration values in params.yaml."
+    )
+    raise SystemExit(0)
+
 PROJECT_ROOT = next(
     (p for p in Path(__file__).resolve().parents if (p / "params.yaml").exists()),
     Path(__file__).resolve().parent,

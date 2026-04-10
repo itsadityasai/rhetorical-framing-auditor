@@ -5,3 +5,4 @@ modules/__pycache__
 data/bert_baseline
 __pycache__
 logs/
+tmp

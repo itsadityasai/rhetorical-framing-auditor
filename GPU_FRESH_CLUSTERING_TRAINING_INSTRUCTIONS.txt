@@ -32,7 +32,7 @@ PY
 4) Fresh reclustering (does NOT overwrite old outputs by default)
 -----------------------------------------------------------------
 Recommended explicit output paths:
-  python run_fact_clustering.py \
+  python pipeline/run_fact_clustering.py \
     --triplets data/valid_triplets.json \
     --out data/valid_cluster_results_recluster_gpu.json \
     --meta data/valid_cluster_results_recluster_gpu_meta.json
@@ -51,25 +51,25 @@ Note:
 
 6) Build DFI splits using existing leakage-safe split files
 ------------------------------------------------------------
-  python build_dfi_from_splits.py \
+  python pipeline/build_dfi_from_splits.py \
     --facts data/valid_facts_results_recluster_gpu.json \
     --split-dir data/valid_triplet_splits \
     --out-dir data/valid_dfi_splits_recluster_gpu
 
 7) Train and evaluate SVM
 -------------------------
-  python train_svm_from_dfi_splits.py \
+  python experiments/train_svm_from_dfi_splits.py \
     --split-dir data/valid_dfi_splits_recluster_gpu \
     --out data/valid_svm_metrics_recluster_gpu.json
 
 8) Expected outputs
 -------------------
-- data/valid_cluster_results_recluster_gpu.json
-- data/valid_cluster_results_recluster_gpu_meta.json
-- data/valid_facts_results_recluster_gpu.json
-- data/valid_facts_results_recluster_gpu_meta.json
-- data/valid_dfi_splits_recluster_gpu/train.json
-- data/valid_dfi_splits_recluster_gpu/val.json
-- data/valid_dfi_splits_recluster_gpu/test.json
-- data/valid_dfi_splits_recluster_gpu/meta.json
-- data/valid_svm_metrics_recluster_gpu.json
+ - data/valid_cluster_results_recluster_gpu.json
+ - data/valid_cluster_results_recluster_gpu_meta.json
+ - data/valid_facts_results_recluster_gpu.json
+ - data/valid_facts_results_recluster_gpu_meta.json
+ - data/valid_dfi_splits_recluster_gpu/train.json
+ - data/valid_dfi_splits_recluster_gpu/val.json
+ - data/valid_dfi_splits_recluster_gpu/test.json
+ - data/valid_dfi_splits_recluster_gpu/meta.json
+ - data/valid_svm_metrics_recluster_gpu.json

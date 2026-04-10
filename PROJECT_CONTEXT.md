@@ -41,18 +41,18 @@ Most older artifacts were moved (not deleted) into `data/optional/`.
 - `params.yaml`: central config, but contains legacy paths for many scripts; some newer scripts use explicit fresh defaults in code.
 
 Core scripts:
-- `run_fact_clustering.py`: active clustering entrypoint for valid triplets; writes cluster artifact + meta.
-- `build_dfi_from_splits.py`: builds DFI rows from facts and assigns rows to predefined leakage-safe split files.
-- `train_svm_from_dfi_splits.py`: trains/evaluates SVM on DFI split files.
-- `ablation.py`: unrestricted structural ablation (baseline, without_s, without_d, without_both) with model persistence.
-- `ablation_size3_clusters.py`: coverage-controlled ablation using only tri-side clusters (default exact size-3 all-bias clusters).
-- `split_triplets.py`: leakage-safe triplet splitting via component constraints and MILP.
-- `build_clusters.py`: older cluster builder using params paths.
-- `build_facts.py`: older fact builder using params paths.
-- `build_dfi.py`: older end-to-end DFI build + split builder using params paths.
-- `run_svm.py`: older SVM runner with optional grid search (legacy full-data workflow).
-- `parse_rst.py`: RST parser pipeline for remaining raw docs.
-- `bert_baseline.py`: 3-class article-level baseline script (left/center/right) using Hugging Face trainer.
+- `pipeline/run_fact_clustering.py`: active clustering entrypoint for valid triplets; writes cluster artifact + meta.
+- `pipeline/build_dfi_from_splits.py`: builds DFI rows from facts and assigns rows to predefined leakage-safe split files.
+- `experiments/train_svm_from_dfi_splits.py`: trains/evaluates SVM on DFI split files.
+- `experiments/run_structural_ablation.py`: unrestricted structural ablation (baseline, without_s, without_d, without_both) with model persistence.
+- `experiments/run_structural_ablation_size3.py`: coverage-controlled ablation using only tri-side clusters (default exact size-3 all-bias clusters).
+- `pipeline/split_triplets.py`: leakage-safe triplet splitting via component constraints and MILP.
+- `pipeline/build_clusters.py`: older cluster builder using params paths.
+- `pipeline/build_facts.py`: older fact builder using params paths.
+- `pipeline/build_dfi.py`: older end-to-end DFI build + split builder using params paths.
+- `experiments/run_svm.py`: older SVM runner with optional grid search (legacy full-data workflow).
+- `pipeline/parse_rst.py`: RST parser pipeline for remaining raw docs.
+- `experiments/bert_baseline.py`: 3-class article-level baseline script (left/center/right) using Hugging Face trainer.
 
 ### 3.2 `modules/`
 
@@ -111,17 +111,17 @@ Important contents:
 ## 4) Canonical active workflow (recommended sequence)
 
 1. Fresh clustering on valid triplets:
-   - `python run_fact_clustering.py --triplets data/valid_triplets.json --out data/valid_cluster_results_recluster_gpu.json --meta data/valid_cluster_results_recluster_gpu_meta.json`
+   - `python pipeline/run_fact_clustering.py --triplets data/valid_triplets.json --out data/valid_cluster_results_recluster_gpu.json --meta data/valid_cluster_results_recluster_gpu_meta.json`
 2. Build facts:
    - `python data/build_facts_from_clusters.py --clusters data/valid_cluster_results_recluster_gpu.json --out data/valid_facts_results_recluster_gpu.json --meta data/valid_facts_results_recluster_gpu_meta.json`
 3. Build DFI splits from predefined leakage-safe triplet splits:
-   - `python build_dfi_from_splits.py --facts data/valid_facts_results_recluster_gpu.json --split-dir data/valid_triplet_splits --out-dir data/valid_dfi_splits_recluster_gpu`
+   - `python pipeline/build_dfi_from_splits.py --facts data/valid_facts_results_recluster_gpu.json --split-dir data/valid_triplet_splits --out-dir data/valid_dfi_splits_recluster_gpu`
 4. Train/evaluate SVM:
-   - `python train_svm_from_dfi_splits.py --split-dir data/valid_dfi_splits_recluster_gpu --out data/valid_svm_metrics_recluster_gpu.json`
+   - `python experiments/train_svm_from_dfi_splits.py --split-dir data/valid_dfi_splits_recluster_gpu --out data/valid_svm_metrics_recluster_gpu.json`
 5. Run unrestricted structural ablation:
-   - `python ablation.py --facts data/valid_facts_results_recluster_gpu.json --split-dir data/valid_dfi_splits_recluster_gpu --out data/ablation/structural_ablation_recluster_gpu.json --model-dir data/ablation/models_recluster_gpu`
+   - `python experiments/run_structural_ablation.py --facts data/valid_facts_results_recluster_gpu.json --split-dir data/valid_dfi_splits_recluster_gpu --out data/ablation/structural_ablation_recluster_gpu.json --model-dir data/ablation/models_recluster_gpu`
 6. Run coverage-controlled size3 ablation:
-   - `python ablation_size3_clusters.py --facts data/valid_facts_results_recluster_gpu.json --split-dir data/valid_dfi_splits_recluster_gpu --out data/ablation/structural_ablation_size3_recluster_gpu.json --model-dir data/ablation/models_size3_recluster_gpu`
+   - `python experiments/run_structural_ablation_size3.py --facts data/valid_facts_results_recluster_gpu.json --split-dir data/valid_dfi_splits_recluster_gpu --out data/ablation/structural_ablation_size3_recluster_gpu.json --model-dir data/ablation/models_size3_recluster_gpu`
 
 ## 5) DFI and label construction details (critical)
 
@@ -257,7 +257,7 @@ DFI split build (`data/valid_dfi_splits_recluster_gpu/meta.json`):
 
 1. `params.yaml` still contains many legacy default paths (`bias_triplets`, `cluster_results`, `facts_results`, `data/dfi_splits/*`).
    - Do not assume params paths always point to active fresh artifacts.
-   - Newer scripts (`ablation.py`, `ablation_size3_clusters.py`) have fresh defaults hardcoded.
+   - Newer scripts (`experiments/run_structural_ablation.py`, `experiments/run_structural_ablation_size3.py`) have fresh defaults hardcoded.
 
 2. `run_fact_clustering.py` default output names are timestamped `recluster_centerpair_*`.
    - Always pass explicit `--out` and `--meta` when reproducing the active fresh run naming.
