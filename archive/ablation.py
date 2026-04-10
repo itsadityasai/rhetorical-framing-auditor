@@ -2,6 +2,8 @@ import argparse
 import json
 import os
 import pickle
+import sys
+from pathlib import Path
 from typing import Dict, List, Set, Tuple
 import numpy as np
 import yaml
@@ -9,6 +11,12 @@ from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
+
+PROJECT_ROOT = next(
+    (p for p in Path(__file__).resolve().parents if (p / "params.yaml").exists()),
+    Path(__file__).resolve().parent,
+)
+sys.path.insert(0, str(PROJECT_ROOT))
 
 from modules.DFIGenerator import DFIGenerator
 from modules.run_logger import init_run_logging, log_run_results, close_run_logging

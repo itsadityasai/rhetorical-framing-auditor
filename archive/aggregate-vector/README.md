@@ -64,5 +64,5 @@ The padded approach, despite its theoretical issues, preserves cluster-level ide
 ## Usage
 
 ```bash
-python aggregate-vector/train_aggregate_svm.py
+python archive/aggregate-vector/train_aggregate_svm.py
 ```

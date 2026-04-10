@@ -2,12 +2,20 @@ import json
 import numpy as np
 import yaml
 import time
+import sys
+from pathlib import Path
 
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.model_selection import GridSearchCV, PredefinedSplit, ParameterGrid
+
+PROJECT_ROOT = next(
+    (p for p in Path(__file__).resolve().parents if (p / "params.yaml").exists()),
+    Path(__file__).resolve().parent,
+)
+sys.path.insert(0, str(PROJECT_ROOT))
 from modules.run_logger import init_run_logging, log_run_results, close_run_logging
 
 

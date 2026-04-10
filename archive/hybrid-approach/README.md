@@ -65,10 +65,10 @@
 ## Usage
 
 ```bash
-python hybrid-approach/train_hybrid_svm.py
+python archive/hybrid-approach/train_hybrid_svm.py
 
 # With custom parameters
-python hybrid-approach/train_hybrid_svm.py \
+python archive/hybrid-approach/train_hybrid_svm.py \
     --facts data/valid_facts_results_recluster_gpu.json \
     --split-dir data/valid_dfi_splits_recluster_gpu \
     --svm-c 10.0 --svm-gamma 0.1

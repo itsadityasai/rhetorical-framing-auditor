@@ -26,6 +26,7 @@ import json
 import os
 import pickle
 import sys
+from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Set, Tuple
 import math
@@ -36,16 +37,19 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
-# Add parent directory for module imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add project root for module imports
+PROJECT_ROOT = next(
+    (p for p in Path(__file__).resolve().parents if (p / "params.yaml").exists()),
+    Path(__file__).resolve().parent,
+)
+sys.path.insert(0, str(PROJECT_ROOT))
 from modules.run_logger import close_run_logging, init_run_logging, log_run_results
 
 
 DEFAULT_FACTS_PATH = "data/valid_facts_results_recluster_gpu.json"
 DEFAULT_SPLIT_DIR = "data/valid_dfi_splits_recluster_gpu"
-DEFAULT_RST_DIR = "data/rst_output"
-DEFAULT_OUT_PATH = "strengthen-str/results/strengthen_structural_results.json"
-DEFAULT_MODEL_DIR = "strengthen-str/results/models"
+DEFAULT_OUT_PATH = "archive/strengthen-str/results/strengthen_structural_results.json"
+DEFAULT_MODEL_DIR = "archive/strengthen-str/results/models"
 
 VALID_BIASES = {"left", "center", "right"}
 
@@ -56,7 +60,6 @@ def parse_args():
     )
     parser.add_argument("--facts", default=DEFAULT_FACTS_PATH)
     parser.add_argument("--split-dir", default=DEFAULT_SPLIT_DIR)
-    parser.add_argument("--rst-dir", default=DEFAULT_RST_DIR)
     parser.add_argument("--out", default=DEFAULT_OUT_PATH)
     parser.add_argument("--model-dir", default=DEFAULT_MODEL_DIR)
 
@@ -74,7 +77,9 @@ def load_json(path: str):
 
 
 def save_json(path: str, payload):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    dir_name = os.path.dirname(path)
+    if dir_name:
+        os.makedirs(dir_name, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(payload, f, indent=2)
 
@@ -466,7 +471,9 @@ def train_and_evaluate_experiment(
 
 
 def save_model(path: str, model, max_len: int, experiment_name: str, svm_cfg: Dict):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    dir_name = os.path.dirname(path)
+    if dir_name:
+        os.makedirs(dir_name, exist_ok=True)
     payload = {
         "model": model,
         "max_len": int(max_len),

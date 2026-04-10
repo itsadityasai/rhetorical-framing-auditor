@@ -64,12 +64,12 @@ Focus on nucleus/satellite role distribution per cluster:
 
 ```bash
 # From repository root
-python strengthen-str/train_strengthen_structural.py
+python archive/strengthen-str/train_strengthen_structural.py
 
 # With custom output paths
-python strengthen-str/train_strengthen_structural.py \
-    --out strengthen-str/results/custom_results.json \
-    --model-dir strengthen-str/results/custom_models
+python archive/strengthen-str/train_strengthen_structural.py \
+    --out archive/strengthen-str/results/custom_results.json \
+    --model-dir archive/strengthen-str/results/custom_models
 ```
 
 ## Output Files

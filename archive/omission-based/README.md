@@ -61,10 +61,10 @@ Per cluster, encode `[count_left, count_center, count_right]`
 cd /path/to/rhetorical-framing-auditor
 
 # Default run (delta features) - RECOMMENDED
-python omission-based/train_coverage_svm.py
+python archive/omission-based/train_coverage_svm.py
 
 # With custom SVM hyperparameters
-python omission-based/train_coverage_svm.py --svm-kernel linear --svm-c 1.0
+python archive/omission-based/train_coverage_svm.py --svm-kernel linear --svm-c 1.0
 ```
 
 ### Output Files

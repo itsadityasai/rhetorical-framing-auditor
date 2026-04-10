@@ -33,6 +33,7 @@ import math
 import os
 import pickle
 import sys
+from pathlib import Path
 from collections import OrderedDict
 from datetime import datetime
 from typing import Callable, Dict, List, Set, Tuple
@@ -41,17 +42,19 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
 
-# Add parent directory for module imports
-sys.path.insert(
-    0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add project root for module imports
+PROJECT_ROOT = next(
+    (p for p in Path(__file__).resolve().parents if (p / "params.yaml").exists()),
+    Path(__file__).resolve().parent,
 )
+sys.path.insert(0, str(PROJECT_ROOT))
 from modules.run_logger import close_run_logging, init_run_logging, log_run_results
 
 
 DEFAULT_FACTS_PATH = "data/valid_facts_results_recluster_gpu.json"
 DEFAULT_SPLIT_DIR = "data/valid_dfi_splits_recluster_gpu"
-DEFAULT_OUT_PATH = "ordering-str/by-depth/results/ordered_dfi_results.json"
-DEFAULT_MODEL_DIR = "ordering-str/by-depth/results/models"
+DEFAULT_OUT_PATH = "archive/ordering-str/by-depth/results/ordered_dfi_results.json"
+DEFAULT_MODEL_DIR = "archive/ordering-str/by-depth/results/models"
 
 VALID_BIASES = {"left", "center", "right"}
 ORDERING_STRATEGY = "by_normalized_depth"

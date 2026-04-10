@@ -10,12 +10,18 @@ import argparse
 import json
 import os
 import sys
+from pathlib import Path
 
 import yaml
 
 # Paths
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+PROJECT_ROOT = str(
+    next(
+        (p for p in Path(__file__).resolve().parents if (p / "params.yaml").exists()),
+        Path(__file__).resolve().parent,
+    )
+)
 PARAMS_PATH = os.path.join(PROJECT_ROOT, "params.yaml")
 
 with open(PARAMS_PATH, "r", encoding="utf-8") as f:

@@ -40,10 +40,10 @@ Extract Random Forest feature importances to identify which clusters/features ar
 
 ```bash
 # Run with default settings
-python alternative-models/train_alternative_models.py
+python archive/alternative-models/train_alternative_models.py
 
 # Customize settings
-python alternative-models/train_alternative_models.py \
+python archive/alternative-models/train_alternative_models.py \
     --seed 123 \
     --cv-folds 10
 ```

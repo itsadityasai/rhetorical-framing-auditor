@@ -20,6 +20,7 @@ import json
 import os
 import sys
 import time
+from pathlib import Path
 from collections import defaultdict
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
@@ -31,7 +32,12 @@ from sentence_transformers import SentenceTransformer, CrossEncoder
 
 # Load params
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+PROJECT_ROOT = str(
+    next(
+        (p for p in Path(__file__).resolve().parents if (p / "params.yaml").exists()),
+        Path(__file__).resolve().parent,
+    )
+)
 PARAMS_PATH = os.path.join(PROJECT_ROOT, "params.yaml")
 
 with open(PARAMS_PATH, "r", encoding="utf-8") as f:

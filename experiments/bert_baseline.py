@@ -1,6 +1,8 @@
 import json
 import os
 import yaml
+import sys
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -12,6 +14,12 @@ from transformers import (
     Trainer,
     set_seed,
 )
+
+PROJECT_ROOT = next(
+	(p for p in Path(__file__).resolve().parents if (p / "params.yaml").exists()),
+	Path(__file__).resolve().parent,
+)
+sys.path.insert(0, str(PROJECT_ROOT))
 from modules.run_logger import init_run_logging, log_run_results, close_run_logging
 
 # =========================

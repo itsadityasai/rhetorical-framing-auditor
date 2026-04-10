@@ -39,10 +39,10 @@ The original fixed train/val/test split may have high variance due to small test
 
 ```bash
 # Run with default settings (5-fold CV, 1000 bootstrap)
-python experimental-design/train_crossval.py
+python archive/experimental-design/train_crossval.py
 
 # Customize settings
-python experimental-design/train_crossval.py \
+python archive/experimental-design/train_crossval.py \
     --k-folds 10 \
     --n-bootstrap 2000 \
     --seed 123

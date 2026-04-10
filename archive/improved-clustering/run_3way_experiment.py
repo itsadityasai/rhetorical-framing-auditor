@@ -25,6 +25,7 @@ import math
 import os
 import pickle
 import sys
+from pathlib import Path
 from collections import OrderedDict
 from datetime import datetime
 from typing import Callable, Dict, List, Set, Tuple
@@ -33,9 +34,14 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
 
-# Add parent directory for module imports
+# Add project root for module imports
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+PROJECT_ROOT = str(
+    next(
+        (p for p in Path(__file__).resolve().parents if (p / "params.yaml").exists()),
+        Path(__file__).resolve().parent,
+    )
+)
 sys.path.insert(0, PROJECT_ROOT)
 
 from modules.run_logger import close_run_logging, init_run_logging, log_run_results

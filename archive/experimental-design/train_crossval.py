@@ -26,6 +26,7 @@ import json
 import os
 import sys
 import math
+from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Tuple, Callable
 import copy
@@ -37,14 +38,18 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
-# Add parent directory for module imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add project root for module imports
+PROJECT_ROOT = next(
+    (p for p in Path(__file__).resolve().parents if (p / "params.yaml").exists()),
+    Path(__file__).resolve().parent,
+)
+sys.path.insert(0, str(PROJECT_ROOT))
 from modules.run_logger import close_run_logging, init_run_logging, log_run_results
 
 
 DEFAULT_FACTS_PATH = "data/valid_facts_results_recluster_gpu.json"
-DEFAULT_OUT_PATH = "experimental-design/results/crossval_results.json"
-DEFAULT_MODEL_DIR = "experimental-design/results/models"
+DEFAULT_OUT_PATH = "archive/experimental-design/results/crossval_results.json"
+DEFAULT_MODEL_DIR = "archive/experimental-design/results/models"
 
 VALID_BIASES = {"left", "center", "right"}
 
