@@ -1,0 +1,84 @@
+{
+  "setup": {
+    "goal": "Coverage-only bias classification (no structural weighting)",
+    "hypothesis": "Fact omission patterns predict bias better than RST prominence",
+    "facts": "data/valid_facts_results_recluster_gpu.json",
+    "split_dir": "data/valid_dfi_splits_recluster_gpu",
+    "feature_mode": "delta",
+    "svm": {
+      "kernel": "rbf",
+      "C": 10.0,
+      "gamma": 0.1,
+      "degree": 3
+    },
+    "created": "2026-04-06T13:53:54.412445"
+  },
+  "data_counts": {
+    "triplet_rows": {
+      "train": 1383,
+      "val": 171,
+      "test": 176
+    },
+    "binary_samples": {
+      "train": 2766,
+      "val": 342,
+      "test": 352
+    }
+  },
+  "model": {
+    "input_dim": 69,
+    "model_path": "omission-based/results/coverage_svm_model.pkl"
+  },
+  "metrics": {
+    "train": {
+      "samples": 2766,
+      "accuracy": 0.8253796095444685,
+      "macro_f1": 0.8247859789752827,
+      "confusion_matrix": [
+        [
+          1222,
+          161
+        ],
+        [
+          322,
+          1061
+        ]
+      ]
+    },
+    "val": {
+      "samples": 342,
+      "accuracy": 0.7865497076023392,
+      "macro_f1": 0.7845436893203883,
+      "confusion_matrix": [
+        [
+          151,
+          20
+        ],
+        [
+          53,
+          118
+        ]
+      ]
+    },
+    "test": {
+      "samples": 352,
+      "accuracy": 0.7528409090909091,
+      "macro_f1": 0.7503729244613992,
+      "confusion_matrix": [
+        [
+          150,
+          26
+        ],
+        [
+          61,
+          115
+        ]
+      ]
+    }
+  },
+  "comparison_to_structural": {
+    "note": "Compare these results to data/ablation/structural_ablation_recluster_gpu.json",
+    "structural_baseline_test_acc": 0.6705,
+    "structural_without_both_test_acc": 0.7528
+  }
+}

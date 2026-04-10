@@ -1,0 +1,75 @@
+GPU Fresh Clustering and Training Instructions
+=============================================
+
+Run all commands from repository root:
+  /home/yash-more/Downloads/22/inlp/project/tuning-rst/rhetorical-framing-auditor
+
+1) Create/activate environment
+------------------------------
+Option A (conda):
+  conda create -n rst_gpu python=3.11 -y
+  conda activate rst_gpu
+
+Option B (venv):
+  python -m venv .venv
+  source .venv/bin/activate
+
+2) Install dependencies
+-----------------------
+Install PyTorch with CUDA matching your machine first, then:
+  pip install -U sentence-transformers scikit-learn numpy scipy pyyaml
+
+3) Confirm GPU visibility (optional sanity check)
+-------------------------------------------------
+  python - <<'PY'
+import torch
+print('cuda_available:', torch.cuda.is_available())
+print('device_count:', torch.cuda.device_count())
+if torch.cuda.is_available():
+    print('device_name:', torch.cuda.get_device_name(0))
+PY
+
+4) Fresh reclustering (does NOT overwrite old outputs by default)
+-----------------------------------------------------------------
+Recommended explicit output paths:
+  python pipeline/run_fact_clustering.py \
+    --triplets data/valid_triplets.json \
+    --out data/valid_cluster_results_recluster_gpu.json \
+    --meta data/valid_cluster_results_recluster_gpu_meta.json
+
+Note:
+- If output files already exist, the script will stop unless --overwrite is provided.
+- Current clustering policy keeps clusters with center+left, center+right, or center+left+right,
+  and retains all validated EDUs in those clusters.
+
+5) Build facts from fresh clusters
+----------------------------------
+  python data/build_facts_from_clusters.py \
+    --clusters data/valid_cluster_results_recluster_gpu.json \
+    --out data/valid_facts_results_recluster_gpu.json \
+    --meta data/valid_facts_results_recluster_gpu_meta.json
+
+6) Build DFI splits using existing leakage-safe split files
+------------------------------------------------------------
+  python pipeline/build_dfi_from_splits.py \
+    --facts data/valid_facts_results_recluster_gpu.json \
+    --split-dir data/valid_triplet_splits \
+    --out-dir data/valid_dfi_splits_recluster_gpu
+
+7) Train and evaluate SVM
+-------------------------
+  python experiments/train_svm_from_dfi_splits.py \
+    --split-dir data/valid_dfi_splits_recluster_gpu \
+    --out data/valid_svm_metrics_recluster_gpu.json
+
+8) Expected outputs
+-------------------
+ - data/valid_cluster_results_recluster_gpu.json
+ - data/valid_cluster_results_recluster_gpu_meta.json
+ - data/valid_facts_results_recluster_gpu.json
+ - data/valid_facts_results_recluster_gpu_meta.json
+ - data/valid_dfi_splits_recluster_gpu/train.json
+ - data/valid_dfi_splits_recluster_gpu/val.json
+ - data/valid_dfi_splits_recluster_gpu/test.json
+ - data/valid_dfi_splits_recluster_gpu/meta.json
+ - data/valid_svm_metrics_recluster_gpu.json

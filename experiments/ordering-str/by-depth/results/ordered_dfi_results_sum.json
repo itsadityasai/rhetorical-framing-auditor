@@ -1,0 +1,482 @@
+{
+  "setup": {
+    "goal": "Test if cluster ordering by normalized depth improves classification",
+    "ordering_strategy": "by_normalized_depth",
+    "depth_aggregation": "sum",
+    "description": "Clusters ordered by aggregated normalized depth (sum), shallowest first",
+    "hypothesis": "Position 0 = most prominent fact (shallowest in RST) should improve generalization",
+    "normalization": "depth / max_depth_in_article",
+    "facts": "data/valid_facts_results_recluster_gpu.json",
+    "split_dir": "data/valid_dfi_splits_recluster_gpu",
+    "rf": {
+      "n_estimators": 200,
+      "max_depth": 15,
+      "min_samples_split": 2,
+      "min_samples_leaf": 1,
+      "seed": 42
+    },
+    "created": "2026-04-08T16:46:50.365469"
+  },
+  "reference_baselines": {
+    "unordered_padded_dfi_rf": {
+      "test_acc": 0.8778
+    },
+    "unordered_bipartite_coverage": {
+      "test_acc": 0.8977
+    }
+  },
+  "experiments": {
+    "baseline_combined_ordered": {
+      "description": "Baseline: coverage + max (ordered)",
+      "ordering_strategy": "by_normalized_depth",
+      "depth_aggregation": "sum",
+      "input_dim": 138,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8532176428054953,
+          "macro_f1": 0.8525217685473907,
+          "confusion_matrix": [
+            [
+              1275,
+              108
+            ],
+            [
+              298,
+              1085
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.8830409356725146,
+          "macro_f1": 0.882716049382716,
+          "confusion_matrix": [
+            [
+              160,
+              11
+            ],
+            [
+              29,
+              142
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5710227272727273,
+          "macro_f1": 0.5709915654384761,
+          "confusion_matrix": [
+            [
+              102,
+              74
+            ],
+            [
+              77,
+              99
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.8564993564993565,
+          "macro_f1": 0.8558537498440164,
+          "confusion_matrix": [
+            [
+              1435,
+              119
+            ],
+            [
+              327,
+              1227
+            ]
+          ]
+        }
+      },
+      "model_path": "ordering-str/by-depth/results/models/sum/baseline_combined_ordered.pkl",
+      "feature_importances_top10": [
+        [
+          7,
+          0.07002874235732778
+        ],
+        [
+          1,
+          0.06568249290031389
+        ],
+        [
+          3,
+          0.06418386379022702
+        ],
+        [
+          5,
+          0.06082764722511103
+        ],
+        [
+          11,
+          0.06054951509165159
+        ],
+        [
+          9,
+          0.056104975523400887
+        ],
+        [
+          13,
+          0.05545070906662324
+        ],
+        [
+          15,
+          0.05343717179361674
+        ],
+        [
+          17,
+          0.04825112884741664
+        ],
+        [
+          19,
+          0.04264812024774274
+        ]
+      ],
+      "delta_vs_unordered_baseline": -0.30677727272727273,
+      "delta_vs_unordered_bipartite": -0.32667727272727276
+    },
+    "cumulative_avg_ordered": {
+      "description": "Approach 1: Cumulative avg (ordered)",
+      "ordering_strategy": "by_normalized_depth",
+      "depth_aggregation": "sum",
+      "input_dim": 69,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8709327548806941,
+          "macro_f1": 0.8703899542114386,
+          "confusion_matrix": [
+            [
+              1294,
+              89
+            ],
+            [
+              268,
+              1115
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.8801169590643275,
+          "macro_f1": 0.8796632424499884,
+          "confusion_matrix": [
+            [
+              161,
+              10
+            ],
+            [
+              31,
+              140
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.6051136363636364,
+          "macro_f1": 0.6050339444135002,
+          "confusion_matrix": [
+            [
+              109,
+              67
+            ],
+            [
+              72,
+              104
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.8719433719433719,
+          "macro_f1": 0.8714108933534477,
+          "confusion_matrix": [
+            [
+              1455,
+              99
+            ],
+            [
+              299,
+              1255
+            ]
+          ]
+        }
+      },
+      "model_path": "ordering-str/by-depth/results/models/sum/cumulative_avg_ordered.pkl",
+      "feature_importances_top10": [
+        [
+          3,
+          0.08182420123062778
+        ],
+        [
+          0,
+          0.07585459259152509
+        ],
+        [
+          5,
+          0.07298811973029641
+        ],
+        [
+          2,
+          0.07262154785720752
+        ],
+        [
+          1,
+          0.07184918236458875
+        ],
+        [
+          4,
+          0.06996691525187194
+        ],
+        [
+          7,
+          0.06204907986268937
+        ],
+        [
+          6,
+          0.061347955247130076
+        ],
+        [
+          8,
+          0.05792084167899842
+        ],
+        [
+          9,
+          0.047978861724420445
+        ]
+      ],
+      "delta_vs_unordered_baseline": -0.27268636363636367,
+      "delta_vs_unordered_bipartite": -0.2925863636363637
+    },
+    "distributional_3d_ordered": {
+      "description": "Approach 2: Distributional 3D (ordered)",
+      "ordering_strategy": "by_normalized_depth",
+      "depth_aggregation": "sum",
+      "input_dim": 207,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8857556037599421,
+          "macro_f1": 0.885708756449719,
+          "confusion_matrix": [
+            [
+              1253,
+              130
+            ],
+            [
+              186,
+              1197
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.8947368421052632,
+          "macro_f1": 0.8947368421052632,
+          "confusion_matrix": [
+            [
+              153,
+              18
+            ],
+            [
+              18,
+              153
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.6079545454545454,
+          "macro_f1": 0.6071428571428572,
+          "confusion_matrix": [
+            [
+              99,
+              77
+            ],
+            [
+              61,
+              115
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.8867438867438867,
+          "macro_f1": 0.8867071063222723,
+          "confusion_matrix": [
+            [
+              1406,
+              148
+            ],
+            [
+              204,
+              1350
+            ]
+          ]
+        }
+      },
+      "model_path": "ordering-str/by-depth/results/models/sum/distributional_3d_ordered.pkl",
+      "feature_importances_top10": [
+        [
+          9,
+          0.03964134908131308
+        ],
+        [
+          1,
+          0.03749513600902846
+        ],
+        [
+          0,
+          0.036508196764540715
+        ],
+        [
+          3,
+          0.035329996635547846
+        ],
+        [
+          10,
+          0.03360985839000786
+        ],
+        [
+          15,
+          0.03301703788600241
+        ],
+        [
+          16,
+          0.03278153810665697
+        ],
+        [
+          4,
+          0.032766572240170926
+        ],
+        [
+          6,
+          0.03223543465028031
+        ],
+        [
+          13,
+          0.03183865349350338
+        ]
+      ],
+      "delta_vs_unordered_baseline": -0.2698454545454546,
+      "delta_vs_unordered_bipartite": -0.28974545454545464
+    },
+    "bipartite_coverage_ordered": {
+      "description": "Approach 3: Bipartite coverage (ordered)",
+      "ordering_strategy": "by_normalized_depth",
+      "depth_aggregation": "sum",
+      "input_dim": 157,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8597252349963846,
+          "macro_f1": 0.8569685338451082,
+          "confusion_matrix": [
+            [
+              997,
+              386
+            ],
+            [
+              2,
+              1381
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.8596491228070176,
+          "macro_f1": 0.856828885400314,
+          "confusion_matrix": [
+            [
+              123,
+              48
+            ],
+            [
+              0,
+              171
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.7528409090909091,
+          "macro_f1": 0.7404195804195803,
+          "confusion_matrix": [
+            [
+              94,
+              82
+            ],
+            [
+              5,
+              171
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.8597168597168597,
+          "macro_f1": 0.8569532061513516,
+          "confusion_matrix": [
+            [
+              1120,
+              434
+            ],
+            [
+              2,
+              1552
+            ]
+          ]
+        }
+      },
+      "model_path": "ordering-str/by-depth/results/models/sum/bipartite_coverage_ordered.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.3884210810283256
+        ],
+        [
+          1,
+          0.059072492982972145
+        ],
+        [
+          2,
+          0.03959272154670771
+        ],
+        [
+          3,
+          0.023040493834254137
+        ],
+        [
+          7,
+          0.020517873888658125
+        ],
+        [
+          4,
+          0.02029106952538393
+        ],
+        [
+          6,
+          0.020217331966546008
+        ],
+        [
+          8,
+          0.019135321406779524
+        ],
+        [
+          5,
+          0.019116670756032707
+        ],
+        [
+          10,
+          0.018838810427628853
+        ]
+      ],
+      "delta_vs_unordered_baseline": -0.12495909090909096,
+      "delta_vs_unordered_bipartite": -0.144859090909091
+    }
+  }
+}

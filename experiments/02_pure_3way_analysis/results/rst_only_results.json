@@ -1,0 +1,1822 @@
+{
+  "setup": {
+    "goal": "Isolate RST contribution by filtering to full-coverage clusters only",
+    "description": "Only clusters where ALL 3 bias sides (left, center, right) are present",
+    "hypothesis": "If omission is primary signal, accuracy should drop significantly",
+    "min_clusters_per_triplet": 1,
+    "depth_aggregation": "min",
+    "facts": "data/valid_facts_results_recluster_gpu.json",
+    "split_dir": "data/valid_dfi_splits_recluster_gpu",
+    "rf": {
+      "n_estimators": 200,
+      "max_depth": 15,
+      "min_samples_split": 2,
+      "min_samples_leaf": 1,
+      "seed": 42
+    },
+    "created": "2026-04-08T18:05:38.732290"
+  },
+  "filtering_stats": {
+    "train": {
+      "original_triplets": 1383,
+      "filtered_triplets": 947,
+      "triplet_retention_rate": 0.6847433116413594,
+      "original_clusters": 12620,
+      "filtered_clusters": 2264,
+      "cluster_retention_rate": 0.17939778129952458,
+      "min_clusters_required": 1
+    },
+    "val": {
+      "original_triplets": 171,
+      "filtered_triplets": 130,
+      "triplet_retention_rate": 0.7602339181286549,
+      "original_clusters": 1806,
+      "filtered_clusters": 407,
+      "cluster_retention_rate": 0.22535991140642303,
+      "min_clusters_required": 1
+    },
+    "test": {
+      "original_triplets": 176,
+      "filtered_triplets": 121,
+      "triplet_retention_rate": 0.6875,
+      "original_clusters": 1744,
+      "filtered_clusters": 366,
+      "cluster_retention_rate": 0.2098623853211009,
+      "min_clusters_required": 1
+    }
+  },
+  "reference_baselines": {
+    "full_dataset_bipartite_coverage": {
+      "test_acc": 0.8977
+    },
+    "random_chance": {
+      "test_acc": 0.5
+    }
+  },
+  "experiments": {
+    "rst_prominence_avg_rf": {
+      "description": "Avg prominence delta",
+      "classifier": "rf",
+      "input_dim": 19,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.7381203801478353,
+          "macro_f1": 0.7368807865702276,
+          "confusion_matrix": [
+            [
+              634,
+              313
+            ],
+            [
+              183,
+              764
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.7653846153846153,
+          "macro_f1": 0.7653533754493942,
+          "confusion_matrix": [
+            [
+              98,
+              32
+            ],
+            [
+              29,
+              101
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.5537190082644629,
+          "macro_f1": 0.5532307692307692,
+          "confusion_matrix": [
+            [
+              63,
+              58
+            ],
+            [
+              50,
+              71
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.7414113277623027,
+          "macro_f1": 0.7404216807907007,
+          "confusion_matrix": [
+            [
+              732,
+              345
+            ],
+            [
+              212,
+              865
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_prominence_avg_rf.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.27260420179842365
+        ],
+        [
+          1,
+          0.2398613623137062
+        ],
+        [
+          2,
+          0.17293444520211126
+        ],
+        [
+          3,
+          0.12608764713616663
+        ],
+        [
+          4,
+          0.07607846693779671
+        ],
+        [
+          5,
+          0.04677393943982149
+        ],
+        [
+          6,
+          0.028927942539395343
+        ],
+        [
+          7,
+          0.014447298087951439
+        ],
+        [
+          8,
+          0.006605678862222608
+        ],
+        [
+          9,
+          0.004571096395075133
+        ]
+      ],
+      "delta_vs_full_dataset": -0.3439809917355372,
+      "delta_vs_random": 0.05371900826446285
+    },
+    "rst_prominence_avg_lr": {
+      "description": "Avg prominence delta",
+      "classifier": "lr",
+      "input_dim": 19,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.5601900739176346,
+          "macro_f1": 0.5601624862594512,
+          "confusion_matrix": [
+            [
+              523,
+              424
+            ],
+            [
+              409,
+              538
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.55,
+          "macro_f1": 0.5494601519572269,
+          "confusion_matrix": [
+            [
+              76,
+              54
+            ],
+            [
+              63,
+              67
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.5371900826446281,
+          "macro_f1": 0.5351581258146395,
+          "confusion_matrix": [
+            [
+              73,
+              48
+            ],
+            [
+              64,
+              57
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.5589600742804085,
+          "macro_f1": 0.5589566521829092,
+          "confusion_matrix": [
+            [
+              599,
+              478
+            ],
+            [
+              472,
+              605
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_prominence_avg_lr.pkl",
+      "delta_vs_full_dataset": -0.36050991735537197,
+      "delta_vs_random": 0.037190082644628086
+    },
+    "rst_prominence_avg_svm": {
+      "description": "Avg prominence delta",
+      "classifier": "svm",
+      "input_dim": 19,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.6003167898627244,
+          "macro_f1": 0.5970320363013439,
+          "confusion_matrix": [
+            [
+              483,
+              464
+            ],
+            [
+              293,
+              654
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.5961538461538461,
+          "macro_f1": 0.5961000724948589,
+          "confusion_matrix": [
+            [
+              76,
+              54
+            ],
+            [
+              51,
+              79
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.5619834710743802,
+          "macro_f1": 0.5617140513942045,
+          "confusion_matrix": [
+            [
+              65,
+              56
+            ],
+            [
+              50,
+              71
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.5998142989786444,
+          "macro_f1": 0.5971857752785588,
+          "confusion_matrix": [
+            [
+              559,
+              518
+            ],
+            [
+              344,
+              733
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_prominence_avg_svm.pkl",
+      "delta_vs_full_dataset": -0.3357165289256199,
+      "delta_vs_random": 0.06198347107438018
+    },
+    "rst_prominence_max_rf": {
+      "description": "Max prominence delta",
+      "classifier": "rf",
+      "input_dim": 19,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.720168954593453,
+          "macro_f1": 0.7200890521809642,
+          "confusion_matrix": [
+            [
+              666,
+              281
+            ],
+            [
+              249,
+              698
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.7307692307692307,
+          "macro_f1": 0.7307054924242424,
+          "confusion_matrix": [
+            [
+              97,
+              33
+            ],
+            [
+              37,
+              93
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.5454545454545454,
+          "macro_f1": 0.5451749589939858,
+          "confusion_matrix": [
+            [
+              69,
+              52
+            ],
+            [
+              58,
+              63
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.7214484679665738,
+          "macro_f1": 0.7214013915271877,
+          "confusion_matrix": [
+            [
+              763,
+              314
+            ],
+            [
+              286,
+              791
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_prominence_max_rf.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.22528283995154968
+        ],
+        [
+          1,
+          0.224555999701887
+        ],
+        [
+          2,
+          0.1726349727415323
+        ],
+        [
+          3,
+          0.1511246776905903
+        ],
+        [
+          4,
+          0.0880979022522127
+        ],
+        [
+          5,
+          0.05149355260208597
+        ],
+        [
+          6,
+          0.04079294922734353
+        ],
+        [
+          7,
+          0.017877633418433146
+        ],
+        [
+          8,
+          0.007357671005243788
+        ],
+        [
+          9,
+          0.00631999754701687
+        ]
+      ],
+      "delta_vs_full_dataset": -0.35224545454545464,
+      "delta_vs_random": 0.045454545454545414
+    },
+    "rst_prominence_max_lr": {
+      "description": "Max prominence delta",
+      "classifier": "lr",
+      "input_dim": 19,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.5586061246040127,
+          "macro_f1": 0.5581015533861362,
+          "confusion_matrix": [
+            [
+              561,
+              386
+            ],
+            [
+              450,
+              497
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.55,
+          "macro_f1": 0.5470450721422296,
+          "confusion_matrix": [
+            [
+              82,
+              48
+            ],
+            [
+              69,
+              61
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.5495867768595041,
+          "macro_f1": 0.5473530673530673,
+          "confusion_matrix": [
+            [
+              75,
+              46
+            ],
+            [
+              63,
+              58
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.5575673166202414,
+          "macro_f1": 0.5568772826541919,
+          "confusion_matrix": [
+            [
+              643,
+              434
+            ],
+            [
+              519,
+              558
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_prominence_max_lr.pkl",
+      "delta_vs_full_dataset": -0.348113223140496,
+      "delta_vs_random": 0.04958677685950408
+    },
+    "rst_prominence_max_svm": {
+      "description": "Max prominence delta",
+      "classifier": "svm",
+      "input_dim": 19,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.5913410770855333,
+          "macro_f1": 0.5912517440634923,
+          "confusion_matrix": [
+            [
+              546,
+              401
+            ],
+            [
+              373,
+              574
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.5769230769230769,
+          "macro_f1": 0.5760199240986716,
+          "confusion_matrix": [
+            [
+              81,
+              49
+            ],
+            [
+              61,
+              69
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.5495867768595041,
+          "macro_f1": 0.5482832434283758,
+          "confusion_matrix": [
+            [
+              73,
+              48
+            ],
+            [
+              61,
+              60
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.5896007428040855,
+          "macro_f1": 0.5895780974509965,
+          "confusion_matrix": [
+            [
+              627,
+              450
+            ],
+            [
+              434,
+              643
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_prominence_max_svm.pkl",
+      "delta_vs_full_dataset": -0.348113223140496,
+      "delta_vs_random": 0.04958677685950408
+    },
+    "rst_repetition_rf": {
+      "description": "Repetition count delta",
+      "classifier": "rf",
+      "input_dim": 19,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.6172122492080253,
+          "macro_f1": 0.6014202171369423,
+          "confusion_matrix": [
+            [
+              396,
+              551
+            ],
+            [
+              174,
+              773
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.6269230769230769,
+          "macro_f1": 0.6174092446790758,
+          "confusion_matrix": [
+            [
+              61,
+              69
+            ],
+            [
+              28,
+              102
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.5165289256198347,
+          "macro_f1": 0.5104348577850782,
+          "confusion_matrix": [
+            [
+              49,
+              72
+            ],
+            [
+              45,
+              76
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.6183844011142061,
+          "macro_f1": 0.603451025220202,
+          "confusion_matrix": [
+            [
+              457,
+              620
+            ],
+            [
+              202,
+              875
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_repetition_rf.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.2630882528210107
+        ],
+        [
+          1,
+          0.20640047534872108
+        ],
+        [
+          2,
+          0.16147061933573734
+        ],
+        [
+          3,
+          0.1360385624077555
+        ],
+        [
+          4,
+          0.07528501003629438
+        ],
+        [
+          5,
+          0.04744893166659204
+        ],
+        [
+          6,
+          0.035409272701332456
+        ],
+        [
+          7,
+          0.026688409304482675
+        ],
+        [
+          11,
+          0.01085299058676989
+        ],
+        [
+          8,
+          0.00946866903522658
+        ]
+      ],
+      "delta_vs_full_dataset": -0.3811710743801654,
+      "delta_vs_random": 0.016528925619834656
+    },
+    "rst_repetition_lr": {
+      "description": "Repetition count delta",
+      "classifier": "lr",
+      "input_dim": 19,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.5374868004223865,
+          "macro_f1": 0.5290162147431531,
+          "confusion_matrix": [
+            [
+              636,
+              311
+            ],
+            [
+              565,
+              382
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.5230769230769231,
+          "macro_f1": 0.5115151515151515,
+          "confusion_matrix": [
+            [
+              88,
+              42
+            ],
+            [
+              82,
+              48
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.5082644628099173,
+          "macro_f1": 0.48898944193061844,
+          "confusion_matrix": [
+            [
+              85,
+              36
+            ],
+            [
+              83,
+              38
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.5357474466109564,
+          "macro_f1": 0.5269344296858528,
+          "confusion_matrix": [
+            [
+              724,
+              353
+            ],
+            [
+              647,
+              430
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_repetition_lr.pkl",
+      "delta_vs_full_dataset": -0.3894355371900827,
+      "delta_vs_random": 0.008264462809917328
+    },
+    "rst_repetition_svm": {
+      "description": "Repetition count delta",
+      "classifier": "svm",
+      "input_dim": 19,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.5850052798310454,
+          "macro_f1": 0.5639702651881271,
+          "confusion_matrix": [
+            [
+              346,
+              601
+            ],
+            [
+              185,
+              762
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.5846153846153846,
+          "macro_f1": 0.5686635944700461,
+          "confusion_matrix": [
+            [
+              51,
+              79
+            ],
+            [
+              29,
+              101
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.5,
+          "macro_f1": 0.4866679522465509,
+          "confusion_matrix": [
+            [
+              41,
+              80
+            ],
+            [
+              41,
+              80
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.584958217270195,
+          "macro_f1": 0.5645788864368149,
+          "confusion_matrix": [
+            [
+              397,
+              680
+            ],
+            [
+              214,
+              863
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_repetition_svm.pkl",
+      "delta_vs_full_dataset": -0.39770000000000005,
+      "delta_vs_random": 0.0
+    },
+    "rst_combined_3d_rf": {
+      "description": "Combined (max+avg+count)",
+      "classifier": "rf",
+      "input_dim": 57,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.7882787750791974,
+          "macro_f1": 0.787322530520648,
+          "confusion_matrix": [
+            [
+              683,
+              264
+            ],
+            [
+              137,
+              810
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.7923076923076923,
+          "macro_f1": 0.7921970280030786,
+          "confusion_matrix": [
+            [
+              100,
+              30
+            ],
+            [
+              24,
+              106
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.5867768595041323,
+          "macro_f1": 0.5867768595041323,
+          "confusion_matrix": [
+            [
+              71,
+              50
+            ],
+            [
+              50,
+              71
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.7887650882079852,
+          "macro_f1": 0.7879566692275921,
+          "confusion_matrix": [
+            [
+              783,
+              294
+            ],
+            [
+              161,
+              916
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_combined_3d_rf.pkl",
+      "feature_importances_top10": [
+        [
+          1,
+          0.12584456842396533
+        ],
+        [
+          4,
+          0.10529160770554696
+        ],
+        [
+          0,
+          0.10261410597839299
+        ],
+        [
+          3,
+          0.09315730607704202
+        ],
+        [
+          7,
+          0.07839428448307977
+        ],
+        [
+          2,
+          0.0723977019385707
+        ],
+        [
+          6,
+          0.06415063227997107
+        ],
+        [
+          5,
+          0.05138393821838903
+        ],
+        [
+          10,
+          0.05127586766620019
+        ],
+        [
+          9,
+          0.049500702876348335
+        ]
+      ],
+      "delta_vs_full_dataset": -0.3109231404958678,
+      "delta_vs_random": 0.08677685950413228
+    },
+    "rst_combined_3d_lr": {
+      "description": "Combined (max+avg+count)",
+      "classifier": "lr",
+      "input_dim": 57,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.5591341077085533,
+          "macro_f1": 0.559128085600221,
+          "confusion_matrix": [
+            [
+              526,
+              421
+            ],
+            [
+              414,
+              533
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.5384615384615384,
+          "macro_f1": 0.5367070563079116,
+          "confusion_matrix": [
+            [
+              78,
+              52
+            ],
+            [
+              68,
+              62
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.5702479338842975,
+          "macro_f1": 0.5688048245614035,
+          "confusion_matrix": [
+            [
+              76,
+              45
+            ],
+            [
+              59,
+              62
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.5566388115134633,
+          "macro_f1": 0.556631071194178,
+          "confusion_matrix": [
+            [
+              604,
+              473
+            ],
+            [
+              482,
+              595
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_combined_3d_lr.pkl",
+      "delta_vs_full_dataset": -0.32745206611570254,
+      "delta_vs_random": 0.07024793388429751
+    },
+    "rst_combined_3d_svm": {
+      "description": "Combined (max+avg+count)",
+      "classifier": "svm",
+      "input_dim": 57,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.5865892291446674,
+          "macro_f1": 0.5646694031105988,
+          "confusion_matrix": [
+            [
+              343,
+              604
+            ],
+            [
+              179,
+              768
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.5807692307692308,
+          "macro_f1": 0.5639932922044955,
+          "confusion_matrix": [
+            [
+              50,
+              80
+            ],
+            [
+              29,
+              101
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.5082644628099173,
+          "macro_f1": 0.4951527794821451,
+          "confusion_matrix": [
+            [
+              42,
+              79
+            ],
+            [
+              40,
+              81
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.585886722376973,
+          "macro_f1": 0.5646256407002724,
+          "confusion_matrix": [
+            [
+              393,
+              684
+            ],
+            [
+              208,
+              869
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_combined_3d_svm.pkl",
+      "delta_vs_full_dataset": -0.3894355371900827,
+      "delta_vs_random": 0.008264462809917328
+    },
+    "rst_depth_features_rf": {
+      "description": "Depth-based features",
+      "classifier": "rf",
+      "input_dim": 38,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.7734952481520592,
+          "macro_f1": 0.770014664810992,
+          "confusion_matrix": [
+            [
+              616,
+              331
+            ],
+            [
+              98,
+              849
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.7884615384615384,
+          "macro_f1": 0.7861554335960281,
+          "confusion_matrix": [
+            [
+              89,
+              41
+            ],
+            [
+              14,
+              116
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.5206611570247934,
+          "macro_f1": 0.5098135084165677,
+          "confusion_matrix": [
+            [
+              45,
+              76
+            ],
+            [
+              40,
+              81
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.7753017641597029,
+          "macro_f1": 0.7719795385768865,
+          "confusion_matrix": [
+            [
+              705,
+              372
+            ],
+            [
+              112,
+              965
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_depth_features_rf.pkl",
+      "feature_importances_top10": [
+        [
+          1,
+          0.1550342750858394
+        ],
+        [
+          0,
+          0.1476346929746746
+        ],
+        [
+          3,
+          0.1201410336259543
+        ],
+        [
+          2,
+          0.11887474752576085
+        ],
+        [
+          5,
+          0.0907776216739714
+        ],
+        [
+          4,
+          0.08135497629762296
+        ],
+        [
+          6,
+          0.05803090222486554
+        ],
+        [
+          7,
+          0.05502601145270348
+        ],
+        [
+          9,
+          0.03584955647223795
+        ],
+        [
+          8,
+          0.02980736187119161
+        ]
+      ],
+      "delta_vs_full_dataset": -0.3770388429752066,
+      "delta_vs_random": 0.02066115702479343
+    },
+    "rst_depth_features_lr": {
+      "description": "Depth-based features",
+      "classifier": "lr",
+      "input_dim": 38,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.5512143611404435,
+          "macro_f1": 0.5466521135771765,
+          "confusion_matrix": [
+            [
+              427,
+              520
+            ],
+            [
+              330,
+              617
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.5384615384615384,
+          "macro_f1": 0.5383522727272727,
+          "confusion_matrix": [
+            [
+              68,
+              62
+            ],
+            [
+              58,
+              72
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.5537190082644629,
+          "macro_f1": 0.552220394736842,
+          "confusion_matrix": [
+            [
+              60,
+              61
+            ],
+            [
+              47,
+              74
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.5496750232126276,
+          "macro_f1": 0.5459922469839724,
+          "confusion_matrix": [
+            [
+              495,
+              582
+            ],
+            [
+              388,
+              689
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_depth_features_lr.pkl",
+      "delta_vs_full_dataset": -0.3439809917355372,
+      "delta_vs_random": 0.05371900826446285
+    },
+    "rst_depth_features_svm": {
+      "description": "Depth-based features",
+      "classifier": "svm",
+      "input_dim": 38,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.5897571277719112,
+          "macro_f1": 0.5636833589939954,
+          "confusion_matrix": [
+            [
+              327,
+              620
+            ],
+            [
+              157,
+              790
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.5961538461538461,
+          "macro_f1": 0.5709638383806636,
+          "confusion_matrix": [
+            [
+              46,
+              84
+            ],
+            [
+              21,
+              109
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.5165289256198347,
+          "macro_f1": 0.4901960784313726,
+          "confusion_matrix": [
+            [
+              35,
+              86
+            ],
+            [
+              31,
+              90
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.5905292479108635,
+          "macro_f1": 0.564563240309509,
+          "confusion_matrix": [
+            [
+              373,
+              704
+            ],
+            [
+              178,
+              899
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_depth_features_svm.pkl",
+      "delta_vs_full_dataset": -0.3811710743801654,
+      "delta_vs_random": 0.016528925619834656
+    },
+    "rst_role_features_rf": {
+      "description": "Role (nucleus/satellite)",
+      "classifier": "rf",
+      "input_dim": 19,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.6494192185850053,
+          "macro_f1": 0.6413553947150785,
+          "confusion_matrix": [
+            [
+              473,
+              474
+            ],
+            [
+              190,
+              757
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.6192307692307693,
+          "macro_f1": 0.6039939075985784,
+          "confusion_matrix": [
+            [
+              55,
+              75
+            ],
+            [
+              24,
+              106
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.5041322314049587,
+          "macro_f1": 0.48554421768707484,
+          "confusion_matrix": [
+            [
+              38,
+              83
+            ],
+            [
+              37,
+              84
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.6457753017641596,
+          "macro_f1": 0.6369949713870221,
+          "confusion_matrix": [
+            [
+              528,
+              549
+            ],
+            [
+              214,
+              863
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_role_features_rf.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.2852841241496508
+        ],
+        [
+          1,
+          0.2034282378986372
+        ],
+        [
+          2,
+          0.18799503240324206
+        ],
+        [
+          3,
+          0.12881040941183833
+        ],
+        [
+          4,
+          0.06981684095330827
+        ],
+        [
+          5,
+          0.04779585615297558
+        ],
+        [
+          6,
+          0.03276462158434177
+        ],
+        [
+          7,
+          0.02100449305004848
+        ],
+        [
+          8,
+          0.01299728502812385
+        ],
+        [
+          9,
+          0.0031293598976498446
+        ]
+      ],
+      "delta_vs_full_dataset": -0.3935677685950414,
+      "delta_vs_random": 0.004132231404958664
+    },
+    "rst_role_features_lr": {
+      "description": "Role (nucleus/satellite)",
+      "classifier": "lr",
+      "input_dim": 19,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.5205913410770855,
+          "macro_f1": 0.512767888813464,
+          "confusion_matrix": [
+            [
+              373,
+              574
+            ],
+            [
+              334,
+              613
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.5192307692307693,
+          "macro_f1": 0.5029897080638008,
+          "confusion_matrix": [
+            [
+              44,
+              86
+            ],
+            [
+              39,
+              91
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.5619834710743802,
+          "macro_f1": 0.5496804999648901,
+          "confusion_matrix": [
+            [
+              48,
+              73
+            ],
+            [
+              33,
+              88
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.5204271123491179,
+          "macro_f1": 0.5117593635068824,
+          "confusion_matrix": [
+            [
+              417,
+              660
+            ],
+            [
+              373,
+              704
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_role_features_lr.pkl",
+      "delta_vs_full_dataset": -0.3357165289256199,
+      "delta_vs_random": 0.06198347107438018
+    },
+    "rst_role_features_svm": {
+      "description": "Role (nucleus/satellite)",
+      "classifier": "svm",
+      "input_dim": 19,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.5786694825765576,
+          "macro_f1": 0.5651463886203563,
+          "confusion_matrix": [
+            [
+              381,
+              566
+            ],
+            [
+              232,
+              715
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.5884615384615385,
+          "macro_f1": 0.571993415283312,
+          "confusion_matrix": [
+            [
+              51,
+              79
+            ],
+            [
+              28,
+              102
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.5371900826446281,
+          "macro_f1": 0.5241907169440349,
+          "confusion_matrix": [
+            [
+              45,
+              76
+            ],
+            [
+              36,
+              85
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.5798514391829155,
+          "macro_f1": 0.5659859944058665,
+          "confusion_matrix": [
+            [
+              432,
+              645
+            ],
+            [
+              260,
+              817
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_role_features_svm.pkl",
+      "delta_vs_full_dataset": -0.36050991735537197,
+      "delta_vs_random": 0.037190082644628086
+    },
+    "rst_full_features_rf": {
+      "description": "Full RST features (5D)",
+      "classifier": "rf",
+      "input_dim": 95,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.8236536430834214,
+          "macro_f1": 0.8233692404773472,
+          "confusion_matrix": [
+            [
+              742,
+              205
+            ],
+            [
+              129,
+              818
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.8423076923076923,
+          "macro_f1": 0.8421185147884299,
+          "confusion_matrix": [
+            [
+              105,
+              25
+            ],
+            [
+              16,
+              114
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.5991735537190083,
+          "macro_f1": 0.5990023744853858,
+          "confusion_matrix": [
+            [
+              75,
+              46
+            ],
+            [
+              51,
+              70
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.8259052924791086,
+          "macro_f1": 0.8256337680958258,
+          "confusion_matrix": [
+            [
+              847,
+              230
+            ],
+            [
+              145,
+              932
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_full_features_rf.pkl",
+      "feature_importances_top10": [
+        [
+          1,
+          0.09222284956304826
+        ],
+        [
+          3,
+          0.08012333753873525
+        ],
+        [
+          6,
+          0.0740364444715967
+        ],
+        [
+          0,
+          0.07091774134314936
+        ],
+        [
+          8,
+          0.06337779107337109
+        ],
+        [
+          5,
+          0.06180283745220086
+        ],
+        [
+          2,
+          0.04838655243341693
+        ],
+        [
+          11,
+          0.04776766076477615
+        ],
+        [
+          4,
+          0.04596135735179953
+        ],
+        [
+          13,
+          0.04017440983124145
+        ]
+      ],
+      "delta_vs_full_dataset": -0.2985264462809918,
+      "delta_vs_random": 0.09917355371900827
+    },
+    "rst_full_features_lr": {
+      "description": "Full RST features (5D)",
+      "classifier": "lr",
+      "input_dim": 95,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.5696937697993664,
+          "macro_f1": 0.5695928641435202,
+          "confusion_matrix": [
+            [
+              525,
+              422
+            ],
+            [
+              393,
+              554
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.5576923076923077,
+          "macro_f1": 0.5557932581598848,
+          "confusion_matrix": [
+            [
+              81,
+              49
+            ],
+            [
+              66,
+              64
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.6115702479338843,
+          "macro_f1": 0.6106128038343033,
+          "confusion_matrix": [
+            [
+              80,
+              41
+            ],
+            [
+              53,
+              68
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.5682451253481894,
+          "macro_f1": 0.5682317248228932,
+          "confusion_matrix": [
+            [
+              606,
+              471
+            ],
+            [
+              459,
+              618
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_full_features_lr.pkl",
+      "delta_vs_full_dataset": -0.2861297520661158,
+      "delta_vs_random": 0.11157024793388426
+    },
+    "rst_full_features_svm": {
+      "description": "Full RST features (5D)",
+      "classifier": "svm",
+      "input_dim": 95,
+      "metrics": {
+        "train": {
+          "samples": 1894,
+          "accuracy": 0.6082365364308342,
+          "macro_f1": 0.5967247813096512,
+          "confusion_matrix": [
+            [
+              416,
+              531
+            ],
+            [
+              211,
+              736
+            ]
+          ]
+        },
+        "val": {
+          "samples": 260,
+          "accuracy": 0.6153846153846154,
+          "macro_f1": 0.6040448343079923,
+          "confusion_matrix": [
+            [
+              58,
+              72
+            ],
+            [
+              28,
+              102
+            ]
+          ]
+        },
+        "test": {
+          "samples": 242,
+          "accuracy": 0.5537190082644629,
+          "macro_f1": 0.54577685088634,
+          "confusion_matrix": [
+            [
+              51,
+              70
+            ],
+            [
+              38,
+              83
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 2154,
+          "accuracy": 0.6090993500464252,
+          "macro_f1": 0.5976082818233857,
+          "confusion_matrix": [
+            [
+              474,
+              603
+            ],
+            [
+              239,
+              838
+            ]
+          ]
+        }
+      },
+      "model_path": "rst-vs-omission/results/models/rst_full_features_svm.pkl",
+      "delta_vs_full_dataset": -0.3439809917355372,
+      "delta_vs_random": 0.05371900826446285
+    }
+  }
+}

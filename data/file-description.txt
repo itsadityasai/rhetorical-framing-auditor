@@ -1,0 +1,96 @@
+Data folder description
+Date: 2026-04-05
+
+This file explains the purpose of each top-level file/folder currently in data/.
+No files were deleted. Legacy/optional artifacts were moved under data/optional/.
+
+====================================================================
+Top-level files and folders in data/
+====================================================================
+
+1) build_facts_from_clusters.py
+- Utility script to convert a cluster-results artifact into fact rows.
+- Reads a cluster JSON, runs FactCluster.build_facts per row, writes facts JSON + meta JSON.
+
+2) cap_triplets.py
+- Utility script that applies MILP-based capping so each article appears in at most N triplets.
+- Typical flow: unique_triplets -> capped_triplets.
+
+3) optional/
+- Archive folder for optional/legacy/comparison artifacts moved from data/ root.
+- Contains its own documentation file at data/optional/file-description.txt.
+
+4) raw/
+- Raw source dataset directory.
+- data/raw/jsons has 37,554 source article JSON files.
+
+5) rst_output/
+- Parsed RST output files (one JSON per parsed article ID).
+- Contains 3,005 files.
+- Each file generally includes EDU and relation information used for clustering.
+
+6) sort_data.py
+- Utility script to build initial left/center/right triplet candidates from raw article text similarity.
+- Typical flow: raw/jsons -> bias_triplets.
+
+7) valid_cluster_results_recluster_gpu.json
+- Current active fresh-reclustering output on valid triplets.
+- Rows: 1,730 triplet entries with clusters and edu_lookup.
+
+8) valid_cluster_results_recluster_gpu_meta.json
+- Metadata for valid_cluster_results_recluster_gpu.json.
+- Includes coverage, error counts, total clusters, filter stats, elapsed time.
+
+9) valid_dfi_splits_recluster_gpu/
+- Current active DFI split directory derived from fresh reclustered facts.
+- Files:
+  - train.json (1,383 rows)
+  - val.json (171 rows)
+  - test.json (176 rows)
+  - meta.json (provenance and matching stats)
+
+10) valid_facts_results_recluster_gpu.json
+- Current active fact rows built from valid_cluster_results_recluster_gpu.json.
+- Rows: 1,730.
+
+11) valid_facts_results_recluster_gpu_meta.json
+- Metadata for valid_facts_results_recluster_gpu.json.
+- Includes input/output row counts, clusters processed, errors, runtime.
+
+12) valid_svm_metrics_recluster_gpu.json
+- Current active SVM evaluation output on valid_dfi_splits_recluster_gpu.
+- Contains train/val/test metrics, confusion matrices, model params, and feature mode.
+
+13) valid_triplet_splits/
+- Leakage-safe split files for valid triplets.
+- Files:
+  - train.json (1,398 triplets)
+  - val.json (174 triplets)
+  - test.json (176 triplets)
+  - meta.json (split mode, targets/achieved, overlap checks)
+
+14) valid_triplets.json
+- Valid triplet set used for current valid-subset pipeline.
+- Rows: 1,748.
+
+15) valid_triplets_meta.json
+- Metadata describing how valid_triplets.json was produced.
+- Includes input count, excluded count, valid count, and unique-article count.
+
+
+====================================================================
+Pipeline view for current active artifacts
+====================================================================
+valid_triplets.json
+-> valid_triplet_splits/
+-> valid_cluster_results_recluster_gpu.json (+ meta)
+-> valid_facts_results_recluster_gpu.json (+ meta)
+-> valid_dfi_splits_recluster_gpu/
+-> valid_svm_metrics_recluster_gpu.json
+
+
+====================================================================
+Note about optional artifacts
+====================================================================
+If you need older artifacts (all-3 policy, posthoc center-pair, legacy full-data outputs,
+or helper scripts), check data/optional/ and data/optional/file-description.txt.

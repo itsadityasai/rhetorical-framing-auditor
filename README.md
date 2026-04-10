@@ -1,109 +1,88 @@
-# Rhetorical Framing Auditor (RFA)
+# Rhetorical Framing Auditor
 
-**Team Bedrock** — Aditya Sai, Aayush Batra, Yash More
+This repository contains the data pipeline and experiments for analyzing media bias through:
 
-RFA is a framework to detect and explain structural bias in news articles using discourse structure. Rather than looking at word choice, it analyzes *how* facts are positioned in an article's rhetorical structure (RST tree) — specifically, how deeply buried or how nucleus-prominent a shared fact is — to predict the ideological lean (Left / Center / Right) of a news outlet.
+- fact omission (coverage asymmetry), and
+- rhetorical framing (RST structural positioning).
 
-### Pipeline Overview
+## What this repository contains
 
-```
-data/raw/jsons/         →  sort_data.py      →  bias_triplets.json
-bias_triplets.json      →  parse_rst.py      →  data/rst_output/*.json
-bias_triplets.json
-  + rst_output/         →  main.py           →  data/cluster_results.json
-```
+### Core directories
 
----
+- [pipeline](pipeline): dataset construction and feature generation pipeline.
+	- [pipeline/split_triplets.py](pipeline/split_triplets.py): builds left/center/right triplets and splits.
+	- [pipeline/parse_rst.py](pipeline/parse_rst.py): parses documents into RST outputs.
+	- [pipeline/run_fact_clustering.py](pipeline/run_fact_clustering.py): clusters semantically aligned EDUs.
+	- [pipeline/build_dfi_from_splits.py](pipeline/build_dfi_from_splits.py): builds DFI rows using predefined split files.
+	- [pipeline/modules](pipeline/modules): canonical implementations (`FactCluster`, `DFIGenerator`, run logger).
 
-## Setup
+- [experiments](experiments): active experimental scripts.
+	- [experiments/01_full_classification](experiments/01_full_classification): full classification experiments.
+	- [experiments/02_pure_3way_analysis](experiments/02_pure_3way_analysis): omission-controlled structural analysis.
+	- [experiments/03_explainability_demo](experiments/03_explainability_demo): explainability artifacts.
+	- Additional tracks now under `experiments/`: `omission-based`, `strengthen-str`, `aggregate-vector`, `aggregate-rf`, `hybrid-approach`, `experimental-design`, `alternative-models`, `ordering-str`, `universal-str`, and `improved-clustering`.
 
-### Requirements
+- [data](data): generated artifacts and cached intermediate files.
+	- `valid_*` files/dirs are active reclustered artifacts used by current workflows.
+	- [data/ablation](data/ablation): ablation results and model checkpoints.
 
-Python 3.10 recommended.
+- [docs](docs): manuscript and paper assets.
+- [presentation](presentation): slides and generated figures.
+
+### Root-level files
+
+- [params.yaml](params.yaml): central configuration.
+- [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md): operational project context and artifact lineage.
+- [GPU_FRESH_CLUSTERING_TRAINING_INSTRUCTIONS.txt](GPU_FRESH_CLUSTERING_TRAINING_INSTRUCTIONS.txt): runbook for fresh clustering/training.
+
+## Environment and execution
+
+Run all commands from repository root.
+
+Example environment setup:
 
 ```bash
-pip install torch orjson sentence-transformers scikit-learn numpy
-pip install git+https://github.com/IINemo/isanlp_rst
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
----
+If a requirements file is not present, install dependencies used by the scripts you run (e.g., `numpy`, `scikit-learn`, `pyyaml`, `sentence-transformers`, `transformers`).
 
-## Files
+## Recommended run order
 
-### Scripts
+### 1) Build/refresh pipeline artifacts
 
-#### `data/sort_data.py`
-Scans all raw articles in `data/raw/jsons/`, embeds the first 1000 characters of each article's content using `all-MiniLM-L6-v2`, and uses k-Nearest Neighbors (cosine similarity, threshold 0.8) to find articles that cover the same event. From those neighbors, it selects triplets where one article is left-leaning, one is center, and one is right-leaning.
-
-**Run from the `data/` directory:**
 ```bash
-cd data
-python sort_data.py
+python pipeline/split_triplets.py
+python pipeline/parse_rst.py
+python pipeline/run_fact_clustering.py
+python data/build_facts_from_clusters.py \
+	--clusters data/valid_cluster_results_recluster_gpu.json \
+	--out data/valid_facts_results_recluster_gpu.json \
+	--meta data/valid_facts_results_recluster_gpu_meta.json
+python pipeline/build_dfi_from_splits.py \
+	--facts data/valid_facts_results_recluster_gpu.json \
+	--split-dir data/valid_triplet_splits \
+	--out-dir data/valid_dfi_splits_recluster_gpu
 ```
-**Output:** `data/bias_triplets.json`
 
----
+### 2) Run active experiments
 
-#### `parse_rst.py`
-Loads each article referenced in `bias_triplets.json`, normalizes its text (Unicode cleanup, whitespace), and runs it through the ISANLP RST parser (`isanlp_rst`, model `tchewik/isanlp_rst_v3`). Each article is parsed into Elementary Discourse Units (EDUs) and the rhetorical relations between them (with nuclearity and depth). A 5-second timeout per article guards against parser hangs. Already-parsed articles are skipped on re-runs.
-
-**Run from the project root:**
 ```bash
-python parse_rst.py
+python experiments/01_full_classification/train_dfi_alternatives.py
+python experiments/02_pure_3way_analysis/train_rst_only.py
+python experiments/03_explainability_demo/explain_predictions.py
+python experiments/run_structural_ablation.py
+python experiments/run_structural_ablation_size3.py
 ```
-**Output:** One JSON per article in `data/rst_output/<article_id>.json`, each containing:
-- `edus`: list of `{id, text, depth}`
-- `relations`: list of `{parent, left, right, relation, nuclearity}`
 
----
+## Notes on path conventions
 
-#### `main.py`
-Orchestrates cross-document fact alignment for every triplet. For each triplet, it loads the three articles' EDUs from `data/rst_output/`, instantiates a `FactCluster`, runs agglomerative clustering followed by cross-encoder refinement, and collects the resulting clusters. Prints a progress line with ETA.
+- Active scripts write outputs under `experiments/.../results` or `data/...`.
+- Formerly archived scripts now live under `experiments/...` and write outputs under `experiments/.../results`.
+- Compatibility imports via `modules.*` are provided by wrappers in [modules](modules) that re-export implementations from [pipeline/modules](pipeline/modules).
 
-**Run from the project root:**
-```bash
-python main.py
-```
-**Output:** `data/cluster_results.json` — a list of per-triplet results, each containing:
-- `triplet_idx`, `triplet` (the original file paths)
-- `clusters`: `{cluster_id: [edu_ids]}`
-- `edu_lookup`: `{edu_id: {text, bias}}`
+## Citation
 
----
-
-### Modules
-
-#### `modules/FactCluster.py`
-Core fact-alignment module. Contains all the logic for embedding and clustering EDUs across the three articles of a triplet.
-
-- Loads `all-mpnet-base-v2` (SBERT) and `cross-encoder/ms-marco-MiniLM-L-6-v2` at module import time (shared across all instances).
-- `FactCluster(articles)` — encodes all EDUs and runs agglomerative clustering (cosine distance, average linkage, threshold 0.35).
-- `refine_clusters()` — re-scores every within-cluster pair using the cross-encoder (threshold 0.7) and drops clusters that have no center-article EDU (required for later DFI computation).
-- `get_clusters()` — returns the refined cluster dict.
-
-Not intended to be run directly; imported by `main.py`.
-
----
-
-### Data
-
-#### `data/raw/`
-Raw article dataset from the [Article-Bias-Prediction](https://github.com/ramybaly/Article-Bias-Prediction) corpus (AllSides.com). Contains ~37k articles.
-
-- `data/raw/jsons/<article_id>.json` — one JSON per article with fields: `ID`, `topic`, `source`, `url`, `date`, `authors`, `title`, `content`, `content_original`, `bias_text` (left/center/right), `bias` (0/1/2).
-- `data/raw/splits/` — train/val/test split files.
-- `data/raw/README.md` — original dataset documentation.
-
-#### `data/bias_triplets.json`
-Generated by `sort_data.py`. A JSON array of triplets, each mapping bias labels to relative file paths:
-```json
-{ "left": "raw/jsons/<id>.json", "center": "raw/jsons/<id>.json", "right": "raw/jsons/<id>.json" }
-```
-Note: a small fraction (~1%) may not be true same-event triplets due to the unsupervised retrieval approach.
-
-#### `data/rst_output/`
-Generated by `parse_rst.py`. One JSON per article (keyed by `article_id`) with its EDUs and RST relations tree.
-
-#### `data/cluster_results.json`
-Generated by `main.py`. Contains per-triplet fact clusters — groups of EDUs from different articles that refer to the same fact. This is the main input for the (upcoming) prominence scoring and Document Framing Index (DFI) computation.
-
+For manuscript details, see [docs/acl_latex3.tex](docs/acl_latex3.tex).

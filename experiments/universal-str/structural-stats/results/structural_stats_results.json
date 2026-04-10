@@ -1,0 +1,731 @@
+{
+  "setup": {
+    "goal": "Test if aggregate structural statistics enable universal bias detection",
+    "approach": "Fixed-size feature vector with summary statistics",
+    "hypothesis": "Overall structural patterns distinguish biased from centrist coverage",
+    "facts": "data/valid_facts_results_recluster_gpu.json",
+    "split_dir": "data/valid_dfi_splits_recluster_gpu",
+    "rf": {
+      "n_estimators": 200,
+      "max_depth": 15,
+      "min_samples_split": 2,
+      "min_samples_leaf": 1,
+      "seed": 42
+    },
+    "created": "2026-04-08T17:26:56.925569"
+  },
+  "reference_baselines": {
+    "unordered_padded_dfi_rf": {
+      "test_acc": 0.8778
+    },
+    "unordered_bipartite_coverage": {
+      "test_acc": 0.8977
+    }
+  },
+  "experiments": {
+    "stats_basic_5_RF": {
+      "feature_set": "stats_basic_5",
+      "feature_description": "Basic 5-feature stats",
+      "model_type": "RF",
+      "input_dim": 5,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.9587852494577006,
+          "macro_f1": 0.9587375947405887,
+          "confusion_matrix": [
+            [
+              1279,
+              104
+            ],
+            [
+              10,
+              1373
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9590643274853801,
+          "macro_f1": 0.9590292990142388,
+          "confusion_matrix": [
+            [
+              159,
+              12
+            ],
+            [
+              2,
+              169
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5994318181818182,
+          "macro_f1": 0.5977142857142856,
+          "confusion_matrix": [
+            [
+              94,
+              82
+            ],
+            [
+              59,
+              117
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.9588159588159588,
+          "macro_f1": 0.958769793036433,
+          "confusion_matrix": [
+            [
+              1438,
+              116
+            ],
+            [
+              12,
+              1542
+            ]
+          ]
+        }
+      },
+      "model_path": "universal-str/structural-stats/results/models/stats_basic_5_RF.pkl",
+      "feature_importances": [
+        0.22767200292948464,
+        0.19107117907031973,
+        0.2578481434304912,
+        0.1079180586332833,
+        0.21549061593642127
+      ],
+      "delta_vs_unordered_baseline": -0.2783681818181818,
+      "delta_vs_unordered_bipartite": -0.2982681818181818
+    },
+    "stats_basic_5_LR": {
+      "feature_set": "stats_basic_5",
+      "feature_description": "Basic 5-feature stats",
+      "model_type": "LR",
+      "input_dim": 5,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.5896601590744758,
+          "macro_f1": 0.589497852369546,
+          "confusion_matrix": [
+            [
+              788,
+              595
+            ],
+            [
+              540,
+              843
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.5730994152046783,
+          "macro_f1": 0.572573189522342,
+          "confusion_matrix": [
+            [
+              104,
+              67
+            ],
+            [
+              79,
+              92
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.6107954545454546,
+          "macro_f1": 0.6105408526687287,
+          "confusion_matrix": [
+            [
+              112,
+              64
+            ],
+            [
+              73,
+              103
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.5878378378378378,
+          "macro_f1": 0.587758928908868,
+          "confusion_matrix": [
+            [
+              892,
+              662
+            ],
+            [
+              619,
+              935
+            ]
+          ]
+        }
+      },
+      "model_path": "universal-str/structural-stats/results/models/stats_basic_5_LR.pkl",
+      "feature_importances": [
+        2.5048736603247637,
+        -0.40011985454402826,
+        -0.04304427235921186,
+        -0.0003115734134936157,
+        2.1199647606220453
+      ],
+      "delta_vs_unordered_baseline": -0.26700454545454544,
+      "delta_vs_unordered_bipartite": -0.28690454545454547
+    },
+    "stats_basic_5_SVM": {
+      "feature_set": "stats_basic_5",
+      "feature_description": "Basic 5-feature stats",
+      "model_type": "SVM",
+      "input_dim": 5,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.5788141720896601,
+          "macro_f1": 0.5765782279538865,
+          "confusion_matrix": [
+            [
+              700,
+              683
+            ],
+            [
+              482,
+              901
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.564327485380117,
+          "macro_f1": 0.5629786540655044,
+          "confusion_matrix": [
+            [
+              87,
+              84
+            ],
+            [
+              65,
+              106
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5710227272727273,
+          "macro_f1": 0.5656913133360025,
+          "confusion_matrix": [
+            [
+              81,
+              95
+            ],
+            [
+              56,
+              120
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.5772200772200772,
+          "macro_f1": 0.5750910598231409,
+          "confusion_matrix": [
+            [
+              787,
+              767
+            ],
+            [
+              547,
+              1007
+            ]
+          ]
+        }
+      },
+      "model_path": "universal-str/structural-stats/results/models/stats_basic_5_SVM.pkl",
+      "feature_importances": [],
+      "delta_vs_unordered_baseline": -0.30677727272727273,
+      "delta_vs_unordered_bipartite": -0.32667727272727276
+    },
+    "stats_extended_10_RF": {
+      "feature_set": "stats_extended_10",
+      "feature_description": "Extended 10-feature stats",
+      "model_type": "RF",
+      "input_dim": 10,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.9804772234273319,
+          "macro_f1": 0.9804718224416367,
+          "confusion_matrix": [
+            [
+              1333,
+              50
+            ],
+            [
+              4,
+              1379
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9941520467836257,
+          "macro_f1": 0.9941518467852257,
+          "confusion_matrix": [
+            [
+              169,
+              2
+            ],
+            [
+              0,
+              171
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.6164772727272727,
+          "macro_f1": 0.6163255419643938,
+          "confusion_matrix": [
+            [
+              105,
+              71
+            ],
+            [
+              64,
+              112
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.9819819819819819,
+          "macro_f1": 0.9819776833420313,
+          "confusion_matrix": [
+            [
+              1502,
+              52
+            ],
+            [
+              4,
+              1550
+            ]
+          ]
+        }
+      },
+      "model_path": "universal-str/structural-stats/results/models/stats_extended_10_RF.pkl",
+      "feature_importances": [
+        0.10077852348434606,
+        0.10953836381516123,
+        0.12379173130292533,
+        0.10250451307681444,
+        0.10816459964015662,
+        0.13320813920625194,
+        0.14818662970139607,
+        0.06282611748877479,
+        0.0,
+        0.11100138228417347
+      ],
+      "delta_vs_unordered_baseline": -0.2613227272727273,
+      "delta_vs_unordered_bipartite": -0.28122272727272735
+    },
+    "stats_extended_10_LR": {
+      "feature_set": "stats_extended_10",
+      "feature_description": "Extended 10-feature stats",
+      "model_type": "LR",
+      "input_dim": 10,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.5950831525668836,
+          "macro_f1": 0.5950778599900453,
+          "confusion_matrix": [
+            [
+              828,
+              555
+            ],
+            [
+              565,
+              818
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.5906432748538012,
+          "macro_f1": 0.5899561523705125,
+          "confusion_matrix": [
+            [
+              108,
+              63
+            ],
+            [
+              77,
+              94
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.6278409090909091,
+          "macro_f1": 0.6262451874366768,
+          "confusion_matrix": [
+            [
+              122,
+              54
+            ],
+            [
+              77,
+              99
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.5945945945945946,
+          "macro_f1": 0.5945704190706204,
+          "confusion_matrix": [
+            [
+              936,
+              618
+            ],
+            [
+              642,
+              912
+            ]
+          ]
+        }
+      },
+      "model_path": "universal-str/structural-stats/results/models/stats_extended_10_LR.pkl",
+      "feature_importances": [
+        1.1777349878845993,
+        0.7787358692608909,
+        1.1096039325784433,
+        0.556633705721273,
+        -0.2903084863742814,
+        -0.034531257128812345,
+        -0.0677481615214056,
+        0.002152359858638922,
+        0.0,
+        1.041948902462996
+      ],
+      "delta_vs_unordered_baseline": -0.24995909090909096,
+      "delta_vs_unordered_bipartite": -0.269859090909091
+    },
+    "stats_extended_10_SVM": {
+      "feature_set": "stats_extended_10",
+      "feature_description": "Extended 10-feature stats",
+      "model_type": "SVM",
+      "input_dim": 10,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.6080983369486623,
+          "macro_f1": 0.6026462473064415,
+          "confusion_matrix": [
+            [
+              679,
+              704
+            ],
+            [
+              380,
+              1003
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.6111111111111112,
+          "macro_f1": 0.60699504920554,
+          "confusion_matrix": [
+            [
+              87,
+              84
+            ],
+            [
+              49,
+              122
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.6193181818181818,
+          "macro_f1": 0.6132756132756133,
+          "confusion_matrix": [
+            [
+              87,
+              89
+            ],
+            [
+              45,
+              131
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.6084298584298584,
+          "macro_f1": 0.6031348106446239,
+          "confusion_matrix": [
+            [
+              766,
+              788
+            ],
+            [
+              429,
+              1125
+            ]
+          ]
+        }
+      },
+      "model_path": "universal-str/structural-stats/results/models/stats_extended_10_SVM.pkl",
+      "feature_importances": [],
+      "delta_vs_unordered_baseline": -0.25848181818181826,
+      "delta_vs_unordered_bipartite": -0.2783818181818183
+    },
+    "stats_role_aware_RF": {
+      "feature_set": "stats_role_aware",
+      "feature_description": "Role-aware stats (nucleus/satellite)",
+      "model_type": "RF",
+      "input_dim": 10,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.9840925524222705,
+          "macro_f1": 0.9840895494915098,
+          "confusion_matrix": [
+            [
+              1342,
+              41
+            ],
+            [
+              3,
+              1380
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9970760233918129,
+          "macro_f1": 0.997075998392654,
+          "confusion_matrix": [
+            [
+              170,
+              1
+            ],
+            [
+              0,
+              171
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.6392045454545454,
+          "macro_f1": 0.6379158128346144,
+          "confusion_matrix": [
+            [
+              102,
+              74
+            ],
+            [
+              53,
+              123
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.9855212355212355,
+          "macro_f1": 0.9855189553519761,
+          "confusion_matrix": [
+            [
+              1512,
+              42
+            ],
+            [
+              3,
+              1551
+            ]
+          ]
+        }
+      },
+      "model_path": "universal-str/structural-stats/results/models/stats_role_aware_RF.pkl",
+      "feature_importances": [
+        0.12968952514291324,
+        0.10580633581290949,
+        0.14543912845274723,
+        0.05810410411749944,
+        0.12508812851328718,
+        0.06951385151321973,
+        0.06793110966728225,
+        0.10980503723961055,
+        0.12767923853029753,
+        0.060943541010233415
+      ],
+      "delta_vs_unordered_baseline": -0.2385954545454546,
+      "delta_vs_unordered_bipartite": -0.25849545454545464
+    },
+    "stats_role_aware_LR": {
+      "feature_set": "stats_role_aware",
+      "feature_description": "Role-aware stats (nucleus/satellite)",
+      "model_type": "LR",
+      "input_dim": 10,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.5824295010845987,
+          "macro_f1": 0.5822874928659265,
+          "confusion_matrix": [
+            [
+              780,
+              603
+            ],
+            [
+              552,
+              831
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.5964912280701754,
+          "macro_f1": 0.5964360228477614,
+          "confusion_matrix": [
+            [
+              104,
+              67
+            ],
+            [
+              71,
+              100
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5994318181818182,
+          "macro_f1": 0.5984953282368645,
+          "confusion_matrix": [
+            [
+              114,
+              62
+            ],
+            [
+              79,
+              97
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.583976833976834,
+          "macro_f1": 0.5838816748304807,
+          "confusion_matrix": [
+            [
+              884,
+              670
+            ],
+            [
+              623,
+              931
+            ]
+          ]
+        }
+      },
+      "model_path": "universal-str/structural-stats/results/models/stats_role_aware_LR.pkl",
+      "feature_importances": [
+        2.5442197785708567,
+        -0.2092334350947077,
+        -0.03920151977314402,
+        -0.024807228576239366,
+        1.9094889340721666,
+        -0.027175534633235094,
+        -0.02984851000748806,
+        0.08941581266330667,
+        0.04255515002513772,
+        -0.08961264786750975
+      ],
+      "delta_vs_unordered_baseline": -0.2783681818181818,
+      "delta_vs_unordered_bipartite": -0.2982681818181818
+    },
+    "stats_role_aware_SVM": {
+      "feature_set": "stats_role_aware",
+      "feature_description": "Role-aware stats (nucleus/satellite)",
+      "model_type": "SVM",
+      "input_dim": 10,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.5929139551699205,
+          "macro_f1": 0.5916481361052256,
+          "confusion_matrix": [
+            [
+              743,
+              640
+            ],
+            [
+              486,
+              897
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.6052631578947368,
+          "macro_f1": 0.6046919816772978,
+          "confusion_matrix": [
+            [
+              97,
+              74
+            ],
+            [
+              61,
+              110
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5909090909090909,
+          "macro_f1": 0.5879158401352802,
+          "confusion_matrix": [
+            [
+              89,
+              87
+            ],
+            [
+              57,
+              119
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.5942728442728443,
+          "macro_f1": 0.593098053058756,
+          "confusion_matrix": [
+            [
+              840,
+              714
+            ],
+            [
+              547,
+              1007
+            ]
+          ]
+        }
+      },
+      "model_path": "universal-str/structural-stats/results/models/stats_role_aware_SVM.pkl",
+      "feature_importances": [],
+      "delta_vs_unordered_baseline": -0.2868909090909091,
+      "delta_vs_unordered_bipartite": -0.3067909090909091
+    }
+  }
+}

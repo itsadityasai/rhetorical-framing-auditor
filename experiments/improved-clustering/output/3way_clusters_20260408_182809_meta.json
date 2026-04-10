@@ -1,0 +1,44 @@
+{
+  "script": "run_3way_clustering.py",
+  "approach": "anchor-based 3-way clustering",
+  "description": "Uses center EDUs as anchors. For each center EDU, finds best matching left and right EDUs above threshold. Only keeps clusters where all 3 biases are present. Guarantees 100% 3-way cluster coverage.",
+  "params": {
+    "cosine_threshold": 0.65,
+    "cross_encoder_threshold": 0.5,
+    "allow_multiple_matches": true,
+    "sbert_model": "sentence-transformers/all-mpnet-base-v2",
+    "cross_encoder_model": "cross-encoder/ms-marco-MiniLM-L-6-v2"
+  },
+  "input": {
+    "triplets_file": "../data/valid_triplets.json",
+    "total_triplets": 1748
+  },
+  "output": {
+    "clusters_file": "output/3way_clusters.json",
+    "triplets_with_clusters": 1321,
+    "triplets_empty": 427,
+    "triplets_error": 0,
+    "total_clusters": 5216
+  },
+  "edu_filter_stats": {
+    "input_edus": 630516,
+    "kept_edus": 548960,
+    "dropped_edus": 81556,
+    "drop_ratio": 0.12934802606119433
+  },
+  "clustering_stats": {
+    "center_edus": 175322,
+    "left_edus": 221126,
+    "right_edus": 152512,
+    "clusters_formed": 5216,
+    "center_without_left_match": 150779,
+    "center_without_right_match": 19327,
+    "center_without_both": 131381
+  },
+  "coverage": {
+    "3way_clusters": 5216,
+    "3way_ratio": 1.0,
+    "note": "All clusters guaranteed to have all 3 biases (left, center, right)"
+  },
+  "elapsed_seconds": 1889.539
+}

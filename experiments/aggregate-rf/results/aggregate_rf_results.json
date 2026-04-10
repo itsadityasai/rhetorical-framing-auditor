@@ -1,0 +1,735 @@
+{
+  "setup": {
+    "goal": "Test if Random Forest can improve aggregate feature classification",
+    "hypothesis": "RF may capture non-linear patterns in aggregate features better than SVM",
+    "facts": "data/valid_facts_results_recluster_gpu.json",
+    "split_dir": "data/valid_dfi_splits_recluster_gpu",
+    "rf": {
+      "n_estimators": 200,
+      "max_depth": null,
+      "min_samples_split": 5,
+      "min_samples_leaf": 2,
+      "seed": 42
+    },
+    "tuned": false,
+    "cv_folds": 5,
+    "created": "2026-04-08T12:25:46.151877"
+  },
+  "aggregate_features": {
+    "basic_9": [
+      "mean",
+      "std",
+      "min",
+      "max",
+      "skewness",
+      "pct_positive",
+      "pct_zero",
+      "pct_negative",
+      "log_num_clusters"
+    ],
+    "extended_14": [
+      "mean",
+      "std",
+      "min",
+      "max",
+      "skewness",
+      "pct_positive",
+      "pct_zero",
+      "pct_negative",
+      "log_num_clusters",
+      "kurtosis",
+      "range",
+      "iqr",
+      "median",
+      "sum_abs"
+    ]
+  },
+  "reference_baselines": {
+    "aggregate_svm_best": {
+      "test_acc": 0.6136,
+      "test_f1": 0.6065
+    },
+    "coverage_only_padded_svm": {
+      "test_acc": 0.7528,
+      "test_f1": 0.7504
+    },
+    "padded_dfi_rf_tuned": {
+      "test_acc": 0.8778,
+      "test_f1": 0.876
+    }
+  },
+  "experiments": {
+    "agg_coverage": {
+      "description": "Aggregate features from coverage-only DFI (9 features)",
+      "input_dim": 9,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.6146059291395517,
+          "macro_f1": 0.6140603198454437,
+          "confusion_matrix": [
+            [
+              902,
+              481
+            ],
+            [
+              585,
+              798
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.6491228070175439,
+          "macro_f1": 0.6470831040176115,
+          "confusion_matrix": [
+            [
+              124,
+              47
+            ],
+            [
+              73,
+              98
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5482954545454546,
+          "macro_f1": 0.5476785064856347,
+          "confusion_matrix": [
+            [
+              103,
+              73
+            ],
+            [
+              86,
+              90
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.6184041184041184,
+          "macro_f1": 0.6177353298286674,
+          "confusion_matrix": [
+            [
+              1026,
+              528
+            ],
+            [
+              658,
+              896
+            ]
+          ]
+        }
+      },
+      "model_path": "aggregate-rf/results/models/agg_coverage.pkl",
+      "best_params": {
+        "n_estimators": 200,
+        "max_depth": null,
+        "min_samples_split": 5,
+        "min_samples_leaf": 2
+      },
+      "feature_importances": [
+        0.12960939147021266,
+        0.10892835076413786,
+        0.0022351363262429055,
+        0.0019005781940628983,
+        0.11855016486922844,
+        0.0,
+        0.12440196917698286,
+        0.13168449306505683,
+        0.3826899161340756
+      ],
+      "delta_vs_aggregate_svm": {
+        "test_acc": -0.06530454545454545,
+        "test_f1": -0.058821493514365386
+      },
+      "delta_vs_padded_rf": {
+        "test_acc": -0.32950454545454544,
+        "test_f1": -0.32832149351436535
+      }
+    },
+    "agg_coverage_norm": {
+      "description": "Aggregate features from NORMALIZED coverage DFI (9 features)",
+      "input_dim": 9,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.7342733188720173,
+          "macro_f1": 0.733972581121934,
+          "confusion_matrix": [
+            [
+              1062,
+              321
+            ],
+            [
+              414,
+              969
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.7280701754385965,
+          "macro_f1": 0.7277885709884204,
+          "confusion_matrix": [
+            [
+              130,
+              41
+            ],
+            [
+              52,
+              119
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.6505681818181818,
+          "macro_f1": 0.6504976630421622,
+          "confusion_matrix": [
+            [
+              117,
+              59
+            ],
+            [
+              64,
+              112
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.7335907335907336,
+          "macro_f1": 0.7332920987044256,
+          "confusion_matrix": [
+            [
+              1192,
+              362
+            ],
+            [
+              466,
+              1088
+            ]
+          ]
+        }
+      },
+      "model_path": "aggregate-rf/results/models/agg_coverage_norm.pkl",
+      "best_params": {
+        "n_estimators": 200,
+        "max_depth": null,
+        "min_samples_split": 5,
+        "min_samples_leaf": 2
+      },
+      "feature_importances": [
+        0.4478645446182307,
+        0.0009597393118618432,
+        0.07532552149006429,
+        0.07165599739061698,
+        0.07197183481537182,
+        0.0726791005859224,
+        0.0006285973379325426,
+        0.0744787472273907,
+        0.18443591722260866
+      ],
+      "delta_vs_aggregate_svm": {
+        "test_acc": 0.03696818181818173,
+        "test_f1": 0.04399766304216213
+      },
+      "delta_vs_padded_rf": {
+        "test_acc": -0.22723181818181826,
+        "test_f1": -0.22550233695783783
+      }
+    },
+    "agg_log_depth": {
+      "description": "Aggregate features from log-depth DFI (9 features)",
+      "input_dim": 9,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.9757772957339118,
+          "macro_f1": 0.9757769126353564,
+          "confusion_matrix": [
+            [
+              1344,
+              39
+            ],
+            [
+              28,
+              1355
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9912280701754386,
+          "macro_f1": 0.9912273951519815,
+          "confusion_matrix": [
+            [
+              171,
+              0
+            ],
+            [
+              3,
+              168
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5596590909090909,
+          "macro_f1": 0.5594848815146745,
+          "confusion_matrix": [
+            [
+              102,
+              74
+            ],
+            [
+              81,
+              95
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.9774774774774775,
+          "macro_f1": 0.9774773282537579,
+          "confusion_matrix": [
+            [
+              1515,
+              39
+            ],
+            [
+              31,
+              1523
+            ]
+          ]
+        }
+      },
+      "model_path": "aggregate-rf/results/models/agg_log_depth.pkl",
+      "best_params": {
+        "n_estimators": 200,
+        "max_depth": null,
+        "min_samples_split": 5,
+        "min_samples_leaf": 2
+      },
+      "feature_importances": [
+        0.1719941026117016,
+        0.1722558776340854,
+        0.08675270072678509,
+        0.13698215095641447,
+        0.15007023434302236,
+        0.0715864176337306,
+        0.046778089374922394,
+        0.07533875840602323,
+        0.08824166831331481
+      ],
+      "delta_vs_aggregate_svm": {
+        "test_acc": -0.053940909090909095,
+        "test_f1": -0.04701511848532558
+      },
+      "delta_vs_padded_rf": {
+        "test_acc": -0.3181409090909091,
+        "test_f1": -0.31651511848532554
+      }
+    },
+    "agg_log_depth_norm": {
+      "description": "Aggregate features from NORMALIZED log-depth DFI (9 features)",
+      "input_dim": 9,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.9323933477946493,
+          "macro_f1": 0.9322721667886376,
+          "confusion_matrix": [
+            [
+              1348,
+              35
+            ],
+            [
+              152,
+              1231
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9415204678362573,
+          "macro_f1": 0.9414223074815018,
+          "confusion_matrix": [
+            [
+              168,
+              3
+            ],
+            [
+              17,
+              154
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5454545454545454,
+          "macro_f1": 0.5450873962069077,
+          "confusion_matrix": [
+            [
+              101,
+              75
+            ],
+            [
+              85,
+              91
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.9333976833976834,
+          "macro_f1": 0.933279149614991,
+          "confusion_matrix": [
+            [
+              1516,
+              38
+            ],
+            [
+              169,
+              1385
+            ]
+          ]
+        }
+      },
+      "model_path": "aggregate-rf/results/models/agg_log_depth_norm.pkl",
+      "best_params": {
+        "n_estimators": 200,
+        "max_depth": null,
+        "min_samples_split": 5,
+        "min_samples_leaf": 2
+      },
+      "feature_importances": [
+        0.17519034161181413,
+        0.0001479539482722351,
+        0.20702443500547654,
+        0.19917954156537312,
+        0.19538311628673294,
+        0.06752683603690174,
+        0.00016626118044145395,
+        0.06650222188555811,
+        0.08887929247942976
+      ],
+      "delta_vs_aggregate_svm": {
+        "test_acc": -0.06814545454545462,
+        "test_f1": -0.061412603793092324
+      },
+      "delta_vs_padded_rf": {
+        "test_acc": -0.3323454545454546,
+        "test_f1": -0.3309126037930923
+      }
+    },
+    "agg_combined": {
+      "description": "Combined coverage + structural aggregate (18 features)",
+      "input_dim": 18,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.967823571945047,
+          "macro_f1": 0.9678232312835142,
+          "confusion_matrix": [
+            [
+              1334,
+              49
+            ],
+            [
+              40,
+              1343
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9883040935672515,
+          "macro_f1": 0.9883036935704514,
+          "confusion_matrix": [
+            [
+              170,
+              1
+            ],
+            [
+              3,
+              168
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5511363636363636,
+          "macro_f1": 0.5510059095165821,
+          "confusion_matrix": [
+            [
+              100,
+              76
+            ],
+            [
+              82,
+              94
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.9700772200772201,
+          "macro_f1": 0.9700770682889536,
+          "confusion_matrix": [
+            [
+              1504,
+              50
+            ],
+            [
+              43,
+              1511
+            ]
+          ]
+        }
+      },
+      "model_path": "aggregate-rf/results/models/agg_combined.pkl",
+      "best_params": {
+        "n_estimators": 200,
+        "max_depth": null,
+        "min_samples_split": 5,
+        "min_samples_leaf": 2
+      },
+      "feature_importances": [
+        0.031213425187631243,
+        0.026924803952754543,
+        0.0005381195065279485,
+        0.0004205060755863131,
+        0.027006780282005507,
+        0.0,
+        0.031070890384423087,
+        0.030313396891094798,
+        0.05384588048508376,
+        0.13322522427445757,
+        0.13690692836463358,
+        0.07811960771953974,
+        0.11616532154954846,
+        0.11345001805614521,
+        0.06317707254980716,
+        0.04037829971082281,
+        0.06314368644880476,
+        0.05410003856113356
+      ],
+      "delta_vs_aggregate_svm": {
+        "test_acc": -0.06246363636363639,
+        "test_f1": -0.05549409048341791
+      },
+      "delta_vs_padded_rf": {
+        "test_acc": -0.3266636363636364,
+        "test_f1": -0.3249940904834179
+      }
+    },
+    "agg_extended": {
+      "description": "Extended aggregate features from log-depth DFI (14 features)",
+      "input_dim": 14,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.9804772234273319,
+          "macro_f1": 0.9804768559691694,
+          "confusion_matrix": [
+            [
+              1350,
+              33
+            ],
+            [
+              21,
+              1362
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9941520467836257,
+          "macro_f1": 0.9941518467852257,
+          "confusion_matrix": [
+            [
+              171,
+              0
+            ],
+            [
+              2,
+              169
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5681818181818182,
+          "macro_f1": 0.5681678773204197,
+          "confusion_matrix": [
+            [
+              99,
+              77
+            ],
+            [
+              75,
+              101
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.9819819819819819,
+          "macro_f1": 0.9819817954516374,
+          "confusion_matrix": [
+            [
+              1521,
+              33
+            ],
+            [
+              23,
+              1531
+            ]
+          ]
+        }
+      },
+      "model_path": "aggregate-rf/results/models/agg_extended.pkl",
+      "best_params": {
+        "n_estimators": 200,
+        "max_depth": null,
+        "min_samples_split": 5,
+        "min_samples_leaf": 2
+      },
+      "feature_importances": [
+        0.09575579207826469,
+        0.0965717158880785,
+        0.049779863732860447,
+        0.0815200149643645,
+        0.08175413879346302,
+        0.04606907260163007,
+        0.03176696501408104,
+        0.04934626163144918,
+        0.0475694950648557,
+        0.07221449877408484,
+        0.0830804201105669,
+        0.08901211034479092,
+        0.0845885772789408,
+        0.0909710737225694
+      ],
+      "delta_vs_aggregate_svm": {
+        "test_acc": -0.0454181818181818,
+        "test_f1": -0.038332122679580305
+      },
+      "delta_vs_padded_rf": {
+        "test_acc": -0.3096181818181818,
+        "test_f1": -0.30783212267958027
+      }
+    },
+    "agg_combined_extended": {
+      "description": "Combined coverage + extended structural (23 features)",
+      "input_dim": 23,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.9783080260303688,
+          "macro_f1": 0.9783076177435217,
+          "confusion_matrix": [
+            [
+              1347,
+              36
+            ],
+            [
+              24,
+              1359
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9912280701754386,
+          "macro_f1": 0.9912279951779623,
+          "confusion_matrix": [
+            [
+              170,
+              1
+            ],
+            [
+              2,
+              169
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5596590909090909,
+          "macro_f1": 0.5595702257848385,
+          "confusion_matrix": [
+            [
+              101,
+              75
+            ],
+            [
+              80,
+              96
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.9797297297297297,
+          "macro_f1": 0.9797294758147461,
+          "confusion_matrix": [
+            [
+              1517,
+              37
+            ],
+            [
+              26,
+              1528
+            ]
+          ]
+        }
+      },
+      "model_path": "aggregate-rf/results/models/agg_combined_extended.pkl",
+      "best_params": {
+        "n_estimators": 200,
+        "max_depth": null,
+        "min_samples_split": 5,
+        "min_samples_leaf": 2
+      },
+      "feature_importances": [
+        0.02128970115248387,
+        0.01958726067913056,
+        0.000331128682271493,
+        0.00041424860080916726,
+        0.01997875184348202,
+        0.0,
+        0.021566736025110163,
+        0.02274599595012381,
+        0.033849928894467606,
+        0.08051059665689733,
+        0.08442436562226999,
+        0.04674929780629603,
+        0.07293380797778813,
+        0.06913568182965812,
+        0.041847092024684264,
+        0.02793815694803887,
+        0.0432425704770797,
+        0.03414231531322596,
+        0.058198923237403194,
+        0.07443677155427822,
+        0.07720793547971824,
+        0.07294852387059401,
+        0.07652020937418924
+      ],
+      "delta_vs_aggregate_svm": {
+        "test_acc": -0.053940909090909095,
+        "test_f1": -0.046929774215161535
+      },
+      "delta_vs_padded_rf": {
+        "test_acc": -0.3181409090909091,
+        "test_f1": -0.3164297742151615
+      }
+    }
+  }
+}

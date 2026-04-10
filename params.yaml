@@ -1,0 +1,137 @@
+paths:
+  dirs:
+    data: "data"
+    raw_jsons: "data/raw/jsons"
+    remaining_raw_jsons: "data/remaining_raw_jsons"
+    rst_output: "data/rst_output"
+    dfi_splits: "data/dfi_splits"
+    bert_baseline: "data/bert_baseline"
+    ablation: "data/ablation"
+  files:
+    triplets: "data/bias_triplets.json"
+    clusters: "data/cluster_results.json"
+    facts: "data/facts_results.json"
+    dfi_train: "data/dfi_splits/train.json"
+    dfi_val: "data/dfi_splits/val.json"
+    dfi_test: "data/dfi_splits/test.json"
+    dfi_meta: "data/dfi_splits/meta.json"
+    bert_metrics: "data/bert_baseline/metrics.json"
+    svm_sweep_results: "data/svm_sweep_results.json"
+    ablation_nuclearity: "data/ablation/nuclearity_ablation.json"
+
+models:
+  sbert:
+    model_name: "sentence-transformers/all-mpnet-base-v2"
+    encode_batch_size: 64
+    normalize_embeddings: true
+  cross_encoder:
+    model_name: "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    predict_batch_size: 64
+
+fact_clustering:
+  min_articles_per_triplet: 2
+  refine_threshold: 0.7
+  singleton_keep_bias: "center"
+  min_biases_per_cluster: 2
+  edu_filter:
+    enabled: true
+    min_tokens: 3
+    drop_punct_only: true
+    drop_url_like: true
+    drop_social_meta: true
+    drop_short_attribution: true
+    short_attribution_max_tokens: 8
+    boilerplate_phrases:
+      - "story highlights"
+      - "just watched"
+      - "must watch"
+      - "read more"
+      - "add interest"
+      - "more :"
+      - "follow us"
+      - "newsletter"
+  agglomerative:
+    metric: "cosine"
+    linkage: "average"
+    distance_threshold: 0.35
+    n_clusters: null
+  pair_validation:
+    threshold: 0.7
+
+dfi:
+  alpha: 0.8
+  gamma: 0.5
+  splits:
+    train_ratio: 0.8
+    val_ratio: 0.1
+    test_ratio: 0.1
+    random_seed: 782
+    ratio_tolerance: 1.0e-8
+
+sort_data:
+  input_glob: "raw/jsons/*.json"
+  text_char_limit: 1000
+  encode_batch_size: 64
+  nearest_neighbors:
+    k: 10
+    metric: "cosine"
+    algorithm: "brute"
+  similarity_threshold: 0.8
+  output_path: "bias_triplets.json"
+
+svm:
+  train_path: "data/dfi_splits/train.json"
+  val_path: "data/dfi_splits/val.json"
+  aggregate_feature_options: [false, true]
+  initial_aggregate_features: false
+  model:
+    kernel: "rbf"
+    C: 10
+    gamma: 0.1
+    degree: 3
+  grid_search:
+    c_values: [0.01, 0.1, 1, 10, 100]
+    gamma_values: [0.01, 0.1, 1, 10, 100]
+    n_jobs: -1
+    verbose: 3
+    run_initial_test: true
+    run_grid_search: true
+
+ablation:
+  alpha: 0.8
+  baseline_gamma: 0.5
+  ablation_gamma: 1.0
+  svm:
+    kernel: "rbf"
+    C: 10
+    gamma: 0.1
+    degree: 3
+
+bert_baseline:
+  model_name: "roberta-base"
+  max_length: 512
+  seed: 78
+  batch_size: 12
+  learning_rate: 2.0e-5
+  epochs: 4
+  label_map:
+    left: 0
+    center: 1
+    right: 2
+  training_args:
+    eval_strategy: "epoch"
+    save_strategy: "epoch"
+    logging_steps: 50
+    load_best_model_at_end: true
+    metric_for_best_model: "macro_f1"
+    report_to: "none"
+    fp16: true
+
+parse_rst:
+  timeout_seconds: 5
+  progress_every_triplets: 10
+  parser:
+    hf_model_name: "tchewik/isanlp_rst_v3"
+    hf_model_version: "unirst"
+    cuda_device: 0
+    relinventory: "eng.erst.gum"

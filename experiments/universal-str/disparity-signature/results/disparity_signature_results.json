@@ -1,0 +1,472 @@
+{
+  "setup": {
+    "goal": "Test if sorting deltas by magnitude enables universal pattern learning",
+    "approach": "Sort prominence deltas descending to create 'disparity signature'",
+    "hypothesis": "The shape/distribution of deltas is topic-independent",
+    "max_features": 50,
+    "facts": "data/valid_facts_results_recluster_gpu.json",
+    "split_dir": "data/valid_dfi_splits_recluster_gpu",
+    "rf": {
+      "n_estimators": 200,
+      "max_depth": 15,
+      "min_samples_split": 2,
+      "min_samples_leaf": 1,
+      "seed": 42
+    },
+    "created": "2026-04-08T17:26:48.248371"
+  },
+  "reference_baselines": {
+    "unordered_padded_dfi_rf": {
+      "test_acc": 0.8778
+    },
+    "unordered_bipartite_coverage": {
+      "test_acc": 0.8977
+    }
+  },
+  "experiments": {
+    "disparity_basic": {
+      "description": "Basic sorted deltas",
+      "input_dim": 50,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.8308026030368764,
+          "macro_f1": 0.8276516200498477,
+          "confusion_matrix": [
+            [
+              962,
+              421
+            ],
+            [
+              47,
+              1336
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.8625730994152047,
+          "macro_f1": 0.8605692079491338,
+          "confusion_matrix": [
+            [
+              127,
+              44
+            ],
+            [
+              3,
+              168
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5823863636363636,
+          "macro_f1": 0.5799147554292673,
+          "confusion_matrix": [
+            [
+              89,
+              87
+            ],
+            [
+              60,
+              116
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.8342985842985843,
+          "macro_f1": 0.8312906148856398,
+          "confusion_matrix": [
+            [
+              1089,
+              465
+            ],
+            [
+              50,
+              1504
+            ]
+          ]
+        }
+      },
+      "model_path": "universal-str/disparity-signature/results/models/disparity_basic.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.16725965299422862
+        ],
+        [
+          1,
+          0.14787383498413362
+        ],
+        [
+          2,
+          0.11757980407244875
+        ],
+        [
+          3,
+          0.10147779628141478
+        ],
+        [
+          4,
+          0.0925597718496068
+        ],
+        [
+          5,
+          0.0753225428434351
+        ],
+        [
+          6,
+          0.06005564240591712
+        ],
+        [
+          7,
+          0.05047762721464771
+        ],
+        [
+          8,
+          0.034901867228769534
+        ],
+        [
+          9,
+          0.03067421565974673
+        ]
+      ],
+      "delta_vs_unordered_baseline": -0.2954136363636364,
+      "delta_vs_unordered_bipartite": -0.3153136363636364
+    },
+    "disparity_with_omissions": {
+      "description": "Sorted deltas with omission penalties",
+      "input_dim": 50,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.9215473608098337,
+          "macro_f1": 0.9215468583491695,
+          "confusion_matrix": [
+            [
+              1278,
+              105
+            ],
+            [
+              112,
+              1271
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9444444444444444,
+          "macro_f1": 0.9444439694604276,
+          "confusion_matrix": [
+            [
+              161,
+              10
+            ],
+            [
+              9,
+              162
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5653409090909091,
+          "macro_f1": 0.5652531906134212,
+          "confusion_matrix": [
+            [
+              97,
+              79
+            ],
+            [
+              74,
+              102
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.924066924066924,
+          "macro_f1": 0.9240666410756191,
+          "confusion_matrix": [
+            [
+              1439,
+              115
+            ],
+            [
+              121,
+              1433
+            ]
+          ]
+        }
+      },
+      "model_path": "universal-str/disparity-signature/results/models/disparity_with_omissions.pkl",
+      "feature_importances_top10": [
+        [
+          0,
+          0.19330908826532972
+        ],
+        [
+          1,
+          0.15032923720870822
+        ],
+        [
+          2,
+          0.11709955761680031
+        ],
+        [
+          3,
+          0.09932999393035288
+        ],
+        [
+          4,
+          0.07921999714865711
+        ],
+        [
+          5,
+          0.06275976671528385
+        ],
+        [
+          6,
+          0.05272263693281886
+        ],
+        [
+          7,
+          0.040255540999008514
+        ],
+        [
+          8,
+          0.03201196620391377
+        ],
+        [
+          9,
+          0.025973891713308647
+        ]
+      ],
+      "delta_vs_unordered_baseline": -0.31245909090909096,
+      "delta_vs_unordered_bipartite": -0.332359090909091
+    },
+    "disparity_binned": {
+      "description": "Binned percentile signature (10 bins)",
+      "input_dim": 10,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.9454085321764281,
+          "macro_f1": 0.9454059561630478,
+          "confusion_matrix": [
+            [
+              1298,
+              85
+            ],
+            [
+              66,
+              1317
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9649122807017544,
+          "macro_f1": 0.9649110807113543,
+          "confusion_matrix": [
+            [
+              164,
+              7
+            ],
+            [
+              5,
+              166
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5852272727272727,
+          "macro_f1": 0.5851737052821904,
+          "confusion_matrix": [
+            [
+              101,
+              75
+            ],
+            [
+              71,
+              105
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.9475546975546976,
+          "macro_f1": 0.9475523031200336,
+          "confusion_matrix": [
+            [
+              1462,
+              92
+            ],
+            [
+              71,
+              1483
+            ]
+          ]
+        }
+      },
+      "model_path": "universal-str/disparity-signature/results/models/disparity_binned.pkl",
+      "feature_importances_top10": [
+        [
+          1,
+          0.18266116913259214
+        ],
+        [
+          3,
+          0.15028233213791983
+        ],
+        [
+          2,
+          0.14301922941879783
+        ],
+        [
+          4,
+          0.1360081297202
+        ],
+        [
+          0,
+          0.09529423597341742
+        ],
+        [
+          5,
+          0.07609121667122615
+        ],
+        [
+          6,
+          0.07539627373592132
+        ],
+        [
+          7,
+          0.06524487951198132
+        ],
+        [
+          9,
+          0.04275196251331603
+        ],
+        [
+          8,
+          0.03325057118462782
+        ]
+      ],
+      "delta_vs_unordered_baseline": -0.2925727272727273,
+      "delta_vs_unordered_bipartite": -0.31247272727272735
+    },
+    "disparity_with_stats": {
+      "description": "Sorted deltas + summary statistics",
+      "input_dim": 50,
+      "metrics": {
+        "train": {
+          "samples": 2766,
+          "accuracy": 0.9526391901663052,
+          "macro_f1": 0.9526353208853549,
+          "confusion_matrix": [
+            [
+              1305,
+              78
+            ],
+            [
+              53,
+              1330
+            ]
+          ]
+        },
+        "val": {
+          "samples": 342,
+          "accuracy": 0.9649122807017544,
+          "macro_f1": 0.9649110807113543,
+          "confusion_matrix": [
+            [
+              164,
+              7
+            ],
+            [
+              5,
+              166
+            ]
+          ]
+        },
+        "test": {
+          "samples": 352,
+          "accuracy": 0.5340909090909091,
+          "macro_f1": 0.5340307374402686,
+          "confusion_matrix": [
+            [
+              92,
+              84
+            ],
+            [
+              80,
+              96
+            ]
+          ]
+        },
+        "trainval": {
+          "samples": 3108,
+          "accuracy": 0.953989703989704,
+          "macro_f1": 0.953986231401288,
+          "confusion_matrix": [
+            [
+              1469,
+              85
+            ],
+            [
+              58,
+              1496
+            ]
+          ]
+        }
+      },
+      "model_path": "universal-str/disparity-signature/results/models/disparity_with_stats.pkl",
+      "feature_importances_top10": [
+        [
+          44,
+          0.11323038598266964
+        ],
+        [
+          45,
+          0.10840680816547756
+        ],
+        [
+          46,
+          0.09872250571580057
+        ],
+        [
+          0,
+          0.09758990820177922
+        ],
+        [
+          1,
+          0.08982712135806602
+        ],
+        [
+          2,
+          0.06806653054141489
+        ],
+        [
+          3,
+          0.057238655643198195
+        ],
+        [
+          49,
+          0.04905458028536958
+        ],
+        [
+          4,
+          0.047629799024219675
+        ],
+        [
+          5,
+          0.04063671635243954
+        ]
+      ],
+      "delta_vs_unordered_baseline": -0.34370909090909096,
+      "delta_vs_unordered_bipartite": -0.363609090909091
+    }
+  }
+}

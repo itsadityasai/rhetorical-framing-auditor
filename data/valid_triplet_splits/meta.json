@@ -1,0 +1,40 @@
+{
+  "mode": "exact",
+  "input_triplets": "data/valid_triplets.json",
+  "rst_output_dir": "data/rst_output",
+  "targets": {
+    "train": 1398,
+    "val": 174,
+    "test": 176
+  },
+  "achieved": {
+    "train": 1398,
+    "val": 174,
+    "test": 176
+  },
+  "ratios": {
+    "train": 0.799771,
+    "val": 0.099542,
+    "test": 0.100686
+  },
+  "components": {
+    "count": 408,
+    "largest": 124,
+    "singletons": 174,
+    "with_missing_rst": 0
+  },
+  "docs": {
+    "unique_in_triplets": 2617,
+    "with_rst_available": 2617,
+    "missing_rst": 0,
+    "train": 1809,
+    "val": 399,
+    "test": 409
+  },
+  "overlap": {
+    "train_val": 0,
+    "train_test": 0,
+    "val_test": 0
+  },
+  "train_contains_missing_rst": 0
+}

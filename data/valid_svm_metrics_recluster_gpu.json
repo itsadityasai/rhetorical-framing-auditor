@@ -1,0 +1,69 @@
+{
+  "split_dir": "data/valid_dfi_splits_recluster_gpu",
+  "input_triplets": {
+    "train": 1383,
+    "val": 171,
+    "test": 176
+  },
+  "input_examples_binary_left_right": {
+    "train": 2766,
+    "val": 342,
+    "test": 352
+  },
+  "svm_params": {
+    "kernel": "rbf",
+    "C": 10,
+    "gamma": 0.1,
+    "degree": 3
+  },
+  "feature_mode": "raw_padded_dfi",
+  "input_dim": 69,
+  "metrics": {
+    "train": {
+      "samples": 2766,
+      "accuracy": 0.8159797541576284,
+      "macro_f1": 0.8158370359460063,
+      "confusion_matrix": [
+        [
+          1167,
+          216
+        ],
+        [
+          293,
+          1090
+        ]
+      ]
+    },
+    "val": {
+      "samples": 342,
+      "accuracy": 0.6988304093567251,
+      "macro_f1": 0.6987041868023778,
+      "confusion_matrix": [
+        [
+          116,
+          55
+        ],
+        [
+          48,
+          123
+        ]
+      ]
+    },
+    "test": {
+      "samples": 352,
+      "accuracy": 0.6704545454545454,
+      "macro_f1": 0.6701883622500081,
+      "confusion_matrix": [
+        [
+          113,
+          63
+        ],
+        [
+          53,
+          123
+        ]
+      ]
+    }
+  },
+  "testing_protocol_note": "Each triplet contributes two binary examples: left-vs-center (label 0) and right-vs-center (label 1)."
+}
