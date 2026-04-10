@@ -27,12 +27,12 @@ This repository contains the data pipeline and experiments for analyzing media b
 	- [data/ablation](data/ablation): ablation results and model checkpoints.
 
 - [docs](docs): manuscript and paper assets.
-- [presentation](presentation): slides and generated figures.
 
 ### Root-level files
 
+- report.pdf : The report of the project.
+- slides.pdf : presentation slides of the project.
 - [params.yaml](params.yaml): central configuration.
-- [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md): operational project context and artifact lineage.
 - [GPU_FRESH_CLUSTERING_TRAINING_INSTRUCTIONS.txt](GPU_FRESH_CLUSTERING_TRAINING_INSTRUCTIONS.txt): runbook for fresh clustering/training.
 
 ## Environment and execution
@@ -85,4 +85,4 @@ python experiments/run_structural_ablation_size3.py
 
 ## Citation
 
-For manuscript details, see [docs/acl_latex3.tex](docs/acl_latex3.tex).
+For manuscript details, see report.pdf.
